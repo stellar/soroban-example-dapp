@@ -1,9 +1,32 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import axios from 'axios';
+import React from 'react';
+import type { NextPage } from 'next';
+import Head from 'next/head';
+import Image from 'next/image';
+import styles from '../styles/Home.module.css';
+// TODO: Use the SDK
+// import StellarSdk from 'stellar-sdk';
 
 const Home: NextPage = () => {
+  const [value, setValue] = React.useState<any>(null);
+  
+  React.useEffect(() => {
+    (async () => {
+      let url = 'http://localhost:3000/api/horizon';
+      // const server = new StellarSdk.Server(url, { allowHttp: true });
+      const owner = 'GDUT3U3X5RID2KKXBF7GGANYH4UT3RUT4Y5KLLGHTAIOJT67UZUNQ4Y2';
+      const id = 1;
+      // TODO: Do the xdr dance here.
+      const key = "AAAABQAAAANmb28A";
+
+      const page = await axios.get(url+'/contracts', {
+        params: { owner, id, key },
+      });
+      // TODO: Parse the value_xdr here
+      setValue(page.data?._embedded?.records?.map((r: any) => r.value_xdr));
+    })();
+  }, []);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -13,44 +36,9 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+        {value?.map((v: any, key: number) => (
+          <div key={key}>{JSON.stringify(v)}</div>
+        ))}
       </main>
 
       <footer className={styles.footer}>

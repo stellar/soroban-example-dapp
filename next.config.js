@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+module.exports = {
   reactStrictMode: true,
-}
-
-module.exports = nextConfig
+    async rewrites() {
+    return [
+      {
+        source: '/api/horizon/:path*',
+        destination: 'http://localhost:8080/:path*' // Proxy to Backend
+      }
+    ]
+  }
+};
