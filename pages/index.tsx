@@ -8,6 +8,7 @@ import styles from '../styles/Home.module.css';
 // import * as StellarSdk from 'stellar-sdk';
 import * as StellarBase from 'stellar-base';
 import init, {invoke_contract} from "../../rs-stellar-wasm-browser/pkg/stellar_wasm_browser.js";
+import { ConnectButton } from "../wallet";
 
 const FACTORIAL_WASM = "AGFzbQEAAAABBgFgAX4BfgMCAQAFAwEAAQYIAX8BQYCABAsHEwIGbWVtb3J5AgAGaW52b2tlAAAKNwE1AQJ+QgAhASAAQgAgAEIAVRshAkIBIQACQANAIAIgAVENASAAIAFCAXwiAX4hAAwACwsgAAs=";
 
@@ -63,6 +64,7 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
+        <ConnectButton />
         {!value ? (
           <div>Loading...</div>
         ) : value.result ? (
