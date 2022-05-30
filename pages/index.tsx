@@ -7,6 +7,9 @@ import styles from '../styles/Home.module.css';
 // TODO: Use the SDK
 // import * as StellarSdk from 'stellar-sdk';
 import * as StellarBase from 'stellar-base';
+import init, {invoke_contract} from "../../rs-stellar-wasm-browser/pkg/stellar_wasm_browser.js";
+
+const FACTORIAL_WASM = "AGFzbQEAAAABBgFgAX4BfgMCAQAFAwEAAQYIAX8BQYCABAsHEwIGbWVtb3J5AgAGaW52b2tlAAAKNwE1AQJ+QgAhASAAQgAgAEIAVRshAkIBIQACQANAIAIgAVENASAAIAFCAXwiAX4hAAwACwsgAAs=";
 
 const Home: NextPage = () => {
   const [value, setValue] = React.useState<any>(null);
@@ -23,19 +26,31 @@ const Home: NextPage = () => {
           StellarBase.xdr.Int64.fromString("1")
         )
       ];
-      const response = await axios.post(url+'/rpc', {
-        id: 1,
-        method: "call",
-        params: {
-          contract: `${contractOwner}:${contractId}`,
-          func: "invoke",
-          xdr: StellarBase.xdr.ScVec.toXDR(args).toString('base64'),
-        }
-      });
-      let parsed = response.data?.result ? {
-        result: StellarBase.xdr.ScVal.fromXDR(response.data.result, 'base64').posI64()
-      } : response.data;
-      setValue(parsed);
+
+
+      // const args: StellarBase.xdr.ScVal[] = [];
+
+      const argsXdr = StellarBase.xdr.ScVec.toXDR(args).toString('base64');
+
+      // const response = await axios.post(url+'/rpc', {
+      //   id: 1,
+      //   method: "call",
+      //   params: {
+      //     contract: `${contractOwner}:${contractId}`,
+      //     func: "read",
+      //     xdr: argsXdr,
+      //   }
+      // });
+      // console.debug(response.data);
+      // let parsed = response.data?.result ? {
+      //   result: StellarBase.xdr.ScVal.fromXDR(response.data.result, 'base64').posI64()
+      // } : response.data;
+      // setValue(parsed);
+
+      await init();
+      const resultXdr = Buffer.from(invoke_contract(FACTORIAL_WASM, "invoke", argsXdr));
+      const result = StellarBase.xdr.ScVal.fromXDR(resultXdr, 'base64').posI64();
+      setValue({ result });
     })();
   }, []);
 
