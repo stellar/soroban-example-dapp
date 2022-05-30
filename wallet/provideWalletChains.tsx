@@ -5,7 +5,7 @@ import type { WalletChain } from './WalletChainContext';
 // This is just so we can clearly see which of wagmi's first-class chains we provide metadata for
 export type ChainName =
   | 'futurenet'
-  | 'pubnet'
+  | 'public'
   | 'testnet';
 
 export type ChainMetadata = {
@@ -15,11 +15,11 @@ export type ChainMetadata = {
 };
 
 const chainMetadataByName: Record<ChainName, ChainMetadata> = {
-  pubnet: {
+  public: {
     id: "0",
     iconBackground: '#e84141',
     iconUrl: async () => "",
-    // iconUrl: async () => (await import('./chainIcons/pubnet.svg')).default,
+    // iconUrl: async () => (await import('./chainIcons/public.svg')).default,
   },
   testnet: {
     id: "1",
