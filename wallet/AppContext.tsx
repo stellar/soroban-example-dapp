@@ -2,10 +2,11 @@ import React from "react";
 import { ChainMetadata } from "./provideWalletChains";
 import { Wallet, WalletList } from "./Wallet";
 
-export const defaultAppInfo = {
+export const defaultAppContext = {
   appName: undefined,
   chains: [],
   wallet: [],
+  serverUrl: 'https://horizon.stellar.org',
 };
 
 export const AppContext = React.createContext<{
@@ -15,4 +16,5 @@ export const AppContext = React.createContext<{
   wallet: WalletList;
   activeChain?: ChainMetadata;
   activeWallet?: Wallet;
-}>(defaultAppInfo);
+  serverUrl: string;
+}>(defaultAppContext);

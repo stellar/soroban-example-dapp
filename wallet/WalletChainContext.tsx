@@ -2,6 +2,7 @@ import React from 'react';
 
 export interface WalletChain {
   id: string;
+  name?: string;
   iconUrl?: string | (() => Promise<string>) | null;
   iconBackground?: string;
 }

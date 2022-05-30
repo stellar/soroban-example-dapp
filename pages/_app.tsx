@@ -9,6 +9,7 @@ import {
 } from "../wallet";
 
 const chains: ChainMetadata[] = [chain.testnet];
+const serverUrl = 'https://horizon-testnet.stellar.org';
 // const providers = [apiProvider.fallback()];
 
 const { wallets } = getDefaultWallets({
@@ -21,8 +22,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WalletProvider
       autoconnect
       chains={chains}
-      appInfo={{appName: "Example Stellar App"}}
+      appName={"Example Stellar App"}
       wallets={wallets}
+      serverUrl={serverUrl}
       >
       <Component {...pageProps} />
     </WalletProvider>

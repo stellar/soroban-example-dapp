@@ -11,8 +11,8 @@ export type ChainName =
 export type ChainMetadata = {
   id: string;
   name?: string;
-  iconBackground: string;
-  iconUrl?: () => string;
+  iconBackground?: string;
+  iconUrl?: string | (() => Promise<string>) | null;
 };
 
 const chainMetadataByName: Record<ChainName, ChainMetadata> = {

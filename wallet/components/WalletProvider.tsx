@@ -1,37 +1,38 @@
 import Head from "next/head";
 import React from 'react';
-import { AppContext, defaultAppInfo } from '../AppContext';
+import { AppContext, defaultAppContext } from '../AppContext';
 import { WalletList } from "../Wallet";
 import { WalletChain, } from '../WalletChainContext';
 
 export interface WalletProviderProps {
+  appName?: string;
   autoconnect?: boolean;
   chains: WalletChain[];
   children: React.ReactNode;
-  appInfo?: {
-    appName?: string;
-  };
+  serverUrl?: string;
   wallets: WalletList;
 }
 
 export function WalletProvider({
+  appName,
   autoconnect=false,
   chains,
   children,
-  appInfo=defaultAppInfo,
+  serverUrl,
   wallets,
 }: WalletProviderProps) {
 
   const flatWallets = wallets.flatMap(w => w.wallets);
   const activeWallet = flatWallets.length == 1 ? flatWallets[0] : undefined;
   const appContext = {
-    ...defaultAppInfo,
-    ...appInfo,
+    ...defaultAppContext,
+    appName,
     autoconnect,
     chains,
     wallets,
     activeWallet,
     activeChain: chains.length == 1 ? chains[0] : undefined,
+    serverUrl,
   };
 
   return (
