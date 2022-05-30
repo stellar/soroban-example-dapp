@@ -113,7 +113,7 @@ export function ConnectButton({
                   </div>
                 ) : (
                   <div style={{alignItems: "center", display: "flex", gap: "6"}}>
-                    {chain.hasIcon ? (
+                    {chain.iconUrl ? (
                       <div
                         style={{
                           display: chainStatus === 'full' || chainStatus === 'icon'
@@ -130,7 +130,7 @@ export function ConnectButton({
                             borderRadius: "full",
                           }}
                           height="24"
-                          src={chain.iconUrl}
+                          src={chain.iconUrl()}
                           width="24"
                         />
                       </div>

@@ -21,11 +21,14 @@ export function freighter({ appName, chains }: FreighterOptions): Wallet {
       browserExtension:
         'https://chrome.google.com/webstore/detail/freighter/bcacfldlkkdogcmkkibnjlakofdplcbk?hl=en'
     },
-    isConnected() {
+    isConnected(): boolean {
       return !!(window as any).freighterApi?.isConnected();
     },
-    getPublicKey() {
+    getPublicKey(): Promise<string> {
       return (window as any).freighterApi.getPublicKey();
+    },
+    signTransaction(xdr: string, network: string): Promise<string> {
+      return (window as any).freighterApi.signTransaction(xdr, network);
     },
     createConnector: (_args) => {
       // TODO: Implement this

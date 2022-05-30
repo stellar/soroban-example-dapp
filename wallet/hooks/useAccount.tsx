@@ -2,26 +2,26 @@ import React from 'react';
 import { AppContext } from "../AppContext";
 
 export function useAccount() {
-  const {activeWallet} = React.useContext(AppContext);
-  const [displayName, setDisplayName] = React.useState<string|undefined>();
+  const {autoconnect, activeWallet} = React.useContext(AppContext);
+  const [address, setAddress] = React.useState<string|undefined>();
 
   React.useEffect(() => {
     (async () => {
-      if (activeWallet?.isConnected()) {
-        const address = await activeWallet.getPublicKey();
-        setDisplayName(`${address.slice(0, 4)}...${address.slice(-4)}`);
+      if (activeWallet && (activeWallet.isConnected() || autoconnect)) {
+        setAddress(await activeWallet.getPublicKey());
       }
     })();
   }, [activeWallet]);
 
 
-  if (!displayName) {
+  if (!address) {
     return {};
   }
 
   return {
     data: {
-      displayName,
+      address,
+      displayName: `${address.slice(0, 4)}...${address.slice(-4)}`,
     }
   };
 };

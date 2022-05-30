@@ -10,27 +10,28 @@ export type ChainName =
 
 export type ChainMetadata = {
   id: string;
+  name?: string;
   iconBackground: string;
-  iconUrl: () => Promise<string>;
+  iconUrl?: () => string;
 };
 
 const chainMetadataByName: Record<ChainName, ChainMetadata> = {
   public: {
     id: "0",
+    name: "Public",
     iconBackground: '#e84141',
-    iconUrl: async () => "",
     // iconUrl: async () => (await import('./chainIcons/public.svg')).default,
   },
   testnet: {
     id: "1",
+    name: "Testnet",
     iconBackground: '#484c50',
-    iconUrl: async () => "",
     // iconUrl: async () => (await import('./chainIcons/testnet.svg')).default,
   },
   futurenet: {
     id: "2",
+    name: "Futurenet",
     iconBackground: '#96bedc',
-    iconUrl: async () => "",
     // iconUrl: async () => (await import('./chainIcons/futurenet.svg')).default,
   },
 };
