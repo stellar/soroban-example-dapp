@@ -69,14 +69,15 @@ const Home: NextPage = () => {
         {!value ? (
           <div>Loading...</div>
         ) : value.result ? (
-          <div style={{display: "flex", flexDirection: "column", alignItems: "center", margin: "1rem"}}>
+          <div style={{display: "flex", flexDirection: "column", alignItems: "center", margin: "3rem"}}>
             <span style={{
               backgroundColor: `#${value.result}`,
               display: "inline-block",
               width: "4rem",
               height: "4rem",
               borderRadius: "10%",
-              margin: 5
+              margin: "1rem",
+              boxShadow: `0 0 10px #fff, 0 0 20px #fff, 0 0 70px #${value.result}`,
             }} />
             <span>#{value.result.slice(0,6)}</span>
           </div>
