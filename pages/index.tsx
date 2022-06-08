@@ -20,7 +20,7 @@ const Home: NextPage = () => {
       let url = 'http://localhost:3000/api/horizon';
       // const server = new StellarSdk.Server(url, { allowHttp: true });
       const contractOwner = 'GDUT3U3X5RID2KKXBF7GGANYH4UT3RUT4Y5KLLGHTAIOJT67UZUNQ4Y2';
-      const contractId = "1";
+      const contractId = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
       // const args: StellarBase.xdr.ScVal[] = [
       //   StellarBase.xdr.ScVal.scvPosI64(
