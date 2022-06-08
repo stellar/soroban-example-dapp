@@ -10,7 +10,7 @@ import * as StellarBase from 'stellar-base';
 import init, {invoke_contract} from "../../rs-stellar-wasm-browser/pkg/stellar_wasm_browser.js";
 import { ConnectButton } from "../wallet";
 
-const FACTORIAL_WASM = "AGFzbQEAAAABBgFgAX4BfgMCAQAFAwEAAQYIAX8BQYCABAsHEwIGbWVtb3J5AgAGaW52b2tlAAAKNwE1AQJ+QgAhASAAQgAgAEIAVRshAkIBIQACQANAIAIgAVENASAAIAFCAXwiAX4hAAwACwsgAAs=";
+const PIXEL_NFT_WASM = "AGFzbQEAAAABDgNgAAF+YAF/AGABfwF+AwUEAAABAgUDAQARBhkDfwFBgIDAAAt/AEG8gcAAC38AQcCBwAALBzUFBm1lbW9yeQIABXBpeGVsAAAFb3duZXIAAQpfX2RhdGFfZW5kAwELX19oZWFwX2Jhc2UDAgqYAwQJAELxv+u+lQEL+QICA38CfgJ+IwBBEGsiACQAA0ACQAJAIAACfyACQQpGBEAgAEEIaiAEQgSGQgmENwMAQQAMAQsgAkEKRwRAQgEhAyACQYCAQGstAAAiAUHfAEYNAiABrSEDAkACQCABQTBrQf8BcUEKTwRAIAFBwQBrQf8BcUEaSQ0BIAFB4QBrQf8BcUEaSQ0CIABBATYCBCAAQQhqIAE2AgBBAQwECyADQi59IQMMBAsgA0I1fSEDDAMLIANCO30hAwwCCyAAQQA2AgQgAEEIakEKNgIAQQELNgIADAELIAJBAWohAiADIARCBoaEIQQMAQsLIAAoAgBFBEAgACkDCCAAQRBqJAAMAQsjAEEgayIAJAAgAEEUakEANgIAIABBrIHAADYCECAAQgE3AgQgAEEONgIcIABBjIHAADYCGCAAIABBGGo2AgAjAEEgayIBJAAgAUEBOgAYIAFBnIHAADYCFCABIAA2AhAgAUGsgcAANgIMIAFBrIHAADYCCAALCwMAAQsNAELX1o7QiJnYj7V/CwvDAQEAQYCAwAALuQFHQktMTVFWTkNSL1VzZXJzL3BhdWxiZWxsYW15Ly5jYXJnby9naXQvY2hlY2tvdXRzL3JzLXN0ZWxsYXItY29udHJhY3QtZW52LWE3NDU5OGJlZmVmNTk3OGQvNmIzNmZkNS9zdGVsbGFyLWNvbnRyYWN0LWVudi1jb21tb24vc3JjL3N5bWJvbC5yc2V4cGxpY2l0IHBhbmljAAAKABAAggAAAFoAAAAXAAAAAQAAAAAAAAABAAAAAg==";
 
 const Home: NextPage = () => {
   const [value, setValue] = React.useState<any>(null);
@@ -20,37 +20,38 @@ const Home: NextPage = () => {
       let url = 'http://localhost:3000/api/horizon';
       // const server = new StellarSdk.Server(url, { allowHttp: true });
       const contractOwner = 'GDUT3U3X5RID2KKXBF7GGANYH4UT3RUT4Y5KLLGHTAIOJT67UZUNQ4Y2';
-      const contractId = 1;
+      const contractId = "1";
 
-      const args: StellarBase.xdr.ScVal[] = [
-        StellarBase.xdr.ScVal.scvPosI64(
-          StellarBase.xdr.Int64.fromString("1")
-        )
-      ];
+      // const args: StellarBase.xdr.ScVal[] = [
+      //   StellarBase.xdr.ScVal.scvPosI64(
+      //     StellarBase.xdr.Int64.fromString("3")
+      //   )
+      // ];
 
 
-      // const args: StellarBase.xdr.ScVal[] = [];
+      const args: StellarBase.xdr.ScVal[] = [];
 
       const argsXdr = StellarBase.xdr.ScVec.toXDR(args).toString('base64');
 
-      // const response = await axios.post(url+'/rpc', {
-      //   id: 1,
-      //   method: "call",
-      //   params: {
-      //     contract: `${contractOwner}:${contractId}`,
-      //     func: "read",
-      //     xdr: argsXdr,
-      //   }
-      // });
-      // console.debug(response.data);
+      const response = await axios.post(url+'/rpc', {
+        id: 1,
+        method: "call",
+        params: {
+          contract: `${contractOwner}:${contractId}`,
+          func: "pixel",
+          xdr: argsXdr,
+        }
+      });
+      console.debug(response.data);
+      const resultXdr = response.data?.result;
       // let parsed = response.data?.result ? {
       //   result: StellarBase.xdr.ScVal.fromXDR(response.data.result, 'base64').posI64()
       // } : response.data;
       // setValue(parsed);
 
-      await init();
-      const resultXdr = Buffer.from(invoke_contract(FACTORIAL_WASM, "invoke", argsXdr));
-      const result = StellarBase.xdr.ScVal.fromXDR(resultXdr, 'base64').posI64();
+      // await init();
+      // const resultXdr = Buffer.from(invoke_contract(contractId, PIXEL_NFT_WASM, "pixel", ""));
+      const result = StellarBase.xdr.ScVal.fromXDR(resultXdr, 'base64').u32().toString(16);
       setValue({ result });
     })();
   }, []);
@@ -68,7 +69,17 @@ const Home: NextPage = () => {
         {!value ? (
           <div>Loading...</div>
         ) : value.result ? (
-          <div>Result: {JSON.stringify(value.result)}</div>
+          <div style={{display: "flex", flexDirection: "column", alignItems: "center", margin: "1rem"}}>
+            <span style={{
+              backgroundColor: `#${value.result}`,
+              display: "inline-block",
+              width: "4rem",
+              height: "4rem",
+              borderRadius: "10%",
+              margin: 5
+            }} />
+            <span>#{value.result.slice(0,6)}</span>
+          </div>
         ) : (
           <div>Error: {value.error}</div>
         )}

@@ -4,6 +4,49 @@ import { useNetwork } from '../hooks/useNetwork';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { DropdownIcon } from "./Icons/Dropdown";
 
+const blue = {
+  blue1: '#fbfdff',
+  blue2: '#f5faff',
+  blue3: '#edf6ff',
+  blue4: '#e1f0ff',
+  blue5: '#cee7fe',
+  blue6: '#b7d9f8',
+  blue7: '#96c7f2',
+  blue8: '#5eb0ef',
+  blue9: '#0091ff',
+  blue10: '#0081f1',
+  blue11: '#006adc',
+  blue12: '#00254d',
+};
+const gray = {
+  gray1: '#fcfcfc',
+  gray2: '#f8f8f8',
+  gray3: '#f3f3f3',
+  gray4: '#ededed',
+  gray5: '#e8e8e8',
+  gray6: '#e2e2e2',
+  gray7: '#dbdbdb',
+  gray8: '#c7c7c7',
+  gray9: '#8f8f8f',
+  gray10: '#858585',
+  gray11: '#6f6f6f',
+  gray12: '#171717',
+};
+const red = {
+  red1: '#fffcfc',
+  red2: '#fff8f8',
+  red3: '#ffefef',
+  red4: '#ffe5e5',
+  red5: '#fdd8d8',
+  red6: '#f9c6c6',
+  red7: '#f3aeaf',
+  red8: '#eb9091',
+  red9: '#e5484d',
+  red10: '#dc3d43',
+  red11: '#cd2b31',
+  red12: '#381316',
+};
+
 type AccountStatus = 'full' | 'avatar' | 'address';
 type ChainStatus = 'full' | 'icon' | 'name' | 'none';
 
@@ -71,7 +114,10 @@ export function ConnectButton({
               type="button"
               style={{
                 display: "flex",
-                borderRadius: "connectButton",
+                flexDirection: "row",
+                alignItems: "center",
+                borderRadius: "0.5rem",
+                borderWidth: 0,
               }}
               key={unsupportedChain ? 'unsupported' : 'supported'} // Force re-mount to prevent CSS transition
               onClick={openChainModal}
@@ -80,13 +126,13 @@ export function ConnectButton({
                 style={{
                   alignItems: "center",
                   background: unsupportedChain
-                    ? 'connectButtonBackgroundError'
-                    : 'connectButtonBackground',
-                  borderRadius: "connectButton",
+                    ? red.red3
+                    : gray.gray3,
+                  borderRadius: "0.5rem",
                   boxShadow: "connectButton",
                   color: unsupportedChain
-                    ? 'connectButtonTextError'
-                    : 'connectButtonText',
+                    ? red.red11
+                    : gray.gray12,
                   display: chainStatus == 'none' ? 'none' : 'flex',
                   fontFamily: "body",
                   fontWeight: "bold",
@@ -127,7 +173,7 @@ export function ConnectButton({
                           alt={chain.name ?? 'Chain icon'}
                           style={{
                             background: chain.iconBackground,
-                            borderRadius: "full",
+                            borderRadius: "100%",
                           }}
                           height="24"
                           src={chain.iconUrl()}
@@ -147,7 +193,7 @@ export function ConnectButton({
                     </div>
                   </div>
                 )}
-                <DropdownIcon />
+                <DropdownIcon style={{marginLeft: 5}}/>
               </div>
             </button>
           )}
@@ -158,16 +204,17 @@ export function ConnectButton({
               onClick={openAccountModal}
               style={{
                 display: "flex",
-                borderRadius: "connectButton",
+                flexDirection: "row",
+                alignItems: "center",
+                borderRadius: "0.5rem",
+                borderWidth: 0,
               }}
             >
               <div
                 style={{
                   alignItems: "center",
-                  background: "connectButtonBackground",
-                  borderRadius: "connectButton",
-                  boxShadow: "connectButton",
-                  color: "connectButtonText",
+                  background: gray.gray3,
+                  color:gray.gray12,
                   display: "flex",
                   fontFamily: "body",
                   fontWeight: "bold",
@@ -177,12 +224,12 @@ export function ConnectButton({
               >
                 <div
                   style={{
-                    background: 'connectButtonBackground',
-                    borderColor: "connectButtonBackground",
-                    borderRadius: "connectButton",
+                    background: gray.gray3,
+                    borderColor: "transparent",
+                    borderRadius: "0.5rem",
                     borderStyle: "solid",
                     borderWidth: "2",
-                    color: "connectButtonText",
+                    color: gray.gray12,
                     fontFamily: "body",
                     fontWeight: "bold",
                     paddingLeft: "8",
@@ -210,7 +257,7 @@ export function ConnectButton({
                       >
                         {account.displayName}
                       </div>
-                      <DropdownIcon />
+                      <DropdownIcon style={{marginLeft: 5}}/>
                     </div>
                   </div>
                 </div>
@@ -223,17 +270,17 @@ export function ConnectButton({
           type="button"
           style={{
             display: "flex",
-            borderRadius: "connectButton",
+            borderRadius: "0.5rem",
+            borderWidth: 0,
           }}
           key="connect"
           onClick={openConnectModal}
         >
           <div
             style={{
-              background: "accentColor",
-              borderRadius: "connectButton",
-              boxShadow: "connectButton",
-              color: "accentColorForeground",
+              // accent color
+              background: blue.blue3,
+              color: gray.gray12,
               fontFamily: "body",
               fontWeight: "bold",
               paddingLeft: "14",
