@@ -117,9 +117,7 @@ const Home: NextPage = () => {
       </header>
       <main className={styles.main}>
         {!account ? (
-          <>
-            <ConnectButton />
-          </>
+          <ConnectButton />
         ) : !value ? (
           <button
             type="button"

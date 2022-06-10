@@ -75,10 +75,10 @@ export function ConnectButton({
     await connect();
   };
   const openChainModal = () => {
-    alert("Not implemented");
+    alert("TODO: Implement network switcher");
   };
   const openAccountModal = () => {
-    alert("Not implemented");
+    alert("TODO: Implement wallet disconnection");
   };
 
   const mounted = useIsMounted();
