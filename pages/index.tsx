@@ -17,10 +17,11 @@ const Home: NextPage = () => {
   
   React.useEffect(() => {
     (async () => {
-      let url = 'http://localhost:3000/api/horizon';
+      let url = '/api/horizon';
       // const server = new StellarSdk.Server(url, { allowHttp: true });
       const contractOwner = 'GDUT3U3X5RID2KKXBF7GGANYH4UT3RUT4Y5KLLGHTAIOJT67UZUNQ4Y2';
-      const contractId = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+      const contractId = "0000000000000000000000000000000000000000000000000000000000000000";
+
 
       // const args: StellarBase.xdr.ScVal[] = [
       //   StellarBase.xdr.ScVal.scvPosI64(
@@ -28,29 +29,23 @@ const Home: NextPage = () => {
       //   )
       // ];
 
-
-      const args: StellarBase.xdr.ScVal[] = [];
-
-      const argsXdr = StellarBase.xdr.ScVec.toXDR(args).toString('base64');
+      // const argsXdr = StellarBase.xdr.ScVec.toXDR(args).toString('base64');
+      const argsXdr = "";
 
       const response = await axios.post(url+'/rpc', {
         id: 1,
         method: "call",
         params: {
-          contract: `${contractOwner}:${contractId}`,
+          contract: `${contractId}`,
           func: "pixel",
           xdr: argsXdr,
         }
       });
       console.debug(response.data);
       const resultXdr = response.data?.result;
-      // let parsed = response.data?.result ? {
-      //   result: StellarBase.xdr.ScVal.fromXDR(response.data.result, 'base64').posI64()
-      // } : response.data;
-      // setValue(parsed);
 
       // await init();
-      // const resultXdr = Buffer.from(invoke_contract(contractId, PIXEL_NFT_WASM, "pixel", ""));
+      // const resultXdr = Buffer.from(invoke_contract(contractId, PIXEL_NFT_WASM, "pixel", argsXdr));
       const result = StellarBase.xdr.ScVal.fromXDR(resultXdr, 'base64').u32().toString(16);
       setValue({ result });
     })();
@@ -66,24 +61,25 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <ConnectButton />
-        {!value ? (
-          <div>Loading...</div>
-        ) : value.result ? (
-          <div style={{display: "flex", flexDirection: "column", alignItems: "center", margin: "3rem"}}>
-            <span style={{
-              backgroundColor: `#${value.result}`,
-              display: "inline-block",
-              width: "4rem",
-              height: "4rem",
-              borderRadius: "10%",
-              margin: "1rem",
-              boxShadow: `0 0 10px #fff, 0 0 20px #fff, 0 0 70px #${value.result}`,
-            }} />
-            <span>#{value.result.slice(0,6)}</span>
-          </div>
-        ) : (
-          <div>Error: {value.error}</div>
-        )}
+        <div style={{display: "flex", flexDirection: "column", alignItems: "center", margin: "3rem"}}>
+          {!value ? (
+            <>Loading...</>
+          ) : value.result ? (
+            <>
+              <span style={{
+                backgroundColor: `#${value.result}`,
+                display: "inline-block",
+                width: "4rem",
+                height: "4rem",
+                borderRadius: "10%",
+                margin: "1rem",
+              }} />
+              <span>#{value.result.slice(0,6)}</span>
+            </>
+          ) : (
+            <>Error: {value.error}</>
+          )}
+        </div>
       </main>
     </div>
   )
