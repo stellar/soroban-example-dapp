@@ -8,7 +8,7 @@ import styles from '../styles/Home.module.css';
 // import * as StellarSdk from 'stellar-sdk';
 import * as StellarBase from 'stellar-base';
 import { Tile } from "../components";
-import { ConnectButton } from "../wallet";
+import { useAccount, ConnectButton } from "../wallet";
 
 const PIXEL_NFT_WASM = "AGFzbQEAAAABDgNgAAF+YAF/AGABfwF+AwUEAAABAgUDAQARBhkDfwFBgIDAAAt/AEG8gcAAC38AQcCBwAALBzUFBm1lbW9yeQIABXBpeGVsAAAFb3duZXIAAQpfX2RhdGFfZW5kAwELX19oZWFwX2Jhc2UDAgqYAwQJAELxv+u+lQEL+QICA38CfgJ+IwBBEGsiACQAA0ACQAJAIAACfyACQQpGBEAgAEEIaiAEQgSGQgmENwMAQQAMAQsgAkEKRwRAQgEhAyACQYCAQGstAAAiAUHfAEYNAiABrSEDAkACQCABQTBrQf8BcUEKTwRAIAFBwQBrQf8BcUEaSQ0BIAFB4QBrQf8BcUEaSQ0CIABBATYCBCAAQQhqIAE2AgBBAQwECyADQi59IQMMBAsgA0I1fSEDDAMLIANCO30hAwwCCyAAQQA2AgQgAEEIakEKNgIAQQELNgIADAELIAJBAWohAiADIARCBoaEIQQMAQsLIAAoAgBFBEAgACkDCCAAQRBqJAAMAQsjAEEgayIAJAAgAEEUakEANgIAIABBrIHAADYCECAAQgE3AgQgAEEONgIcIABBjIHAADYCGCAAIABBGGo2AgAjAEEgayIBJAAgAUEBOgAYIAFBnIHAADYCFCABIAA2AhAgAUGsgcAANgIMIAFBrIHAADYCCAALCwMAAQsNAELX1o7QiJnYj7V/CwvDAQEAQYCAwAALuQFHQktMTVFWTkNSL1VzZXJzL3BhdWxiZWxsYW15Ly5jYXJnby9naXQvY2hlY2tvdXRzL3JzLXN0ZWxsYXItY29udHJhY3QtZW52LWE3NDU5OGJlZmVmNTk3OGQvNmIzNmZkNS9zdGVsbGFyLWNvbnRyYWN0LWVudi1jb21tb24vc3JjL3N5bWJvbC5yc2V4cGxpY2l0IHBhbmljAAAKABAAggAAAFoAAAAXAAAAAQAAAAAAAAABAAAAAg==";
 
@@ -81,6 +81,8 @@ async function fetchInBrowser() {
 
 const Home: NextPage = () => {
   const [value, setValue] = React.useState<any>(null);
+
+  const { data: account } = useAccount();
   
   // Simulate the contract and store the result on first page load.
   React.useEffect(() => {
@@ -113,7 +115,11 @@ const Home: NextPage = () => {
         <ConnectButton />
       </header>
       <main className={styles.main}>
-        {!value ? (
+        {!account ? (
+          <>
+            <ConnectButton />
+          </>
+        ) : !value ? (
           <>Loading...</>
         ) : value.result ? (
           <>
