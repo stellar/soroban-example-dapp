@@ -2,17 +2,7 @@ import React from 'react';
 import { AppContext } from "../AppContext";
 
 export function useAccount() {
-  const {autoconnect, activeWallet} = React.useContext(AppContext);
-  const [address, setAddress] = React.useState<string|undefined>();
-
-  React.useEffect(() => {
-    (async () => {
-      if (activeWallet && (activeWallet.isConnected() || autoconnect)) {
-        setAddress(await activeWallet.getPublicKey());
-      }
-    })();
-  }, [activeWallet]);
-
+  const {address} = React.useContext(AppContext);
 
   if (!address) {
     return {};

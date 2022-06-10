@@ -1,4 +1,5 @@
 import React from 'react';
+import { AppContext } from '../AppContext';
 import { useAccount } from '../hooks/useAccount';
 import { useNetwork } from '../hooks/useNetwork';
 import { useIsMounted } from '../hooks/useIsMounted';
@@ -69,14 +70,15 @@ export function ConnectButton({
   label = defaultProps.label,
 }: ConnectButtonProps) {
   const [modalOpen, setModalOpen] = React.useState<'connect' | 'chain' | 'account' | null>(null);
-  const openConnectModal = () => {
-    throw "Modals not implemented";
+  const {connect} = React.useContext(AppContext);
+  const openConnectModal = async () => {
+    await connect();
   };
   const openChainModal = () => {
-    throw "Modals not implemented";
+    alert("Not implemented");
   };
   const openAccountModal = () => {
-    throw "Modals not implemented";
+    alert("Not implemented");
   };
 
   const mounted = useIsMounted();
@@ -99,11 +101,9 @@ export function ConnectButton({
         gap: 12,
         ...(!mounted ? {
           'aria-hidden': true,
-          'style': {
-            opacity: 0,
-            pointerEvents: 'none',
-            userSelect: 'none',
-          },
+          opacity: 0,
+          pointerEvents: 'none',
+          userSelect: 'none',
         } : {})
       }}
     >
@@ -118,6 +118,7 @@ export function ConnectButton({
                 alignItems: "center",
                 borderRadius: "0.5rem",
                 borderWidth: 0,
+                cursor: "pointer",
               }}
               key={unsupportedChain ? 'unsupported' : 'supported'} // Force re-mount to prevent CSS transition
               onClick={openChainModal}
@@ -134,7 +135,7 @@ export function ConnectButton({
                     ? red.red11
                     : gray.gray12,
                   display: chainStatus == 'none' ? 'none' : 'flex',
-                  fontFamily: "body",
+                  fontFamily: "sans-serif",
                   fontWeight: "bold",
                   gap: 6,
                   paddingLeft: 10,
@@ -208,6 +209,7 @@ export function ConnectButton({
                 alignItems: "center",
                 borderRadius: "0.5rem",
                 borderWidth: 0,
+                cursor: "pointer",
               }}
             >
               <div
@@ -216,7 +218,7 @@ export function ConnectButton({
                   background: gray.gray3,
                   color:gray.gray12,
                   display: "flex",
-                  fontFamily: "body",
+                  fontFamily: "sans-serif",
                   fontWeight: "bold",
                   transform: 'shrink',
                   transition: "default",
@@ -224,27 +226,22 @@ export function ConnectButton({
               >
                 <div
                   style={{
-                    background: gray.gray3,
                     borderColor: "transparent",
                     borderRadius: "0.5rem",
                     borderStyle: "solid",
-                    borderWidth: "2",
-                    color: gray.gray12,
-                    fontFamily: "body",
-                    fontWeight: "bold",
-                    paddingLeft: "8",
-                    paddingRight: "8",
-                    paddingTop: "6",
-                    paddingBottom: "6",
-                    transition: "default",
+                    borderWidth: 0,
+                    paddingLeft: 8,
+                    paddingRight: 8,
+                    paddingTop: 6,
+                    paddingBottom: 6,
                   }}
                 >
                   <div
                     style={{
                       alignItems: "center",
                       display: "flex",
-                      gap: "6",
-                      height: "24",
+                      gap: 6,
+                      height: 24,
                     }}
                   >
                     <div style={{alignItems: "center", display: "flex", gap: "6"}}>
@@ -269,29 +266,43 @@ export function ConnectButton({
         <button
           type="button"
           style={{
+            background: blue.blue9,
+            color: gray.gray1,
             display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
             borderRadius: "0.5rem",
             borderWidth: 0,
+            cursor: "pointer",
           }}
           key="connect"
           onClick={openConnectModal}
         >
           <div
             style={{
-              // accent color
-              background: blue.blue3,
-              color: gray.gray12,
-              fontFamily: "body",
+              fontFamily: "sans-serif",
               fontWeight: "bold",
-              paddingLeft: "14",
-              paddingRight: "14",
-              paddingTop: "10",
-              paddingBottom: "10",
-              transform: 'shrink',
-              transition: "default",
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              paddingLeft: 8,
+              paddingRight: 8,
+              paddingTop: 6,
+              paddingBottom: 6,
             }}
           >
-            {label}
+            <div
+              style={{
+                // accent color
+                height: 24,
+                paddingLeft: 8,
+                paddingRight: 8,
+                paddingTop: 6,
+                paddingBottom: 6,
+              }}
+            >
+              {label}
+            </div>
           </div>
         </button>
       )}

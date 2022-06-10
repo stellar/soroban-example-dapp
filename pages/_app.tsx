@@ -20,7 +20,6 @@ const { wallets } = getDefaultWallets({
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WalletProvider
-      autoconnect
       chains={chains}
       appName={"Example Stellar App"}
       wallets={wallets}

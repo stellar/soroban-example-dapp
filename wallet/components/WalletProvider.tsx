@@ -1,6 +1,6 @@
 import Head from "next/head";
 import React from 'react';
-import { AppContext, defaultAppContext } from '../AppContext';
+import { AppContext, AppContextType, defaultAppContext } from '../AppContext';
 import { WalletList } from "../Wallet";
 import { WalletChain, } from '../WalletChainContext';
 
@@ -15,7 +15,7 @@ export interface WalletProviderProps {
 
 export function WalletProvider({
   appName,
-  autoconnect=false,
+  autoconnect = false,
   chains,
   children,
   serverUrl,
@@ -24,7 +24,7 @@ export function WalletProvider({
 
   const flatWallets = wallets.flatMap(w => w.wallets);
   const activeWallet = flatWallets.length == 1 ? flatWallets[0] : undefined;
-  const appContext = {
+  const [appContext, setAppContext] = React.useState<AppContextType>({
     ...defaultAppContext,
     appName,
     autoconnect,
@@ -32,8 +32,21 @@ export function WalletProvider({
     wallets,
     activeWallet,
     activeChain: chains.length == 1 ? chains[0] : undefined,
-    serverUrl,
-  };
+    serverUrl: serverUrl || "",
+    connect: async () => {
+      let address = await appContext.activeWallet?.getPublicKey();
+      setAppContext(c => ({ ...c, address }));
+    },
+  });
+
+  React.useEffect(() => {
+    if (appContext.address) return;
+    if (!appContext.activeWallet) return;
+    if (appContext.autoconnect || appContext.activeWallet.isConnected()) {
+      appContext.connect();
+    }
+  }, [appContext.address, appContext.activeWallet, appContext.autoconnect]);
+
 
   return (
     <AppContext.Provider value={appContext}>
