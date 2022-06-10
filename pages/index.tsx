@@ -7,6 +7,7 @@ import styles from '../styles/Home.module.css';
 // TODO: Use the SDK
 // import * as StellarSdk from 'stellar-sdk';
 import * as StellarBase from 'stellar-base';
+import { Tile } from "../components";
 import { ConnectButton } from "../wallet";
 
 const FACTORIAL_WASM = "AGFzbQEAAAABBgFgAX4BfgMCAQAFAwEAAQYIAX8BQYCABAsHEwIGbWVtb3J5AgAGaW52b2tlAAAKNwE1AQJ+QgAhASAAQgAgAEIAVRshAkIBIQACQANAIAIgAVENASAAIAFCAXwiAX4hAAwACwsgAAs=";
@@ -115,12 +116,9 @@ const Home: NextPage = () => {
             <>Loading...</>
           ) : value.result ? (
             <>
-              <span style={{
-                backgroundColor: `#${value.result}`,
-                display: "inline-block",
-                width: "4rem",
-                height: "4rem",
-                borderRadius: "10%",
+              <Tile color={`#${value.result}`} style={{
+                width: "16rem",
+                height: "16rem",
                 margin: "1rem",
               }} />
               {/* slice here to drop the alpha byte */}
