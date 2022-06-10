@@ -45,12 +45,12 @@ function Box({color, ...props}: BoxProps) {
   );
 }
 
-export interface TileProps {
+export interface PixelProps {
   color: string;
   style?: React.CSSProperties;
 }
 
-export function Tile({color, style={}}: TileProps) {
+export function Pixel({color, style={}}: PixelProps) {
   return (
     <Canvas style={style} shadows>
       <fog attach="fog" args={["white", 0, 40]} />

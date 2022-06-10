@@ -7,7 +7,7 @@ import styles from '../styles/Home.module.css';
 // TODO: Use the SDK
 // import * as StellarSdk from 'stellar-sdk';
 import * as StellarBase from 'stellar-base';
-import { Tile } from "../components";
+import { Pixel } from "../components";
 import { useAccount, ConnectButton } from "../wallet";
 
 const PIXEL_NFT_WASM = "AGFzbQEAAAABDgNgAAF+YAF/AGABfwF+AwUEAAABAgUDAQARBhkDfwFBgIDAAAt/AEG8gcAAC38AQcCBwAALBzUFBm1lbW9yeQIABXBpeGVsAAAFb3duZXIAAQpfX2RhdGFfZW5kAwELX19oZWFwX2Jhc2UDAgqYAwQJAELxv+u+lQEL+QICA38CfgJ+IwBBEGsiACQAA0ACQAJAIAACfyACQQpGBEAgAEEIaiAEQgSGQgmENwMAQQAMAQsgAkEKRwRAQgEhAyACQYCAQGstAAAiAUHfAEYNAiABrSEDAkACQCABQTBrQf8BcUEKTwRAIAFBwQBrQf8BcUEaSQ0BIAFB4QBrQf8BcUEaSQ0CIABBATYCBCAAQQhqIAE2AgBBAQwECyADQi59IQMMBAsgA0I1fSEDDAMLIANCO30hAwwCCyAAQQA2AgQgAEEIakEKNgIAQQELNgIADAELIAJBAWohAiADIARCBoaEIQQMAQsLIAAoAgBFBEAgACkDCCAAQRBqJAAMAQsjAEEgayIAJAAgAEEUakEANgIAIABBrIHAADYCECAAQgE3AgQgAEEONgIcIABBjIHAADYCGCAAIABBGGo2AgAjAEEgayIBJAAgAUEBOgAYIAFBnIHAADYCFCABIAA2AhAgAUGsgcAANgIMIAFBrIHAADYCCAALCwMAAQsNAELX1o7QiJnYj7V/CwvDAQEAQYCAwAALuQFHQktMTVFWTkNSL1VzZXJzL3BhdWxiZWxsYW15Ly5jYXJnby9naXQvY2hlY2tvdXRzL3JzLXN0ZWxsYXItY29udHJhY3QtZW52LWE3NDU5OGJlZmVmNTk3OGQvNmIzNmZkNS9zdGVsbGFyLWNvbnRyYWN0LWVudi1jb21tb24vc3JjL3N5bWJvbC5yc2V4cGxpY2l0IHBhbmljAAAKABAAggAAAFoAAAAXAAAAAQAAAAAAAAABAAAAAg==";
@@ -85,7 +85,8 @@ const Home: NextPage = () => {
   const { data: account } = useAccount();
   
   // Simulate the contract and store the result on first page load.
-  React.useEffect(() => {
+  const callContract = React.useCallback(() => {
+    setValue({ loading: true });
     (async () => {
       try {
         let result = await fetchFromBackend();
@@ -105,13 +106,13 @@ const Home: NextPage = () => {
   return (
     <div className={styles.container}>
       <Head>
-        <title>TileNFT - Example Stellar Dapp</title>
+        <title>PixelNFT - Example Stellar Dapp</title>
         <meta name="description" content="An example of loading information from a smart contract on Stellar" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <header className={styles.header}>
-        <h1>TileNFT</h1>
+        <h1>PixelNFT</h1>
         <ConnectButton />
       </header>
       <main className={styles.main}>
@@ -120,16 +121,37 @@ const Home: NextPage = () => {
             <ConnectButton />
           </>
         ) : !value ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              callContract();
+            }}
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              paddingTop: 6,
+              paddingBottom: 6,
+              paddingLeft: 16,
+              paddingRight: 16,
+              fontWeight: "bold",
+              borderRadius: "0.5rem",
+              borderWidth: 0,
+              cursor: "pointer",
+            }}>
+            Call <pre style={{marginLeft: "1ch"}}>contract.pixel()</pre>
+          </button>
+        ) : value.loading ? (
           <>Loading...</>
         ) : value.result ? (
           <>
-            <Tile color={`#${value.result}`} style={{
+            <Pixel color={`#${value.result}`} style={{
               width: "16rem",
               height: "16rem",
               margin: "1rem",
             }} />
-            {/* slice here to drop the alpha byte */}
-            <span>#{value.result.slice(0,6)}</span>
+            <span>#{value.result}</span>
           </>
         ) : (
           <>Error: {value.error}</>
