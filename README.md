@@ -1,4 +1,4 @@
-# soroban-example-dapp
+# Soroban Crowdfunding Dapp Example
 
 This is a [Next.js](https://nextjs.org/), demoing how to build a dapp frontend
 backed by smart contracts on Stellar.
@@ -22,9 +22,30 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## User Workflows
+
+The contract dev should be able to:
+
+- Clone the example repo (this one)
+- Choose their target amount and deadline
+- Deploy their contract to futurenet
+- Deploy a soroban rpc server somewhere (TBD)
+- Deploy the example web ui somewhere (e.g. netlify)
+
+Then via the web UI, users should be able to:
+
+- Connect their wallet (freighter for now)
+- See their current balance(s)
+- See the current fundraising status (total amount & time remaining)
+- See allowed assets (xlm-only for now?)
+- Deposit an allowed asset
+- See their deposit(s) appear on the page as the transactions are confirmed.
+- "Live"-Update the page with the total amount with the new amount
+
 ## TODO
 
-- [ ]  Sending a txn to update data in the contract
+- [ ] Build the proper backend rpc server, and update instructions.
+- [ ] Sending a txn to update data in the contract
 	- [ ] txnbuilding with new xdr
   - blocked on caps [52 (Interactions)](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0052.md) and [53 (Contract Data)](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0053.md)
 - [ ] Waiting for the txn success and showing new value
