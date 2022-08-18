@@ -45,9 +45,11 @@ Then via the web UI, users should be able to:
 ## TODO
 
 - [ ] Build the proper backend rpc server, and update instructions.
+- [ ] Local env setup script/walkthrough
+- [ ] Contract deployment walkthrough and/or tooling
+- [ ] Contract tests
 - [ ] Sending a txn to update data in the contract
 	- [ ] txnbuilding with new xdr
-  - blocked on caps [52 (Interactions)](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0052.md) and [53 (Contract Data)](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0053.md)
 - [ ] Waiting for the txn success and showing new value
 	- how to poll/stream these changes?
 	- should just be submitting the txn to horizon, and waiting for the result,
