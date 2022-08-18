@@ -45,11 +45,15 @@ fn get_owner(e: &Env) -> Identifier {
 }
 
 fn get_deadline_ledger(e: &Env) -> u32 {
-    e.contract_data().get_unchecked(DataKey::DeadlineLedger).unwrap()
+    e.contract_data()
+        .get_unchecked(DataKey::DeadlineLedger)
+        .unwrap()
 }
 
 fn get_target_amount(e: &Env) -> BigInt {
-    e.contract_data().get_unchecked(DataKey::TargetAmount).unwrap()
+    e.contract_data()
+        .get_unchecked(DataKey::TargetAmount)
+        .unwrap()
 }
 
 fn get_token(e: &Env) -> FixedBinary<32> {
@@ -81,7 +85,8 @@ fn put_owner(e: &Env, owner: Identifier) {
 }
 
 fn put_deadline_ledger(e: &Env, deadline_ledger: u32) {
-    e.contract_data().set(DataKey::DeadlineLedger, deadline_ledger);
+    e.contract_data()
+        .set(DataKey::DeadlineLedger, deadline_ledger);
 }
 
 fn put_target_amount(e: &Env, target_amount: BigInt) {
@@ -96,6 +101,8 @@ fn transfer(e: &Env, contract_id: FixedBinary<32>, to: Identifier, amount: BigIn
     token::xfer(e, &contract_id, &KeyedAuthorization::Contract, &to, &amount);
 }
 
+struct Crowdfund;
+
 /*
 How to use this contract to run a crowdfund
 
@@ -104,43 +111,30 @@ How to use this contract to run a crowdfund
 3. Once the target_amount is reached, the contract owner can withdraw the USDC.
 4. If the deadline_ledger passes without reaching the target_amount, the donors can withdraw their USDC again.
 */
-pub trait CrowdfundTrait {
-    // Sets the token contract addresses for this pool
-    fn initialize(e: Env, owner: Identifier, deadline_ledger: u32, target_amount: BigInt, token: U256);
-
-    // Returns the token contract address for the accepted token
-    fn token(e: Env) -> FixedBinary<32>;
-
-    // Returns the current state of the contract.
-    fn state(e: Env) -> State;
-
-    // Deposit tokens for the "to" Identifier. This can only called while the crowdfund is running.
-    fn deposit(e: Env, to: Identifier, amount: BigInt);
-
-    // Withdraw tokens for the "to" Identifier. If the crowdfund was successful, this can only be called by the "owner". Otherwise, if the crowdfund expired, this can not be called by the "owner".
-    fn withdraw(e: Env, to: Identifier, amount: BigInt);
-}
-
-struct Crowdfund;
-
-#[contractimpl(export_if = "export")]
-impl CrowdfundTrait for Crowdfund {
-    fn initialize(e: Env, owner: Identifier, deadline_ledger: u32, target_amount: BigInt, token: U256) {
+#[contractimpl]
+impl Crowdfund {
+    pub fn initialize(
+        e: Env,
+        owner: Identifier,
+        deadline_ledger: u32,
+        target_amount: BigInt,
+        token: U256,
+    ) {
         put_owner(&e, owner);
         put_deadline_ledger(&e, deadline_ledger);
         put_target_amount(&e, target_amount);
         put_token(&e, token);
     }
 
-    fn token(e: Env) -> FixedBinary<32> {
+    pub fn token(e: Env) -> FixedBinary<32> {
         get_token(&e)
     }
 
-    fn state(e: Env) -> State {
+    pub fn state(e: Env) -> State {
         get_state(&e)
     }
 
-    fn deposit(e: Env, to: Identifier, amount: BigInt) {
+    pub fn deposit(e: Env, to: Identifier, amount: BigInt) {
         if get_state(&e) != State::Running {
             panic!("sale is not running")
         };
@@ -157,19 +151,23 @@ impl CrowdfundTrait for Crowdfund {
 
     // TODO: Track deposited amounts per-donor, so you can't just withdraw all
     // TODO: Authenticate this with more than the destination address, maybe?
-    fn withdraw(e: Env, to: Identifier, amount: BigInt) {
+    pub fn withdraw(e: Env, to: Identifier, amount: BigInt) {
         let state = get_state(&e);
         let owner = get_owner(&e);
         match (state, to) {
             (State::Running, _) => {
                 panic!("sale is still running")
-            },
-            (State::Success, to) => if to != owner {
-                panic!("sale was successful, only the owner may withdraw")
-            },
-            (State::Expired, to) => if to == owner {
-                panic!("sale expired, the owner may not withdraw")
-            },
+            }
+            (State::Success, to) => {
+                if to != owner {
+                    panic!("sale was successful, only the owner may withdraw")
+                }
+            }
+            (State::Expired, to) => {
+                if to == owner {
+                    panic!("sale expired, the owner may not withdraw")
+                }
+            }
         };
 
         let token_id = get_token(&e);
