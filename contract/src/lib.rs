@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contractimpl, BigInt, Env, FixedBinary, IntoVal, RawVal};
+use soroban_sdk::{contractimpl, BigInt, Env, EnvVal, FixedBinary, IntoVal, RawVal};
 use soroban_token_contract as token;
 use token::public_types::{Identifier, KeyedAuthorization, U256};
 
@@ -130,8 +130,8 @@ impl Crowdfund {
         get_token(&e)
     }
 
-    pub fn state(e: Env) -> State {
-        get_state(&e)
+    pub fn state(e: Env) -> u32 {
+        get_state(&e) as u32
     }
 
     pub fn deposit(e: Env, to: Identifier, amount: BigInt) {
