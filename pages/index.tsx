@@ -5,15 +5,11 @@ import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 // TODO: Use the SDK
-// import * as StellarSdk from 'stellar-sdk';
-import * as StellarBase from 'stellar-base';
+import * as StellarSDK from 'stellar-sdk';
 import { Pixel } from "../components";
 import { useAccount, ConnectButton } from "../wallet";
 
-const PIXEL_NFT_WASM = "AGFzbQEAAAABDgNgAAF+YAF/AGABfwF+AwUEAAABAgUDAQARBhkDfwFBgIDAAAt/AEG8gcAAC38AQcCBwAALBzUFBm1lbW9yeQIABXBpeGVsAAAFb3duZXIAAQpfX2RhdGFfZW5kAwELX19oZWFwX2Jhc2UDAgqYAwQJAELxv+u+lQEL+QICA38CfgJ+IwBBEGsiACQAA0ACQAJAIAACfyACQQpGBEAgAEEIaiAEQgSGQgmENwMAQQAMAQsgAkEKRwRAQgEhAyACQYCAQGstAAAiAUHfAEYNAiABrSEDAkACQCABQTBrQf8BcUEKTwRAIAFBwQBrQf8BcUEaSQ0BIAFB4QBrQf8BcUEaSQ0CIABBATYCBCAAQQhqIAE2AgBBAQwECyADQi59IQMMBAsgA0I1fSEDDAMLIANCO30hAwwCCyAAQQA2AgQgAEEIakEKNgIAQQELNgIADAELIAJBAWohAiADIARCBoaEIQQMAQsLIAAoAgBFBEAgACkDCCAAQRBqJAAMAQsjAEEgayIAJAAgAEEUakEANgIAIABBrIHAADYCECAAQgE3AgQgAEEONgIcIABBjIHAADYCGCAAIABBGGo2AgAjAEEgayIBJAAgAUEBOgAYIAFBnIHAADYCFCABIAA2AhAgAUGsgcAANgIMIAFBrIHAADYCCAALCwMAAQsNAELX1o7QiJnYj7V/CwvDAQEAQYCAwAALuQFHQktMTVFWTkNSL1VzZXJzL3BhdWxiZWxsYW15Ly5jYXJnby9naXQvY2hlY2tvdXRzL3JzLXN0ZWxsYXItY29udHJhY3QtZW52LWE3NDU5OGJlZmVmNTk3OGQvNmIzNmZkNS9zdGVsbGFyLWNvbnRyYWN0LWVudi1jb21tb24vc3JjL3N5bWJvbC5yc2V4cGxpY2l0IHBhbmljAAAKABAAggAAAFoAAAAXAAAAAQAAAAAAAAABAAAAAg==";
-
 // Stub dummy data for now.
-const contractOwner = 'GDUT3U3X5RID2KKXBF7GGANYH4UT3RUT4Y5KLLGHTAIOJT67UZUNQ4Y2';
 const contractId = "0000000000000000000000000000000000000000000000000000000000000000";
 
 // Fetch the result value by making a json-rpc request to an rpc backend.
@@ -21,9 +17,9 @@ async function fetchFromBackend() {
   let url = '/api/horizon';
 
   // Example of how to set up the args:
-  // const args: StellarBase.xdr.ScVal[] = [
-  //   StellarBase.xdr.ScVal.scvPosI64(
-  //     StellarBase.xdr.Int64.fromString("3")
+  // const args: StellarSDK.xdr.ScVal[] = [
+  //   StellarSDK.xdr.ScVal.scvPosI64(
+  //     StellarSDK.xdr.Int64.fromString("3")
   //   )
   // ];
 
@@ -34,11 +30,15 @@ async function fetchFromBackend() {
   // a codegenerated Pixel class, so you'd do:
   // `new Pixel("owner:address").pixel()`
   // This could also be part of the stellar-sdk server package. tbd.
+  const contract = new StellarSDK.Contract(contractId);
+  let tokenId = contract.getToken();
+  let token = new StellarSDK.Contract(tokenId);
+
   const response = await axios.post(url+'/rpc', {
     id: 1,
     method: "call",
     params: {
-      contract: `${contractId}`,
+      contract: contractId,
       func: "pixel",
       xdr: argsXdr,
     }
@@ -49,34 +49,7 @@ async function fetchFromBackend() {
   const resultXdr = response.data?.result;
 
   // Parse the result u32. Again, could be wrapped into a codegenned helper.
-  return StellarBase.xdr.ScVal.fromXDR(resultXdr, 'base64').u32().toString(16);
-}
-
-// Fetch the result value by running the contract runtime in-browser.
-// Experimental. The catch here is you'd still need to load all the current chain state data.
-async function fetchInBrowser() {
-  // Point this to wherever your rs-stellar-wasm-browser repo is built.
-  const {default: init, invoke_contract} = require("../../rs-stellar-wasm-browser/pkg/stellar_wasm_browser.js");
-
-  // Example of how to set up the args:
-  // const args: StellarBase.xdr.ScVal[] = [
-  //   StellarBase.xdr.ScVal.scvPosI64(
-  //     StellarBase.xdr.Int64.fromString("3")
-  //   )
-  // ];
-
-  // Pixel NFT "pixel" func takes no args, so we can pass an empty string.
-  const argsXdr = "";
-
-  // Initialize the runtime
-  await init();
-
-  // Simulate the pixel.pixel func. We could wrap this into a codegenerated
-  // Pixel class, so you'd do: `new Pixel("owner:address").pixel()`
-  const resultXdr = Buffer.from(invoke_contract(contractId, PIXEL_NFT_WASM, "pixel", argsXdr));
-
-  // Parse the result u32. Again, could be wrapped into a codegenned helper.
-  return StellarBase.xdr.ScVal.fromXDR(resultXdr, 'base64').u32().toString(16);
+  return StellarSDK.xdr.ScVal.fromXDR(resultXdr, 'base64').u32().toString(16);
 }
 
 const Home: NextPage = () => {
