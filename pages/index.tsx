@@ -99,18 +99,6 @@ function xdrScBigIntToBigNumber(value: StellarSdk.xdr.ScBigInt): BigNumber {
 }
 
 async function fetchContractDeadline(): Promise<Date> {
-  // Example of how to set up the args:
-  // const args: StellarSdk.xdr.ScVal[] = [
-  //   StellarSdk.xdr.ScVal.scvPosI64(
-  //     StellarSdk.xdr.Int64.fromString("3")
-  //   )
-  // ];
-
-  // Ask the backend to simulate the token.balance(crowdfund) method. We could wrap this into
-  // a codegenerated Token class, so you'd do:
-  // `new Token(TOKEN_ID).balance(CROWDFUND_ID)`
-  // This could also be part of the stellar-sdk server package. tbd.
-  // TODO: We could do both of these in one step.
   const crowdfund = new StellarSdk.Contract(CROWDFUND_ID);
   const result = await simulateTransaction(
     new StellarSdk.TransactionBuilder(source, {
@@ -121,9 +109,21 @@ async function fetchContractDeadline(): Promise<Date> {
       .setTimeout(StellarSdk.TimeoutInfinite)
       .build()
   );
+  let value = result.u63() ?? xdr.Int64.fromString("0");
+  return new Date(xdrInt64ToNumber(value) * 1000);
+}
 
-  // Parse the result bigint. Again, could be wrapped into a codegenned helper.
-  // TODO: convert this to a js bigint instead of an xdr string.
+async function fetchContractStarted(): Promise<Date> {
+  const crowdfund = new StellarSdk.Contract(CROWDFUND_ID);
+  const result = await simulateTransaction(
+    new StellarSdk.TransactionBuilder(source, {
+        fee: "100",
+        networkPassphrase: StellarSdk.Networks.TESTNET,
+      })
+      .addOperation(crowdfund.call("started"))
+      .setTimeout(StellarSdk.TimeoutInfinite)
+      .build()
+  );
   let value = result.u63() ?? xdr.Int64.fromString("0");
   return new Date(xdrInt64ToNumber(value) * 1000);
 }
@@ -169,6 +169,7 @@ function useContractValue<T>(fetcher: () => Promise<T>): ContractValue<T> {
 const Home: NextPage = () => {
   const balance = useContractValue(fetchContractBalance);
   const deadline = useContractValue(fetchContractDeadline);
+  const started = useContractValue(fetchContractStarted);
 
   const { data: account } = useAccount();
   
@@ -199,10 +200,19 @@ const Home: NextPage = () => {
               )}
             </div>
             <div>
-              Deadline: {deadline.loading ? (
+              Elapsed: {started.loading ? (
+                <span>Loading...</span>
+              ) : started.result ? (
+                <span>{Math.round((Date.now() - started.result.valueOf()) / 60000)} minutes</span>
+              ) : (
+                <span>{JSON.stringify(started.error)}</span>
+              )}
+            </div>
+            <div>
+              Remaining: {deadline.loading ? (
                 <span>Loading...</span>
               ) : deadline.result ? (
-                <span>{deadline.result.toISOString()}</span>
+                <span>{Math.round((deadline.result.valueOf() - Date.now()) / 60000)} minutes</span>
               ) : (
                 <span>{JSON.stringify(deadline.error)}</span>
               )}

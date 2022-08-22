@@ -7,9 +7,10 @@ use token::public_types::{Identifier, KeyedAuthorization, U256};
 #[repr(u32)]
 pub enum DataKey {
     Owner = 0,
-    Deadline = 1,
-    TargetAmount = 2,
-    Token = 3,
+    Started = 1,
+    Deadline = 2,
+    TargetAmount = 3,
+    Token = 4,
 }
 
 impl IntoVal<Env, RawVal> for DataKey {
@@ -84,6 +85,11 @@ fn put_owner(e: &Env, owner: Identifier) {
     e.contract_data().set(DataKey::Owner, owner);
 }
 
+fn put_started(e: &Env, started: u64) {
+    e.contract_data()
+        .set(DataKey::Started, started);
+}
+
 fn put_deadline(e: &Env, deadline: u64) {
     e.contract_data()
         .set(DataKey::Deadline, deadline);
@@ -120,26 +126,31 @@ impl Crowdfund {
         target_amount: BigInt,
         token: U256,
     ) {
-        put_owner(&e, owner);
         put_deadline(&e, deadline);
+        put_owner(&e, owner);
+        put_started(&e, get_ledger_timestamp(&e));
         put_target_amount(&e, target_amount);
         put_token(&e, token);
-    }
-
-    pub fn token(e: Env) -> FixedBinary<32> {
-        get_token(&e)
     }
 
     pub fn deadline(e: Env) -> u64 {
         get_deadline(&e)
     }
 
-    pub fn target_amount(e: Env) -> BigInt {
-        get_target_amount(&e)
+    pub fn started(e: Env) -> u64 {
+        get_started(&e)
     }
 
     pub fn state(e: Env) -> u32 {
         get_state(&e) as u32
+    }
+
+    pub fn target_amount(e: Env) -> BigInt {
+        get_target_amount(&e)
+    }
+
+    pub fn token(e: Env) -> FixedBinary<32> {
+        get_token(&e)
     }
 
     pub fn deposit(e: Env, to: Identifier, amount: BigInt) {

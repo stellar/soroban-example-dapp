@@ -26,6 +26,24 @@ const mockContracts: Record<string, Record<string, Function>> = {
       let value = StellarSdk.xdr.Int64.fromString(now.toString());
       return StellarSdk.xdr.ScVal.scvU63(value);
     },
+    started(): StellarSdk.xdr.ScVal {
+      // Started 2 hours ago
+      const now = Math.floor(Date.now() / 1000) - (2* 3600);
+      let value = StellarSdk.xdr.Int64.fromString(now.toString());
+      return StellarSdk.xdr.ScVal.scvU63(value);
+    },
+    state(): StellarSdk.xdr.ScVal {
+      // Currently running
+      return StellarSdk.xdr.ScVal.scvU32(0);
+    },
+    target_amount(): StellarSdk.xdr.ScVal {
+      let value = StellarSdk.xdr.ScObject.scoBytes(Buffer.from(TOKEN_ID, "hex"));
+      return StellarSdk.xdr.ScVal.scvObject(value);
+    },
+    token(): StellarSdk.xdr.ScVal {
+      let value = StellarSdk.xdr.ScObject.scoBytes(Buffer.from(TOKEN_ID, "hex"));
+      return StellarSdk.xdr.ScVal.scvObject(value);
+    },
   },
   // token contract mocks
   [TOKEN_ID]: {
