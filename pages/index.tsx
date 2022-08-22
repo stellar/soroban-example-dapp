@@ -88,7 +88,7 @@ function xdrInt64ToNumber(value: StellarSdk.xdr.Int64): number {
   return b;
 }
 
-function scvalToString(value: StellarSdk.xdr.ScVal): string {
+function scvalToString(value: StellarSdk.xdr.ScVal): string | undefined {
   return value.obj()?.bin().toString();
 }
 
@@ -122,6 +122,7 @@ function useContractValue(contractId: string, method: string, ...params: Stellar
 };
 
 const Home: NextPage = () => {
+  const { data: account } = useAccount();
   // Call the contract rpcs to fetch values
   const token = {
     balance: useContractValue(TOKEN_ID, "balance", xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')))),
@@ -131,6 +132,7 @@ const Home: NextPage = () => {
   };
   const deadline = useContractValue(CROWDFUND_ID, "deadline");
   const started = useContractValue(CROWDFUND_ID, "started");
+  const yourDepositsXdr = useContractValue(CROWDFUND_ID, "balance", xdr.ScVal.scvObject(account ? xdr.ScObject.scoBytes(Buffer.from(account.address)) : null));
 
   // Convert the result ScVals to js types
   const tokenBalance = xdrScBigIntToBigNumber(token.balance.result?.obj()?.bigInt() ?? xdr.ScBigInt.zero());
@@ -139,9 +141,7 @@ const Home: NextPage = () => {
   const tokenSymbol = token.symbol.result && scvalToString(token.symbol.result);
   const deadlineDate = deadline.result && new Date(xdrInt64ToNumber(deadline.result.u63() ?? xdr.Int64.fromString("0")) * 1000);
   const startedDate = started.result && new Date(xdrInt64ToNumber(started.result.u63() ?? xdr.Int64.fromString("0")) * 1000);
-
-
-  const { data: account } = useAccount();
+  const yourDeposits = xdrScBigIntToBigNumber(yourDepositsXdr.result?.obj()?.bigInt() ?? xdr.ScBigInt.zero());
   
   return (
     <div className={styles.container}>
@@ -185,6 +185,15 @@ const Home: NextPage = () => {
                 <span>{Math.round((deadlineDate.valueOf() - Date.now()) / 60000)} minutes</span>
               ) : (
                 <span>{JSON.stringify(deadline.error)}</span>
+              )}
+            </div>
+            <div>
+              Your Deposits: {yourDepositsXdr.loading || token.decimals.loading || token.name.loading || token.symbol.loading ? (
+                <span>Loading...</span>
+              ) : yourDeposits ? (
+                <span>{formatAmount(yourDeposits, tokenDecimals)} <span title={tokenName}>{tokenSymbol}</span></span>
+              ) : (
+                <span>{JSON.stringify(yourDepositsXdr.error)}</span>
               )}
             </div>
           </div>

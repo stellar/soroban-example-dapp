@@ -61,6 +61,15 @@ fn get_token(e: &Env) -> FixedBinary<32> {
     e.contract_data().get_unchecked(DataKey::Token).unwrap()
 }
 
+fn get_user_deposited(e: &Env, user: Identifier) -> BigInt {
+    if !e.contract_data().has(user) {
+        return BigInt::zero(&e);
+    }
+    e.contract_data()
+        .get_unchecked(user)
+        .unwrap()
+}
+
 fn get_balance(e: &Env, contract_id: FixedBinary<32>) -> BigInt {
     token::balance(e, &contract_id, &get_contract_id(e))
 }
@@ -102,6 +111,11 @@ fn put_target_amount(e: &Env, target_amount: BigInt) {
 fn put_token(e: &Env, token: U256) {
     e.contract_data().set(DataKey::Token, token);
 }
+
+fn put_user_deposited(e: &Env, user: Identifier, amount: BigInt) {
+    e.contract_data().set(user, amount)
+}
+
 
 fn transfer(e: &Env, contract_id: FixedBinary<32>, to: Identifier, amount: BigInt) {
     token::xfer(e, &contract_id, &KeyedAuthorization::Contract, &to, &amount);
@@ -153,10 +167,26 @@ impl Crowdfund {
         get_token(&e)
     }
 
+    pub fn balance(e: Env, user: Identifier) -> BigInt {
+        let owner = get_owner(&e);
+        if get_state(&e) == State::Success {
+            if user != owner {
+                return BigInt::zero(&e);
+            };
+            let token_id = get_token(&e);
+            return get_balance(&e);
+        };
+
+        get_user_deposited(&e, user)
+    }
+
     pub fn deposit(e: Env, to: Identifier, amount: BigInt) {
         if get_state(&e) != State::Running {
             panic!("sale is not running")
         };
+
+        let balance = get_user_deposited(&e, user);
+        put_user_deposited(&e, user, balance + amount);
 
         token::xfer_from(
             &e,
@@ -186,6 +216,14 @@ impl Crowdfund {
                 if to == owner {
                     panic!("sale expired, the owner may not withdraw")
                 }
+
+                // Sale expired, we're refunding users. Check they can only withdraw as much as
+                // they deposited.
+                let balance = get_user_deposited(&e, user);
+                if balance < amount {
+                    panic!("insufficient funds")
+                }
+                put_user_deposited(&e, user, balance - amount);
             }
         };
 
