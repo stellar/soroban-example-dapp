@@ -98,34 +98,80 @@ function xdrScBigIntToBigNumber(value: StellarSdk.xdr.ScBigInt): BigNumber {
   return BigNumber((b * sign).toString());
 }
 
+async function fetchContractDeadline(): Promise<Date> {
+  // Example of how to set up the args:
+  // const args: StellarSdk.xdr.ScVal[] = [
+  //   StellarSdk.xdr.ScVal.scvPosI64(
+  //     StellarSdk.xdr.Int64.fromString("3")
+  //   )
+  // ];
+
+  // Ask the backend to simulate the token.balance(crowdfund) method. We could wrap this into
+  // a codegenerated Token class, so you'd do:
+  // `new Token(TOKEN_ID).balance(CROWDFUND_ID)`
+  // This could also be part of the stellar-sdk server package. tbd.
+  // TODO: We could do both of these in one step.
+  const crowdfund = new StellarSdk.Contract(CROWDFUND_ID);
+  const result = await simulateTransaction(
+    new StellarSdk.TransactionBuilder(source, {
+        fee: "100",
+        networkPassphrase: StellarSdk.Networks.TESTNET,
+      })
+      .addOperation(crowdfund.call("deadline"))
+      .setTimeout(StellarSdk.TimeoutInfinite)
+      .build()
+  );
+
+  // Parse the result bigint. Again, could be wrapped into a codegenned helper.
+  // TODO: convert this to a js bigint instead of an xdr string.
+  let value = result.u63() ?? xdr.Int64.fromString("0");
+  return new Date(xdrInt64ToNumber(value) * 1000);
+}
+
+function xdrInt64ToNumber(value: StellarSdk.xdr.Int64): number {
+  let b = 0;
+  b |= value.high;
+  b <<= 8;
+  b |= value.low;
+  return b;
+}
+
 function formatAmount(value: BigNumber): string {
   return value.shiftedBy(-7).toString();
 }
 
-const Home: NextPage = () => {
-  const [balance, setBalance] = React.useState<null|{loading?: true, result?: BigNumber, error?: string|unknown}>(null);
+type ContractValue<T> = {loading?: true, result?: T, error?: string|unknown};
 
-  const { data: account } = useAccount();
-  
-  // Fetch the current contract balance
+function useContractValue<T>(fetcher: () => Promise<T>): ContractValue<T> {
+  const [value, setValue] = React.useState<ContractValue<T>>({ loading: true });
   React.useEffect(() => {
-    setBalance({ loading: true });
     (async () => {
       try {
-        let result = await fetchContractBalance();
+        let result = await fetcher();
         // let result = await fetchInBrowser();
-        setBalance({ result });
+        setValue({ result });
       } catch (error) {
-        // stringify any error for display.
-        if (!!(error as any)?.toString) {
-          setBalance({ error: (error as any).toString() });
+        if (typeof error == 'string') {
+          setValue({ error });
           return;
         }
-        setBalance({ error });
+        if ('message' in (error as any)) {
+          setValue({ error: (error as any).message });
+          return;
+        }
+        setValue({ error });
       }
     })();
   }, []);
+  return value;
+};
 
+const Home: NextPage = () => {
+  const balance = useContractValue(fetchContractBalance);
+  const deadline = useContractValue(fetchContractDeadline);
+
+  const { data: account } = useAccount();
+  
   return (
     <div className={styles.container}>
       <Head>
@@ -141,12 +187,27 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         {!account ? (
           <ConnectButton />
-        ) : !balance || balance.loading ? (
-          <span>Loading...</span>
-        ) : balance.result ? (
-          <span>Balance: {formatAmount(balance.result)}</span>
         ) : (
-          <span>Error: {JSON.stringify(balance.error)}</span>
+          <div>
+            <div>
+              Balance: {balance.loading ? (
+                <span>Loading...</span>
+              ) : balance.result ? (
+                <span>{formatAmount(balance.result)}</span>
+              ) : (
+                <span>{JSON.stringify(balance.error)}</span>
+              )}
+            </div>
+            <div>
+              Deadline: {deadline.loading ? (
+                <span>Loading...</span>
+              ) : deadline.result ? (
+                <span>{deadline.result.toISOString()}</span>
+              ) : (
+                <span>{JSON.stringify(deadline.error)}</span>
+              )}
+            </div>
+          </div>
         )}
       </main>
     </div>
