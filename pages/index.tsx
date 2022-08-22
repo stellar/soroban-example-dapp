@@ -58,7 +58,8 @@ async function fetchContractValue(contractId: string, method: string, ...params:
   );
 }
 
-function xdrScBigIntToBigNumber(value: StellarSdk.xdr.ScBigInt): BigNumber {
+function scvalToBigNumber(scval: StellarSdk.xdr.ScVal | undefined): BigNumber {
+  let value = scval?.obj()?.bigInt() ?? xdr.ScBigInt.zero();
   let sign = BigInt(1);
   switch (value.switch()) {
     case StellarSdk.xdr.ScNumSign.zero():
@@ -117,7 +118,10 @@ function useContractValue(contractId: string, method: string, ...params: Stellar
         setValue({ error });
       }
     })();
-  }, []);
+  // Have this re-fetch if the contractId/method/params change. Total hack with
+  // xdr-base64 to enforce real equality instead of object equality
+  // shenanigans.
+  }, [contractId, method, ...params.map(p => p.toXDR().toString('base64'))]);
   return value;
 };
 
@@ -135,13 +139,13 @@ const Home: NextPage = () => {
   const yourDepositsXdr = useContractValue(CROWDFUND_ID, "balance", xdr.ScVal.scvObject(account ? xdr.ScObject.scoBytes(Buffer.from(account.address)) : null));
 
   // Convert the result ScVals to js types
-  const tokenBalance = xdrScBigIntToBigNumber(token.balance.result?.obj()?.bigInt() ?? xdr.ScBigInt.zero());
+  const tokenBalance = scvalToBigNumber(token.balance.result);
   const tokenDecimals = token.decimals.result && (token.decimals.result?.u32() ?? 7);
   const tokenName = token.name.result && scvalToString(token.name.result);
   const tokenSymbol = token.symbol.result && scvalToString(token.symbol.result);
   const deadlineDate = deadline.result && new Date(xdrInt64ToNumber(deadline.result.u63() ?? xdr.Int64.fromString("0")) * 1000);
   const startedDate = started.result && new Date(xdrInt64ToNumber(started.result.u63() ?? xdr.Int64.fromString("0")) * 1000);
-  const yourDeposits = xdrScBigIntToBigNumber(yourDepositsXdr.result?.obj()?.bigInt() ?? xdr.ScBigInt.zero());
+  const yourDeposits = scvalToBigNumber(yourDepositsXdr.result);
   
   return (
     <div className={styles.container}>
@@ -187,6 +191,7 @@ const Home: NextPage = () => {
                 <span>{JSON.stringify(deadline.error)}</span>
               )}
             </div>
+            <DepositForm account={account} />
             <div>
               Your Deposits: {yourDepositsXdr.loading || token.decimals.loading || token.name.loading || token.symbol.loading ? (
                 <span>Loading...</span>
@@ -201,6 +206,40 @@ const Home: NextPage = () => {
       </main>
     </div>
   )
+}
+
+function DepositForm({account}: {account: {address: string}}) {
+  const allowanceScval = useContractValue(
+    TOKEN_ID,
+    "allowance",
+    // TODO: Figure out how to pass account address properly
+    xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(account.address))),
+    xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')))
+  );
+  const allowance = scvalToBigNumber(allowanceScval.result);
+
+  const [amount, setAmount] = React.useState("");
+  const parsedAmount = BigNumber(amount);
+  const needsApproval = allowance.eq(0) || allowance.lt(parsedAmount);
+
+  // TODO: Check and handle approval
+  return (
+    <form onSubmit={e => {
+      e.preventDefault();
+      if (needsApproval) {
+        // approval
+      } else {
+        // deposit
+      }
+    }}>
+      <input name="amount" type="text" value={amount} onChange={e => {
+        setAmount(e.currentTarget.value);
+      }} />
+      <button type="button" disabled={allowanceScval.loading}>
+        {needsApproval ? "Approve" : "Deposit"}
+      </button>
+    </form>
+  );
 }
 
 export default Home
