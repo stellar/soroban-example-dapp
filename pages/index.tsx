@@ -3,6 +3,7 @@ import React from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
+import * as jsonrpc from "../jsonrpc";
 import styles from '../styles/Home.module.css';
 // TODO: Use the SDK
 import * as StellarSdk from 'stellar-sdk';
@@ -13,13 +14,6 @@ import { useAccount, ConnectButton } from "../wallet";
 const source = new StellarSdk.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
 const CROWDFUND_ID = "0000000000000000000000000000000000000000000000000000000000000000";
 const TOKEN_ID = "0000000000000000000000000000000000000000000000000000000000000001";
-
-type JSONRPCResponse<T, E = any> = {
-  jsonrpc: "2.0";
-  id: string | number;
-} & (
-  { error: { code: number; message?: string; data?: E } }
-| { result: T });
 
 interface SimulateTransactionResponse {
   cost: {};
@@ -36,7 +30,7 @@ async function simulateTransaction(txn: StellarSdk.Transaction): Promise<Stellar
   // let url = 'http://localhost:8080/api/v1/jsonrpc';
   let url = '/api/mock';
 
-  const response = await axios.post<JSONRPCResponse<SimulateTransactionResponse>>(url, {
+  const response = await axios.post<jsonrpc.Response<SimulateTransactionResponse>>(url, {
     jsonrpc: "2.0",
     id: 1,
     method: "simulateTransaction",
