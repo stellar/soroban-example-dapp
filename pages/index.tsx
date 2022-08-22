@@ -1,4 +1,5 @@
 import axios from 'axios';
+import BigNumber from 'bignumber.js';
 import React from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
@@ -44,7 +45,7 @@ async function simulateTransaction(txn: StellarSdk.Transaction): Promise<Stellar
   }
 }
 
-async function fetchContractBalance() {
+async function fetchContractBalance(): Promise<BigNumber> {
   // Example of how to set up the args:
   // const args: StellarSdk.xdr.ScVal[] = [
   //   StellarSdk.xdr.ScVal.scvPosI64(
@@ -71,11 +72,38 @@ async function fetchContractBalance() {
 
   // Parse the result bigint. Again, could be wrapped into a codegenned helper.
   // TODO: convert this to a js bigint instead of an xdr string.
-  return contractBalance.obj()?.bigInt().toXDR();
+  let value = contractBalance.obj()?.bigInt() ?? xdr.ScBigInt.zero();
+  return xdrScBigIntToBigNumber(value);
+}
+
+function xdrScBigIntToBigNumber(value: StellarSdk.xdr.ScBigInt): BigNumber {
+  let sign = BigInt(1);
+  switch (value.switch()) {
+    case StellarSdk.xdr.ScNumSign.zero():
+      return BigNumber(0);
+    case StellarSdk.xdr.ScNumSign.positive():
+      sign = BigInt(1);
+      break;
+    case StellarSdk.xdr.ScNumSign.negative():
+      sign = BigInt(-1);
+      break;
+  }
+
+  let b = BigInt(0);
+  for (let byte of value.magnitude()) {
+    b <<= BigInt(8);
+    b |= BigInt(byte);
+  };
+
+  return BigNumber((b * sign).toString());
+}
+
+function formatAmount(value: BigNumber): string {
+  return value.shiftedBy(-7).toString();
 }
 
 const Home: NextPage = () => {
-  const [balance, setBalance] = React.useState<any>(null);
+  const [balance, setBalance] = React.useState<null|{loading?: true, result?: BigNumber, error?: string|unknown}>(null);
 
   const { data: account } = useAccount();
   
@@ -116,9 +144,9 @@ const Home: NextPage = () => {
         ) : !balance || balance.loading ? (
           <span>Loading...</span>
         ) : balance.result ? (
-          <span>Balance: {balance.result}</span>
+          <span>Balance: {formatAmount(balance.result)}</span>
         ) : (
-          <span>Error: {balance.error}</span>
+          <span>Error: {JSON.stringify(balance.error)}</span>
         )}
       </main>
     </div>

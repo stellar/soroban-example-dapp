@@ -14,6 +14,7 @@
     "@stellar/freighter-api": "^1.1.2",
     "@types/three": "^0.141.0",
     "axios": "^0.27.2",
+    "bignumber.js": "^9.1.0",
     "next": "12.1.5",
     "react": "18.1.0",
     "react-dom": "18.1.0",

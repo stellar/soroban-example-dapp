@@ -21,8 +21,8 @@ export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<jsonrpc.Response<SimulateTransactionResponse>>
 ) {
-  // TODO: Figure out how to actually convert a js bigint into a ScBigInt (and vice versa).
-  let balance = xdr.ScBigInt.positive(Buffer.from(BigInt(42).toString(16)));
+  // test value = 0x1715D59B9734EA, randomly generated u64 value
+  let balance = xdr.ScBigInt.positive(Buffer.from("1715D59B9734EA", "hex"));
 
   res.status(200).json({
     jsonrpc: "2.0",
