@@ -47,11 +47,22 @@ const mockContracts: Record<string, Record<string, Function>> = {
   },
   // token contract mocks
   [TOKEN_ID]: {
+    name(): StellarSdk.xdr.ScVal {
+      let value = StellarSdk.xdr.ScObject.scoBytes(Buffer.from("Circle US Dollar"));
+      return StellarSdk.xdr.ScVal.scvObject(value);
+    },
+    symbol(): StellarSdk.xdr.ScVal {
+      let value = StellarSdk.xdr.ScObject.scoBytes(Buffer.from("USDC"));
+      return StellarSdk.xdr.ScVal.scvObject(value);
+    },
+    decimals(): StellarSdk.xdr.ScVal {
+      return StellarSdk.xdr.ScVal.scvU32(2);
+    },
     balance(id: StellarSdk.xdr.ScVal): StellarSdk.xdr.ScVal {
       let userId = id.obj()?.bin().toString('hex');
       let balance = userId === CROWDFUND_ID
-        // test value = 0x1715D59B9734EA, randomly generated u64 value
-        ? StellarSdk.xdr.ScBigInt.positive(Buffer.from("1715D59B9734EA", "hex"))
+        // test value = 0x262F046C, randomly generated u64 value
+        ? StellarSdk.xdr.ScBigInt.positive(Buffer.from("262F046C", "hex"))
         : StellarSdk.xdr.ScBigInt.zero();
       return StellarSdk.xdr.ScVal.scvObject(StellarSdk.xdr.ScObject.scoBigInt(balance));
     },

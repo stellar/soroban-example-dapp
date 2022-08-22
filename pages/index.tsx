@@ -45,35 +45,17 @@ async function simulateTransaction(txn: StellarSdk.Transaction): Promise<Stellar
   }
 }
 
-async function fetchContractBalance(): Promise<BigNumber> {
-  // Example of how to set up the args:
-  // const args: StellarSdk.xdr.ScVal[] = [
-  //   StellarSdk.xdr.ScVal.scvPosI64(
-  //     StellarSdk.xdr.Int64.fromString("3")
-  //   )
-  // ];
-
-  // Ask the backend to simulate the token.balance(crowdfund) method. We could wrap this into
-  // a codegenerated Token class, so you'd do:
-  // `new Token(TOKEN_ID).balance(CROWDFUND_ID)`
-  // This could also be part of the stellar-sdk server package. tbd.
-  // TODO: We could do both of these in one step.
-  const token = new StellarSdk.Contract(TOKEN_ID);
-  const crowdfundContractAddress = xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')));
-  const contractBalance = await simulateTransaction(
+async function fetchContractValue(contractId: string, method: string, ...params: StellarSdk.xdr.ScVal[]): Promise<StellarSdk.xdr.ScVal> {
+  const contract = new StellarSdk.Contract(contractId);
+  return await simulateTransaction(
     new StellarSdk.TransactionBuilder(source, {
         fee: "100",
         networkPassphrase: StellarSdk.Networks.TESTNET,
       })
-      .addOperation(token.call("balance", crowdfundContractAddress))
+      .addOperation(contract.call(method, ...params))
       .setTimeout(StellarSdk.TimeoutInfinite)
       .build()
   );
-
-  // Parse the result bigint. Again, could be wrapped into a codegenned helper.
-  // TODO: convert this to a js bigint instead of an xdr string.
-  let value = contractBalance.obj()?.bigInt() ?? xdr.ScBigInt.zero();
-  return xdrScBigIntToBigNumber(value);
 }
 
 function xdrScBigIntToBigNumber(value: StellarSdk.xdr.ScBigInt): BigNumber {
@@ -98,36 +80,6 @@ function xdrScBigIntToBigNumber(value: StellarSdk.xdr.ScBigInt): BigNumber {
   return BigNumber((b * sign).toString());
 }
 
-async function fetchContractDeadline(): Promise<Date> {
-  const crowdfund = new StellarSdk.Contract(CROWDFUND_ID);
-  const result = await simulateTransaction(
-    new StellarSdk.TransactionBuilder(source, {
-        fee: "100",
-        networkPassphrase: StellarSdk.Networks.TESTNET,
-      })
-      .addOperation(crowdfund.call("deadline"))
-      .setTimeout(StellarSdk.TimeoutInfinite)
-      .build()
-  );
-  let value = result.u63() ?? xdr.Int64.fromString("0");
-  return new Date(xdrInt64ToNumber(value) * 1000);
-}
-
-async function fetchContractStarted(): Promise<Date> {
-  const crowdfund = new StellarSdk.Contract(CROWDFUND_ID);
-  const result = await simulateTransaction(
-    new StellarSdk.TransactionBuilder(source, {
-        fee: "100",
-        networkPassphrase: StellarSdk.Networks.TESTNET,
-      })
-      .addOperation(crowdfund.call("started"))
-      .setTimeout(StellarSdk.TimeoutInfinite)
-      .build()
-  );
-  let value = result.u63() ?? xdr.Int64.fromString("0");
-  return new Date(xdrInt64ToNumber(value) * 1000);
-}
-
 function xdrInt64ToNumber(value: StellarSdk.xdr.Int64): number {
   let b = 0;
   b |= value.high;
@@ -136,19 +88,22 @@ function xdrInt64ToNumber(value: StellarSdk.xdr.Int64): number {
   return b;
 }
 
-function formatAmount(value: BigNumber): string {
-  return value.shiftedBy(-7).toString();
+function scvalToString(value: StellarSdk.xdr.ScVal): string {
+  return value.obj()?.bin().toString();
 }
 
-type ContractValue<T> = {loading?: true, result?: T, error?: string|unknown};
+function formatAmount(value: BigNumber, decimals=7): string {
+  return value.shiftedBy(decimals * -1).toString();
+}
 
-function useContractValue<T>(fetcher: () => Promise<T>): ContractValue<T> {
-  const [value, setValue] = React.useState<ContractValue<T>>({ loading: true });
+type ContractValue = {loading?: true, result?: StellarSdk.xdr.ScVal, error?: string|unknown};
+
+function useContractValue(contractId: string, method: string, ...params: StellarSdk.xdr.ScVal[]): ContractValue {
+  const [value, setValue] = React.useState<ContractValue>({ loading: true });
   React.useEffect(() => {
     (async () => {
       try {
-        let result = await fetcher();
-        // let result = await fetchInBrowser();
+        let result = await fetchContractValue(contractId, method, ...params);
         setValue({ result });
       } catch (error) {
         if (typeof error == 'string') {
@@ -167,9 +122,24 @@ function useContractValue<T>(fetcher: () => Promise<T>): ContractValue<T> {
 };
 
 const Home: NextPage = () => {
-  const balance = useContractValue(fetchContractBalance);
-  const deadline = useContractValue(fetchContractDeadline);
-  const started = useContractValue(fetchContractStarted);
+  // Call the contract rpcs to fetch values
+  const token = {
+    balance: useContractValue(TOKEN_ID, "balance", xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')))),
+    decimals: useContractValue(TOKEN_ID, "decimals"),
+    name: useContractValue(TOKEN_ID, "name"),
+    symbol: useContractValue(TOKEN_ID, "symbol"),
+  };
+  const deadline = useContractValue(CROWDFUND_ID, "deadline");
+  const started = useContractValue(CROWDFUND_ID, "started");
+
+  // Convert the result ScVals to js types
+  const tokenBalance = xdrScBigIntToBigNumber(token.balance.result?.obj()?.bigInt() ?? xdr.ScBigInt.zero());
+  const tokenDecimals = token.decimals.result && (token.decimals.result?.u32() ?? 7);
+  const tokenName = token.name.result && scvalToString(token.name.result);
+  const tokenSymbol = token.symbol.result && scvalToString(token.symbol.result);
+  const deadlineDate = deadline.result && new Date(xdrInt64ToNumber(deadline.result.u63() ?? xdr.Int64.fromString("0")) * 1000);
+  const startedDate = started.result && new Date(xdrInt64ToNumber(started.result.u63() ?? xdr.Int64.fromString("0")) * 1000);
+
 
   const { data: account } = useAccount();
   
@@ -191,19 +161,19 @@ const Home: NextPage = () => {
         ) : (
           <div>
             <div>
-              Raised: {balance.loading ? (
+              Raised: {token.balance.loading || token.decimals.loading || token.name.loading || token.symbol.loading ? (
                 <span>Loading...</span>
-              ) : balance.result ? (
-                <span>{formatAmount(balance.result)}</span>
+              ) : token.balance.result ? (
+                <span>{formatAmount(tokenBalance, tokenDecimals)} <span title={tokenName}>{tokenSymbol}</span></span>
               ) : (
-                <span>{JSON.stringify(balance.error)}</span>
+                <span>{JSON.stringify(token.balance.error)}</span>
               )}
             </div>
             <div>
               Elapsed: {started.loading ? (
                 <span>Loading...</span>
-              ) : started.result ? (
-                <span>{Math.round((Date.now() - started.result.valueOf()) / 60000)} minutes</span>
+              ) : startedDate ? (
+                <span>{Math.round((Date.now() - startedDate.valueOf()) / 60000)} minutes</span>
               ) : (
                 <span>{JSON.stringify(started.error)}</span>
               )}
@@ -211,8 +181,8 @@ const Home: NextPage = () => {
             <div>
               Remaining: {deadline.loading ? (
                 <span>Loading...</span>
-              ) : deadline.result ? (
-                <span>{Math.round((deadline.result.valueOf() - Date.now()) / 60000)} minutes</span>
+              ) : deadlineDate ? (
+                <span>{Math.round((deadlineDate.valueOf() - Date.now()) / 60000)} minutes</span>
               ) : (
                 <span>{JSON.stringify(deadline.error)}</span>
               )}
