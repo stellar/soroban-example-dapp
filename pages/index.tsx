@@ -191,7 +191,7 @@ const Home: NextPage = () => {
         ) : (
           <div>
             <div>
-              Balance: {balance.loading ? (
+              Raised: {balance.loading ? (
                 <span>Loading...</span>
               ) : balance.result ? (
                 <span>{formatAmount(balance.result)}</span>
