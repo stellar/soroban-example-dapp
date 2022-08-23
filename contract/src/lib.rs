@@ -1,22 +1,17 @@
 #![no_std]
-use soroban_sdk::{contractimpl, BigInt, Env, EnvVal, FixedBinary, IntoVal, RawVal};
+use soroban_sdk::{contractimpl, contracttype, BigInt, Env, EnvVal, FixedBinary, IntoVal, RawVal};
 use soroban_token_contract as token;
 use token::public_types::{Identifier, KeyedAuthorization, U256};
 
-#[derive(Clone, Copy)]
-#[repr(u32)]
+#[derive(Clone)]
+#[contracttype]
 pub enum DataKey {
-    Owner = 0,
-    Started = 1,
-    Deadline = 2,
-    TargetAmount = 3,
-    Token = 4,
-}
-
-impl IntoVal<Env, RawVal> for DataKey {
-    fn into_val(self, env: &Env) -> RawVal {
-        (self as u32).into_val(env)
-    }
+    Deadline,
+    Owner,
+    Started,
+    TargetAmount,
+    Token,
+    User(Identifier),
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -46,9 +41,7 @@ fn get_owner(e: &Env) -> Identifier {
 }
 
 fn get_deadline(e: &Env) -> u64 {
-    e.contract_data()
-        .get_unchecked(DataKey::Deadline)
-        .unwrap()
+    e.contract_data().get_unchecked(DataKey::Deadline).unwrap()
 }
 
 fn get_target_amount(e: &Env) -> BigInt {
@@ -62,11 +55,11 @@ fn get_token(e: &Env) -> FixedBinary<32> {
 }
 
 fn get_user_deposited(e: &Env, user: Identifier) -> BigInt {
-    if !e.contract_data().has(user) {
+    if !e.contract_data().has(DataKey::User(user)) {
         return BigInt::zero(&e);
     }
     e.contract_data()
-        .get_unchecked(user)
+        .get_unchecked(DataKey::User(user))
         .unwrap()
 }
 
@@ -95,13 +88,11 @@ fn put_owner(e: &Env, owner: Identifier) {
 }
 
 fn put_started(e: &Env, started: u64) {
-    e.contract_data()
-        .set(DataKey::Started, started);
+    e.contract_data().set(DataKey::Started, started);
 }
 
 fn put_deadline(e: &Env, deadline: u64) {
-    e.contract_data()
-        .set(DataKey::Deadline, deadline);
+    e.contract_data().set(DataKey::Deadline, deadline);
 }
 
 fn put_target_amount(e: &Env, target_amount: BigInt) {
@@ -113,9 +104,8 @@ fn put_token(e: &Env, token: U256) {
 }
 
 fn put_user_deposited(e: &Env, user: Identifier, amount: BigInt) {
-    e.contract_data().set(user, amount)
+    e.contract_data().set(DataKey::User(user), amount)
 }
-
 
 fn transfer(e: &Env, contract_id: FixedBinary<32>, to: Identifier, amount: BigInt) {
     token::xfer(e, &contract_id, &KeyedAuthorization::Contract, &to, &amount);
@@ -200,35 +190,33 @@ impl Crowdfund {
 
     // TODO: Track deposited amounts per-donor, so you can't just withdraw all
     // TODO: Authenticate this with more than the destination address, maybe?
-    pub fn withdraw(e: Env, to: Identifier, amount: BigInt) {
+    pub fn withdraw(e: Env, auth: KeyedAuthorization, to: Identifier, amount: BigInt) {
+        let auth_id = auth.get_identifier(&e);
         let state = get_state(&e);
         let owner = get_owner(&e);
-        match (state, to) {
-            (State::Running, _) => {
+        match state {
+            State::Running => {
                 panic!("sale is still running")
             }
-            (State::Success, to) => {
-                if to != owner {
+            State::Success => {
+                if auth_id != owner {
                     panic!("sale was successful, only the owner may withdraw")
                 }
             }
-            (State::Expired, to) => {
-                if to == owner {
+            State::Expired => {
+                if auth_id == owner {
                     panic!("sale expired, the owner may not withdraw")
                 }
 
                 // Sale expired, we're refunding users. Check they can only withdraw as much as
                 // they deposited.
-                let balance = get_user_deposited(&e, user);
-                if balance < amount {
+                let balance = get_user_deposited(&e, auth_id);
+                if amount > balance {
                     panic!("insufficient funds")
                 }
-                put_user_deposited(&e, user, balance - amount);
+                put_user_deposited(&e, auth_id, balance - amount);
             }
         };
-
-        let token_id = get_token(&e);
-        let token_balance = get_balance(&e, token_id);
-        transfer(&e, token_id, to, amount);
+        transfer(&e, get_token(&e), to, amount);
     }
 }
