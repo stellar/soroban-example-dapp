@@ -13,7 +13,7 @@ export = []
 testutils = ["soroban-sdk/testutils", "soroban-token-contract/testutils", "dep:ed25519-dalek", "dep:sha2", "dep:stellar-xdr"]
 
 [dependencies]
-soroban-sdk = "0.0.3"
+soroban-sdk = { version = "0.0.3" }
 soroban-token-contract = { version = "0.0.2", default-features = false  }
 stellar-xdr = { version = "0.0.1", features = ["next", "std"], optional = true }
 ed25519-dalek = { version = "1.0.1", optional = true }

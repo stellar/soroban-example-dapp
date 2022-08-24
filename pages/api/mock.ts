@@ -36,7 +36,7 @@ const mockContracts: Record<string, Record<string, Function>> = {
       // Currently running
       return StellarSdk.xdr.ScVal.scvU32(0);
     },
-    target_amount(): StellarSdk.xdr.ScVal {
+    target(): StellarSdk.xdr.ScVal {
       let value = StellarSdk.xdr.ScObject.scoBytes(Buffer.from(TOKEN_ID, "hex"));
       return StellarSdk.xdr.ScVal.scvObject(value);
     },

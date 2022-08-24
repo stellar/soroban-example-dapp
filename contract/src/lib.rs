@@ -1,7 +1,7 @@
 #![no_std]
-use soroban_sdk::{contractimpl, contracttype, BigInt, Env, EnvVal, FixedBinary, IntoVal, RawVal};
-use soroban_token_contract as token;
-use token::public_types::{Identifier, KeyedAuthorization, U256};
+use soroban_sdk::{contractimpl, contracttype, BigInt, Env, FixedBinary, IntoVal, RawVal};
+use soroban_token_contract as token_contract;
+use token_contract::public_types::{Identifier, KeyedAuthorization, U256};
 
 #[derive(Clone)]
 #[contracttype]
@@ -33,7 +33,9 @@ fn get_contract_id(e: &Env) -> Identifier {
 }
 
 fn get_ledger_timestamp(e: &Env) -> u64 {
-    e.get_ledger_timestamp()
+    // TODO: Use this when we update the SDK to support it
+    // e.get_ledger_timestamp()
+    1
 }
 
 fn get_owner(e: &Env) -> Identifier {
@@ -42,6 +44,10 @@ fn get_owner(e: &Env) -> Identifier {
 
 fn get_deadline(e: &Env) -> u64 {
     e.contract_data().get_unchecked(DataKey::Deadline).unwrap()
+}
+
+fn get_started(e: &Env) -> u64 {
+    e.contract_data().get_unchecked(DataKey::Started).unwrap()
 }
 
 fn get_target_amount(e: &Env) -> BigInt {
@@ -64,7 +70,7 @@ fn get_user_deposited(e: &Env, user: Identifier) -> BigInt {
 }
 
 fn get_balance(e: &Env, contract_id: FixedBinary<32>) -> BigInt {
-    token::balance(e, &contract_id, &get_contract_id(e))
+    token_contract::balance(e, &contract_id, &get_contract_id(e))
 }
 
 fn get_state(e: &Env) -> State {
@@ -108,7 +114,7 @@ fn put_user_deposited(e: &Env, user: Identifier, amount: BigInt) {
 }
 
 fn transfer(e: &Env, contract_id: FixedBinary<32>, to: Identifier, amount: BigInt) {
-    token::xfer(e, &contract_id, &KeyedAuthorization::Contract, &to, &amount);
+    token_contract::xfer(e, &contract_id, &KeyedAuthorization::Contract, &to, &amount);
 }
 
 struct Crowdfund;
@@ -149,7 +155,7 @@ impl Crowdfund {
         get_state(&e) as u32
     }
 
-    pub fn target_amount(e: Env) -> BigInt {
+    pub fn target(e: Env) -> BigInt {
         get_target_amount(&e)
     }
 
@@ -160,17 +166,17 @@ impl Crowdfund {
     pub fn balance(e: Env, user: Identifier) -> BigInt {
         let owner = get_owner(&e);
         if get_state(&e) == State::Success {
-            if user != owner {
-                return BigInt::zero(&e);
-            };
-            let token_id = get_token(&e);
-            return get_balance(&e);
+            // TODO: Do this when we have working auth
+            // if user != owner {
+            //     return BigInt::zero(&e);
+            // };
+            return get_balance(&e, get_token(&e));
         };
 
         get_user_deposited(&e, user)
     }
 
-    pub fn deposit(e: Env, to: Identifier, amount: BigInt) {
+    pub fn deposit(e: Env, user: Identifier, amount: BigInt) {
         if get_state(&e) != State::Running {
             panic!("sale is not running")
         };
@@ -178,11 +184,11 @@ impl Crowdfund {
         let balance = get_user_deposited(&e, user);
         put_user_deposited(&e, user, balance + amount);
 
-        token::xfer_from(
+        token_contract::xfer_from(
             &e,
             &get_token(&e),
             &KeyedAuthorization::Contract,
-            &to,
+            &user,
             &get_contract_id(&e),
             &amount,
         );
@@ -199,14 +205,16 @@ impl Crowdfund {
                 panic!("sale is still running")
             }
             State::Success => {
-                if auth_id != owner {
-                    panic!("sale was successful, only the owner may withdraw")
-                }
+                // TODO: Do this when we have working auth
+                // if auth_id != owner {
+                //     panic!("sale was successful, only the owner may withdraw")
+                // }
             }
             State::Expired => {
-                if auth_id == owner {
-                    panic!("sale expired, the owner may not withdraw")
-                }
+                // TODO: Do this when we have working auth
+                // if auth_id == owner {
+                //     panic!("sale expired, the owner may not withdraw")
+                // }
 
                 // Sale expired, we're refunding users. Check they can only withdraw as much as
                 // they deposited.
