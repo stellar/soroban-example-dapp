@@ -1,7 +1,7 @@
 #![no_std]
-use soroban_sdk::{contractimpl, contracttype, BigInt, Env, FixedBinary, IntoVal, RawVal};
+use soroban_sdk::{contractimpl, contracttype, BigInt, BytesN, Env, IntoVal, RawVal};
+use soroban_sdk_auth::public_types::{Identifier, Signature};
 use soroban_token_contract as token_contract;
-use token_contract::public_types::{Identifier, KeyedAuthorization, U256};
 
 #[derive(Clone)]
 #[contracttype]
@@ -9,7 +9,7 @@ pub enum DataKey {
     Deadline,
     Owner,
     Started,
-    TargetAmount,
+    Target,
     Token,
     User(Identifier),
 }
@@ -51,12 +51,10 @@ fn get_started(e: &Env) -> u64 {
 }
 
 fn get_target_amount(e: &Env) -> BigInt {
-    e.contract_data()
-        .get_unchecked(DataKey::TargetAmount)
-        .unwrap()
+    e.contract_data().get_unchecked(DataKey::Target).unwrap()
 }
 
-fn get_token(e: &Env) -> FixedBinary<32> {
+fn get_token(e: &Env) -> BytesN<32> {
     e.contract_data().get_unchecked(DataKey::Token).unwrap()
 }
 
@@ -69,7 +67,7 @@ fn get_user_deposited(e: &Env, user: Identifier) -> BigInt {
         .unwrap()
 }
 
-fn get_balance(e: &Env, contract_id: FixedBinary<32>) -> BigInt {
+fn get_balance(e: &Env, contract_id: BytesN<32>) -> BigInt {
     token_contract::balance(e, &contract_id, &get_contract_id(e))
 }
 
@@ -102,10 +100,10 @@ fn put_deadline(e: &Env, deadline: u64) {
 }
 
 fn put_target_amount(e: &Env, target_amount: BigInt) {
-    e.contract_data().set(DataKey::TargetAmount, target_amount);
+    e.contract_data().set(DataKey::Target, target_amount);
 }
 
-fn put_token(e: &Env, token: U256) {
+fn put_token(e: &Env, token: BytesN<32>) {
     e.contract_data().set(DataKey::Token, token);
 }
 
@@ -113,8 +111,8 @@ fn put_user_deposited(e: &Env, user: Identifier, amount: BigInt) {
     e.contract_data().set(DataKey::User(user), amount)
 }
 
-fn transfer(e: &Env, contract_id: FixedBinary<32>, to: Identifier, amount: BigInt) {
-    token_contract::xfer(e, &contract_id, &KeyedAuthorization::Contract, &to, &amount);
+fn transfer(e: &Env, contract_id: BytesN<32>, to: Identifier, amount: BigInt) {
+    token_contract::xfer(e, &contract_id, &Signature::Contract, &to, &amount);
 }
 
 struct Crowdfund;
@@ -134,7 +132,7 @@ impl Crowdfund {
         owner: Identifier,
         deadline: u64,
         target_amount: BigInt,
-        token: U256,
+        token: BytesN<32>,
     ) {
         put_deadline(&e, deadline);
         put_owner(&e, owner);
@@ -159,7 +157,7 @@ impl Crowdfund {
         get_target_amount(&e)
     }
 
-    pub fn token(e: Env) -> FixedBinary<32> {
+    pub fn token(e: Env) -> BytesN<32> {
         get_token(&e)
     }
 
@@ -187,7 +185,7 @@ impl Crowdfund {
         token_contract::xfer_from(
             &e,
             &get_token(&e),
-            &KeyedAuthorization::Contract,
+            &Signature::Contract,
             &user,
             &get_contract_id(&e),
             &amount,
@@ -196,8 +194,11 @@ impl Crowdfund {
 
     // TODO: Track deposited amounts per-donor, so you can't just withdraw all
     // TODO: Authenticate this with more than the destination address, maybe?
-    pub fn withdraw(e: Env, auth: KeyedAuthorization, to: Identifier, amount: BigInt) {
-        let auth_id = auth.get_identifier(&e);
+    pub fn withdraw(e: Env, to: Identifier, amount: BigInt) {
+        // TODO: Do this when we have working auth
+        // let auth_id = auth.get_identifier(&e);
+        let auth_id = to;
+
         let state = get_state(&e);
         let owner = get_owner(&e);
         match state {
