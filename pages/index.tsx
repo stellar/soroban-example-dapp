@@ -41,21 +41,114 @@ async function simulateTransaction(txn: StellarSdk.Transaction): Promise<Simulat
   if ('error' in response.data) {
     throw response.data.error;
   } else {
-    return xdr.ScVal.fromXDR(Buffer.from(response.data?.result.xdr, 'base64'));
+    return response.data?.result;
   }
 }
 
+interface SendTransactionResponse {
+  id: string;
+  status: "pending" | "success" | "error";
+  error?: {
+    code?: string;
+    message?: string;
+    data?: any;
+  };
+}
+
+interface GetTransactionStatusResponse {
+  id: string;
+  status: "pending" | "success" | "error";
+  results?: {xdr: string}[];
+  error?: {
+    code?: string;
+    message?: string;
+    data?: any;
+  };
+}
+
+function addFootprint(txn: StellarSdk.Transaction, footprint: SimulateTransactionResponse['footprint']) {
+  txn.operations = txn.operations.map(op => {
+    if ('function' in op) {
+      op.footprint = new StellarSdk.xdr.LedgerFootprint({
+        readOnly: footprint.readOnly.map(b => StellarSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
+        readWrite: footprint.readWrite.map(b => StellarSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
+      });
+    }
+    return op;
+  });
+}
+
+async function sendTransaction(txn: StellarSdk.Transaction): Promise<StellarSdk.xdr.ScVal> {
+  let url = 'http://localhost:8080/api/v1/jsonrpc';
+  // let url = '/api/mock';
+
+  // preflight and add the footprint
+  let {footprint} = await simulateTransaction(txn);
+  addFootprint(txn, footprint);
+
+  let signedTransaction = "";
+  try {
+    signedTransaction = await (window as any).freighterApi.signTransaction(
+      txn.toXDR(),
+      "TESTNET"
+    );
+  } catch (e) {
+    throw e;
+  }
+
+  const response = await axios.post<jsonrpc.Response<SendTransactionResponse>>(url, {
+    jsonrpc: "2.0",
+    id: 1,
+    method: "sendTransaction",
+    params: [signedTransaction],
+  });
+  console.debug(response);
+  if ('error' in response.data) {
+    throw response.data.error;
+  }
+
+  const id = response.data?.id;
+  // Poll for the result
+  for (let i = 0; i < 60; i++) {
+    const status = await axios.post<jsonrpc.Response<GetTransactionStatusResponse>>(url, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "getTransactionStatus",
+      params: [id],
+    });
+    console.debug(status);
+    if ('error' in status.data) {
+      throw status.data.error;
+    }
+    switch (status.data?.result.status) {
+    case "pending":
+      continue;
+      case "success":
+        if (status.data?.result.results?.length != 1) {
+          throw new Error("Expected exactly one result");
+        }
+        return xdr.ScVal.fromXDR(Buffer.from(status.data?.result.results[0].xdr, 'base64'));
+      case "error":
+        throw status.data.result.error;
+    }
+  }
+  throw new Error("Timeout");
+}
+
 async function fetchContractValue(contractId: string, method: string, ...params: StellarSdk.xdr.ScVal[]): Promise<StellarSdk.xdr.ScVal> {
+  let result = await simulateTransaction(contractTransaction(contractId, method, ...params));
+  return xdr.ScVal.fromXDR(Buffer.from(result.xdr, 'base64'));
+}
+
+function contractTransaction(contractId: string, method: string, ...params: StellarSdk.xdr.ScVal[]): StellarSdk.Transaction {
   const contract = new StellarSdk.Contract(contractId);
-  return await simulateTransaction(
-    new StellarSdk.TransactionBuilder(source, {
-        fee: "100",
-        networkPassphrase: StellarSdk.Networks.TESTNET,
-      })
-      .addOperation(contract.call(method, ...params))
-      .setTimeout(StellarSdk.TimeoutInfinite)
-      .build()
-  );
+  return new StellarSdk.TransactionBuilder(source, {
+      fee: "100",
+      networkPassphrase: StellarSdk.Networks.TESTNET,
+    })
+    .addOperation(contract.call(method, ...params))
+    .setTimeout(StellarSdk.TimeoutInfinite)
+    .build();
 }
 
 function scvalToBigNumber(scval: StellarSdk.xdr.ScVal | undefined): BigNumber {
@@ -79,6 +172,38 @@ function scvalToBigNumber(scval: StellarSdk.xdr.ScVal | undefined): BigNumber {
   };
 
   return BigNumber((b * sign).toString());
+}
+
+// TODO: Not sure this handles negatives right
+function bigNumberToScBigInt(value: BigNumber): StellarSdk.xdr.ScVal {
+  const b: bigint = BigInt(value.toFixed(0));
+  if (b == BigInt(0)) {
+    return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.zero()));
+  }
+  const buf = bnToBuf(b);
+  if (b > BigInt(0)) {
+    return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.positive(buf)));
+  } else {
+    return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.negative(buf)));
+  }
+}
+
+function bnToBuf(bn: bigint): Buffer {
+  var hex = BigInt(bn).toString(16);
+  if (hex.length % 2) { hex = '0' + hex; }
+
+  var len = hex.length / 2;
+  var u8 = new Uint8Array(len);
+
+  var i = 0;
+  var j = 0;
+  while (i < len) {
+    u8[i] = parseInt(hex.slice(j, j+2), 16);
+    i += 1;
+    j += 2;
+  }
+
+  return Buffer.from(u8);
 }
 
 function xdrInt64ToNumber(value: StellarSdk.xdr.Int64): number {
@@ -129,14 +254,20 @@ const Home: NextPage = () => {
   const { data: account } = useAccount();
   // Call the contract rpcs to fetch values
   const token = {
-    balance: useContractValue(TOKEN_ID, "balance", xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')))),
+    balance: useContractValue(TOKEN_ID, "balance", xdr.ScVal.scvObject(xdr.ScObject.scoVec([
+      xdr.ScVal.scvSymbol("Account"),
+      xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')))
+    ]))),
     decimals: useContractValue(TOKEN_ID, "decimals"),
     name: useContractValue(TOKEN_ID, "name"),
     symbol: useContractValue(TOKEN_ID, "symbol"),
   };
   const deadline = useContractValue(CROWDFUND_ID, "deadline");
   const started = useContractValue(CROWDFUND_ID, "started");
-  const yourDepositsXdr = useContractValue(CROWDFUND_ID, "balance", xdr.ScVal.scvObject(account ? xdr.ScObject.scoBytes(Buffer.from(account.address)) : null));
+  const yourDepositsXdr = useContractValue(CROWDFUND_ID, "balance", xdr.ScVal.scvObject(xdr.ScObject.scoVec([
+    xdr.ScVal.scvSymbol("Account"),
+    xdr.ScVal.scvObject(account ? xdr.ScObject.scoBytes(Buffer.from(account.address)) : null)
+  ])));
 
   // Convert the result ScVals to js types
   const tokenBalance = scvalToBigNumber(token.balance.result);
@@ -191,7 +322,9 @@ const Home: NextPage = () => {
                 <span>{JSON.stringify(deadline.error)}</span>
               )}
             </div>
-            <DepositForm account={account} />
+            {token.decimals.result && (
+              <DepositForm account={account} decimals={token.decimals.result.u32()} />
+            )}
             <div>
               Your Deposits: {yourDepositsXdr.loading || token.decimals.loading || token.name.loading || token.symbol.loading ? (
                 <span>Loading...</span>
@@ -208,14 +341,18 @@ const Home: NextPage = () => {
   )
 }
 
-function DepositForm({account}: {account: {address: string}}) {
-  const allowanceScval = useContractValue(
-    TOKEN_ID,
-    "allowance",
-    // TODO: Figure out how to pass account address properly
-    xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(account.address))),
+function DepositForm({account, decimals}: {account: {address: string}, decimals: number}) {
+  const user = xdr.ScVal.scvObject(xdr.ScObject.scoVec([
+    xdr.ScVal.scvSymbol("Account"),
+    // TODO: Parse this as an address or whatever.
+    xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(account.address, 'hex')))
+  ]));
+  const spender = xdr.ScVal.scvObject(xdr.ScObject.scoVec([
+    xdr.ScVal.scvSymbol("Contract"),
+    // TODO: Parse this as an address or whatever.
     xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')))
-  );
+  ]));
+  const allowanceScval = useContractValue(TOKEN_ID, "allowance", user, spender);
   const allowance = scvalToBigNumber(allowanceScval.result);
 
   const [amount, setAmount] = React.useState("");
@@ -224,13 +361,18 @@ function DepositForm({account}: {account: {address: string}}) {
 
   // TODO: Check and handle approval
   return (
-    <form onSubmit={e => {
+    <form onSubmit={async e => {
       e.preventDefault();
-      if (needsApproval) {
-        // approval
-      } else {
-        // deposit
-      }
+      // TODO: These will change depending on how auth works.
+      let from = account.address; // TODO: This should be a signature.
+      let nonce = 0;
+      const amountScVal = bigNumberToScBigInt(parsedAmount.multipliedBy(decimals).decimalPlaces(0));
+      let txn = needsApproval
+        ? contractTransaction(TOKEN_ID, "approve", from, nonce, spender, amountScVal)
+        : contractTransaction(CROWDFUND_ID, "deposit", user, amountScVal);
+      let result = await sendTransaction(txn);
+      // TODO: Show some user feedback while we are awaiting, and then based on the result
+      console.debug(result);
     }}>
       <input name="amount" type="text" value={amount} onChange={e => {
         setAmount(e.currentTarget.value);
