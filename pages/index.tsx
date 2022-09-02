@@ -27,9 +27,9 @@ interface SimulateTransactionResponse {
 }
 
 // Fetch the result value by making a json-rpc request to an rpc backend.
-async function simulateTransaction(txn: StellarSdk.Transaction): Promise<StellarSdk.xdr.ScVal> {
-  // let url = 'http://localhost:8080/api/v1/jsonrpc';
-  let url = '/api/mock';
+async function simulateTransaction(txn: StellarSdk.Transaction): Promise<SimulateTransactionResponse> {
+  let url = 'http://localhost:8080/api/v1/jsonrpc';
+  // let url = '/api/mock';
 
   const response = await axios.post<jsonrpc.Response<SimulateTransactionResponse>>(url, {
     jsonrpc: "2.0",
