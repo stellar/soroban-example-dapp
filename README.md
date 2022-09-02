@@ -7,8 +7,9 @@ backed by smart contracts on Stellar.
 
 ### Backend
 
-First, run the backend RPC server, from
-https://github.com/paulbellamy/rs-stellar-rpc
+1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
+2. Run `./initialize.sh` to load the contracts and initialize it.
+3. Run the backend with `soroban-cli serve`
 
 ### Frontend
 

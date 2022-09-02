@@ -32,7 +32,7 @@ fn get_contract_id(e: &Env) -> Identifier {
     Identifier::Contract(e.get_current_contract().into())
 }
 
-fn get_ledger_timestamp(e: &Env) -> u64 {
+fn get_ledger_timestamp(_e: &Env) -> u64 {
     // TODO: Use this when we update the SDK to support it
     // e.get_ledger_timestamp()
     1
@@ -58,12 +58,13 @@ fn get_token(e: &Env) -> BytesN<32> {
     e.contract_data().get_unchecked(DataKey::Token).unwrap()
 }
 
-fn get_user_deposited(e: &Env, user: Identifier) -> BigInt {
-    if !e.contract_data().has(DataKey::User(user)) {
+fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
+    let key = DataKey::User(user.clone());
+    if !e.contract_data().has(key.clone()) {
         return BigInt::zero(&e);
     }
     e.contract_data()
-        .get_unchecked(DataKey::User(user))
+        .get_unchecked(key.clone())
         .unwrap()
 }
 
@@ -107,12 +108,14 @@ fn put_token(e: &Env, token: BytesN<32>) {
     e.contract_data().set(DataKey::Token, token);
 }
 
-fn put_user_deposited(e: &Env, user: Identifier, amount: BigInt) {
-    e.contract_data().set(DataKey::User(user), amount)
+fn put_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
+    e.contract_data().set(DataKey::User(user.clone()), amount)
 }
 
-fn transfer(e: &Env, contract_id: BytesN<32>, to: Identifier, amount: BigInt) {
-    token_contract::xfer(e, &contract_id, &Signature::Contract, &to, &amount);
+fn transfer(e: &Env, contract_id: BytesN<32>, to: &Identifier, amount: &BigInt) {
+    // TODO: Real nonce/auth here
+    let nonce: BigInt = BigInt::zero(&e);
+    token_contract::xfer(e, &contract_id, &Signature::Contract, &nonce, to, amount);
 }
 
 struct Crowdfund;
@@ -162,7 +165,7 @@ impl Crowdfund {
     }
 
     pub fn balance(e: Env, user: Identifier) -> BigInt {
-        let owner = get_owner(&e);
+        let _owner = get_owner(&e);
         if get_state(&e) == State::Success {
             // TODO: Do this when we have working auth
             // if user != owner {
@@ -171,7 +174,7 @@ impl Crowdfund {
             return get_balance(&e, get_token(&e));
         };
 
-        get_user_deposited(&e, user)
+        get_user_deposited(&e, &user)
     }
 
     pub fn deposit(e: Env, user: Identifier, amount: BigInt) {
@@ -179,13 +182,16 @@ impl Crowdfund {
             panic!("sale is not running")
         };
 
-        let balance = get_user_deposited(&e, user);
-        put_user_deposited(&e, user, balance + amount);
+        let balance = get_user_deposited(&e, &user);
+        put_user_deposited(&e, &user, balance + amount.clone());
 
+        // TODO: Real nonce/auth here
+        let nonce: BigInt = BigInt::zero(&e);
         token_contract::xfer_from(
             &e,
             &get_token(&e),
             &Signature::Contract,
+            &nonce,
             &user,
             &get_contract_id(&e),
             &amount,
@@ -197,10 +203,10 @@ impl Crowdfund {
     pub fn withdraw(e: Env, to: Identifier, amount: BigInt) {
         // TODO: Do this when we have working auth
         // let auth_id = auth.get_identifier(&e);
-        let auth_id = to;
+        let auth_id = &to;
 
         let state = get_state(&e);
-        let owner = get_owner(&e);
+        let _owner = get_owner(&e);
         match state {
             State::Running => {
                 panic!("sale is still running")
@@ -219,13 +225,13 @@ impl Crowdfund {
 
                 // Sale expired, we're refunding users. Check they can only withdraw as much as
                 // they deposited.
-                let balance = get_user_deposited(&e, auth_id);
+                let balance = get_user_deposited(&e, &auth_id);
                 if amount > balance {
                     panic!("insufficient funds")
                 }
-                put_user_deposited(&e, auth_id, balance - amount);
+                put_user_deposited(&e, &auth_id, balance - amount.clone());
             }
         };
-        transfer(&e, get_token(&e), to, amount);
+        transfer(&e, get_token(&e), &to, &amount);
     }
 }
