@@ -21,11 +21,11 @@ soroban-cli deploy --id 0 --wasm target/wasm32-unknown-unknown/release/soroban_c
 
 echo Initialize the crowdfund contract
 # TODO: Set the owner to something reasonable here.
-owner='["Account", [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]'
+owner='["Account", 0x1]'
 deadline=$(date +"%s")
 soroban-cli invoke --id 0 \
   --fn initialize \
   --arg "$owner" \
   --arg-xdr "$((deadline + 86400))" \
   --arg-xdr "1000000000" \
-  --arg '[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]'
+  --arg 0x1
