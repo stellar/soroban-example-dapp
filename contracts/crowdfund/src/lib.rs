@@ -1,7 +1,7 @@
 #![no_std]
+use soroban_auth::{Identifier, Signature};
 use soroban_sdk::{contractimpl, contracttype, BigInt, BytesN, Env, IntoVal, RawVal};
-use soroban_sdk_auth::public_types::{Identifier, Signature};
-use soroban_token_contract as token_contract;
+use soroban_token_contract::TokenClient;
 
 #[derive(Clone)]
 #[contracttype]
@@ -64,7 +64,8 @@ fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
 }
 
 fn get_balance(e: &Env, contract_id: BytesN<32>) -> BigInt {
-    token_contract::balance(e, &contract_id, &get_contract_id(e))
+    let client = TokenClient::new(&e, &contract_id);
+    client.balance(&get_contract_id(e))
 }
 
 fn get_state(e: &Env) -> State {
@@ -110,7 +111,8 @@ fn set_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
 fn transfer(e: &Env, contract_id: BytesN<32>, to: &Identifier, amount: &BigInt) {
     // TODO: Real nonce/auth here
     let nonce: BigInt = BigInt::zero(&e);
-    token_contract::xfer(e, &contract_id, &Signature::Contract, &nonce, to, amount);
+    let client = TokenClient::new(&e, &contract_id);
+    client.xfer(&Signature::Contract, &nonce, to, amount);
 }
 
 struct Crowdfund;
@@ -182,9 +184,8 @@ impl Crowdfund {
 
         // TODO: Real nonce/auth here
         let nonce: BigInt = BigInt::zero(&e);
-        token_contract::xfer_from(
-            &e,
-            &get_token(&e),
+        let client = TokenClient::new(&e, &get_token(&e));
+        client.xfer_from(
             &Signature::Contract,
             &nonce,
             &user,
