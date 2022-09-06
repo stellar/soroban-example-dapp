@@ -1,0 +1,68 @@
+name: Rust
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  RUSTFLAGS: -D warnings
+
+jobs:
+
+  complete:
+    if: always()
+    needs: [fmt, build-and-test]
+    runs-on: ubuntu-latest
+    steps:
+    - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      run: exit 1
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: rustup update
+    - run: cargo fmt --all --check
+
+  build-and-test:
+    strategy:
+      matrix:
+        sys:
+        - os: ubuntu-latest
+          target: wasm32-unknown-unknown
+          profile: release
+          test: false
+        - os: ubuntu-latest
+          target: x86_64-unknown-linux-gnu
+          profile: test
+          test: true
+    runs-on: ${{ matrix.sys.os }}
+    steps:
+    - uses: actions/checkout@v3
+    - run: rustup update
+    - run: rustup target add ${{ matrix.sys.target }}
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+        key: cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: cargo-
+    - uses: actions/cache@v3
+      with:
+        path: target/
+        key: ${{ github.job }}-target-${{ strategy.job-index }}-${{ github.sha }}
+        restore-keys: |
+          ${{ github.job }}-target-${{ strategy.job-index }}
+          ${{ github.job }}-target-
+    - if: github.ref_protected
+      run: rm -fr target
+    - run: cargo install --locked --version 0.5.16 cargo-hack
+    - run: cargo check --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --lib
+    - if: matrix.sys.test
+      run: cargo hack --feature-powerset check --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --bins --tests --examples --benches
+    - run: cargo build --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }}
+    - if: matrix.sys.test
+      run: cargo hack --feature-powerset test --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }}
