@@ -84,26 +84,6 @@ fn get_state(e: &Env) -> State {
     return State::Expired;
 }
 
-fn set_owner(e: &Env, owner: Identifier) {
-    e.contract_data().set(DataKey::Owner, owner);
-}
-
-fn set_started(e: &Env, started: u64) {
-    e.contract_data().set(DataKey::Started, started);
-}
-
-fn set_deadline(e: &Env, deadline: u64) {
-    e.contract_data().set(DataKey::Deadline, deadline);
-}
-
-fn set_target_amount(e: &Env, target_amount: BigInt) {
-    e.contract_data().set(DataKey::Target, target_amount);
-}
-
-fn set_token(e: &Env, token: BytesN<32>) {
-    e.contract_data().set(DataKey::Token, token);
-}
-
 fn set_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
     e.contract_data().set(DataKey::User(user.clone()), amount)
 }
@@ -134,11 +114,14 @@ impl Crowdfund {
         target_amount: BigInt,
         token: BytesN<32>,
     ) {
-        set_deadline(&e, deadline);
-        set_owner(&e, owner);
-        set_started(&e, get_ledger_timestamp(&e));
-        set_target_amount(&e, target_amount);
-        set_token(&e, token);
+        if e.contract_data().has(DataKey::Owner) {
+            panic!("already initialized");
+        }
+        e.contract_data().set(DataKey::Owner, owner);
+        e.contract_data().set(DataKey::Started, get_ledger_timestamp(&e));
+        e.contract_data().set(DataKey::Deadline, deadline);
+        e.contract_data().set(DataKey::Target, target_amount);
+        e.contract_data().set(DataKey::Token, token);
     }
 
     pub fn deadline(e: Env) -> u64 {
