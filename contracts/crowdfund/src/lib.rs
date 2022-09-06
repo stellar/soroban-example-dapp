@@ -32,8 +32,10 @@ fn get_contract_id(e: &Env) -> Identifier {
     Identifier::Contract(e.get_current_contract().into())
 }
 
-fn get_ledger_timestamp(e: &Env) -> u64 {
-    e.ledger().timestamp()
+fn get_ledger_timestamp(_e: &Env) -> u64 {
+    // TODO: Use this once we can get the ledger timestamp. For now it panics with "missing ledger info", as in soroban-cli we aren't setting up the ledger.
+    // e.ledger().timestamp()
+    1
 }
 
 fn get_owner(e: &Env) -> Identifier {
@@ -110,12 +112,15 @@ impl Crowdfund {
     pub fn initialize(
         e: Env,
         owner: Identifier,
-        deadline: u64,
+        deadline: i64,
         target_amount: BigInt,
         token: BytesN<32>,
     ) {
         if e.contract_data().has(DataKey::Owner) {
             panic!("already initialized");
+        }
+        if deadline < 0 {
+            panic!("deadline must be positive");
         }
         e.contract_data().set(DataKey::Owner, owner);
         e.contract_data()
