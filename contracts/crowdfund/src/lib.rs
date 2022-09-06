@@ -118,7 +118,8 @@ impl Crowdfund {
             panic!("already initialized");
         }
         e.contract_data().set(DataKey::Owner, owner);
-        e.contract_data().set(DataKey::Started, get_ledger_timestamp(&e));
+        e.contract_data()
+            .set(DataKey::Started, get_ledger_timestamp(&e));
         e.contract_data().set(DataKey::Deadline, deadline);
         e.contract_data().set(DataKey::Target, target_amount);
         e.contract_data().set(DataKey::Token, token);
