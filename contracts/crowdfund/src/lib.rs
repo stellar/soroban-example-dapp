@@ -32,10 +32,8 @@ fn get_contract_id(e: &Env) -> Identifier {
     Identifier::Contract(e.get_current_contract().into())
 }
 
-fn get_ledger_timestamp(_e: &Env) -> u64 {
-    // TODO: Use this when we update the SDK to support it
-    // e.get_ledger_timestamp()
-    1
+fn get_ledger_timestamp(e: &Env) -> u64 {
+    e.ledger().timestamp()
 }
 
 fn get_owner(e: &Env) -> Identifier {
@@ -59,12 +57,9 @@ fn get_token(e: &Env) -> BytesN<32> {
 }
 
 fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
-    let key = DataKey::User(user.clone());
-    if !e.contract_data().has(key.clone()) {
-        return BigInt::zero(&e);
-    }
     e.contract_data()
-        .get_unchecked(key.clone())
+        .get(DataKey::User(user.clone()))
+        .unwrap_or_else(|| Ok(BigInt::zero(&e)))
         .unwrap()
 }
 
@@ -88,27 +83,27 @@ fn get_state(e: &Env) -> State {
     return State::Expired;
 }
 
-fn put_owner(e: &Env, owner: Identifier) {
+fn set_owner(e: &Env, owner: Identifier) {
     e.contract_data().set(DataKey::Owner, owner);
 }
 
-fn put_started(e: &Env, started: u64) {
+fn set_started(e: &Env, started: u64) {
     e.contract_data().set(DataKey::Started, started);
 }
 
-fn put_deadline(e: &Env, deadline: u64) {
+fn set_deadline(e: &Env, deadline: u64) {
     e.contract_data().set(DataKey::Deadline, deadline);
 }
 
-fn put_target_amount(e: &Env, target_amount: BigInt) {
+fn set_target_amount(e: &Env, target_amount: BigInt) {
     e.contract_data().set(DataKey::Target, target_amount);
 }
 
-fn put_token(e: &Env, token: BytesN<32>) {
+fn set_token(e: &Env, token: BytesN<32>) {
     e.contract_data().set(DataKey::Token, token);
 }
 
-fn put_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
+fn set_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
     e.contract_data().set(DataKey::User(user.clone()), amount)
 }
 
@@ -137,11 +132,11 @@ impl Crowdfund {
         target_amount: BigInt,
         token: BytesN<32>,
     ) {
-        put_deadline(&e, deadline);
-        put_owner(&e, owner);
-        put_started(&e, get_ledger_timestamp(&e));
-        put_target_amount(&e, target_amount);
-        put_token(&e, token);
+        set_deadline(&e, deadline);
+        set_owner(&e, owner);
+        set_started(&e, get_ledger_timestamp(&e));
+        set_target_amount(&e, target_amount);
+        set_token(&e, token);
     }
 
     pub fn deadline(e: Env) -> u64 {
@@ -183,7 +178,7 @@ impl Crowdfund {
         };
 
         let balance = get_user_deposited(&e, &user);
-        put_user_deposited(&e, &user, balance + amount.clone());
+        set_user_deposited(&e, &user, balance + amount.clone());
 
         // TODO: Real nonce/auth here
         let nonce: BigInt = BigInt::zero(&e);
@@ -229,7 +224,7 @@ impl Crowdfund {
                 if amount > balance {
                     panic!("insufficient funds")
                 }
-                put_user_deposited(&e, &auth_id, balance - amount.clone());
+                set_user_deposited(&e, &auth_id, balance - amount.clone());
             }
         };
         transfer(&e, get_token(&e), &to, &amount);
