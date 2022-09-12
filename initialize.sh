@@ -24,10 +24,10 @@ echo Deploy the crowdfund contract
 soroban-cli deploy --id 0 --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
 
 echo Initialize the crowdfund contract
-deadline=$(date +"%s")
+deadline="$(($(date +"%s") + 86400))"
 soroban-cli invoke --id 0 \
   --fn initialize \
   --arg-xdr "$admin" \
-  --arg "$((deadline + 86400))" \
+  --arg "$deadline" \
   --arg "1000000000" \
   --arg '[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]'
