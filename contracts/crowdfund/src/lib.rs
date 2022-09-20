@@ -1,7 +1,10 @@
 #![no_std]
 use soroban_auth::{Identifier, Signature};
 use soroban_sdk::{contractimpl, contracttype, BigInt, BytesN, Env, IntoVal, RawVal};
-use soroban_token_contract::TokenClient;
+
+mod token {
+    soroban_sdk::contractimport!(file = "../token/soroban_token_contract.wasm");
+}
 
 mod test;
 pub mod testutils;
@@ -67,7 +70,7 @@ fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
 }
 
 fn get_balance(e: &Env, contract_id: BytesN<32>) -> BigInt {
-    let client = TokenClient::new(&e, &contract_id);
+    let client = token::ContractClient::new(&e, &contract_id);
     client.balance(&get_contract_id(e))
 }
 
@@ -93,7 +96,7 @@ fn set_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
 
 fn transfer(e: &Env, contract_id: BytesN<32>, to: &Identifier, amount: &BigInt) {
     let nonce: BigInt = BigInt::zero(&e);
-    let client = TokenClient::new(&e, &contract_id);
+    let client = token::ContractClient::new(&e, &contract_id);
     client.xfer(&Signature::Contract, &nonce, to, amount);
 }
 
@@ -169,7 +172,7 @@ impl Crowdfund {
         set_user_deposited(&e, &user, balance + amount.clone());
 
         let nonce = BigInt::zero(&e);
-        let client = TokenClient::new(&e, &get_token(&e));
+        let client = token::ContractClient::new(&e, &get_token(&e));
         client.xfer_from(
             &Signature::Contract,
             &nonce,
