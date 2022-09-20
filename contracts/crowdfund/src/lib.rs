@@ -3,6 +3,9 @@ use soroban_auth::{Identifier, Signature};
 use soroban_sdk::{contractimpl, contracttype, BigInt, BytesN, Env, IntoVal, RawVal};
 use soroban_token_contract::TokenClient;
 
+mod test;
+pub mod testutils;
+
 #[derive(Clone)]
 #[contracttype]
 pub enum DataKey {
