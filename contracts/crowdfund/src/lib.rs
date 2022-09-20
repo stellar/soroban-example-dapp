@@ -112,20 +112,18 @@ impl Crowdfund {
     pub fn initialize(
         e: Env,
         owner: Identifier,
-        deadline: i64, //TODO: Why is this a i64 instead of u64?
+        deadline: u64,
         target_amount: BigInt,
         token: BytesN<32>,
     ) {
         if e.contract_data().has(DataKey::Owner) {
             panic!("already initialized");
         }
-        if deadline < 0 {
-            panic!("deadline must be positive");
-        }
+
         e.contract_data().set(DataKey::Owner, owner);
         e.contract_data()
             .set(DataKey::Started, get_ledger_timestamp(&e));
-        e.contract_data().set(DataKey::Deadline, deadline as u64);
+        e.contract_data().set(DataKey::Deadline, deadline);
         e.contract_data().set(DataKey::Target, target_amount);
         e.contract_data().set(DataKey::Token, token);
     }

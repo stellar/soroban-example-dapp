@@ -31,7 +31,7 @@ fn create_token_contract(e: &Env, admin: &Keypair) -> (BytesN<32>, Token) {
 fn create_crowdfund_contract(
     e: &Env,
     owner: &Keypair,
-    deadline: &i64,
+    deadline: &u64,
     target_amount: &BigInt,
     token: &BytesN<32>,
 ) -> (BytesN<32>, Crowdfund) {
@@ -81,7 +81,7 @@ impl Setup {
         let user2_id = to_ed25519(&e, &user2);
 
         // the deadline is 10 seconds from now
-        let deadline: i64 = (e.ledger().timestamp() + 10) as i64;
+        let deadline = e.ledger().timestamp() + 10;
         let target_amount = BigInt::from_i32(&e, 15);
 
         let token_admin = generate_keypair();
