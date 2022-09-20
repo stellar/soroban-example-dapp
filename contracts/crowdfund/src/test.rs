@@ -4,10 +4,8 @@ use crate::testutils::{register_test_contract as register_crowdfund, Crowdfund};
 use ed25519_dalek::Keypair;
 use rand::{thread_rng, RngCore};
 use soroban_auth::Identifier;
-use soroban_sdk::{testutils::LedgerInfo, BigInt, BytesN, Env};
-use soroban_token_contract::testutils::{
-    register_test_contract as register_token, to_ed25519, Token,
-};
+use soroban_sdk::{testutils::LedgerInfo, BigInt, BytesN, Env, IntoVal};
+use soroban_token_contract::testutils::{register_test_contract as register_token, Token};
 
 fn generate_contract_id() -> [u8; 32] {
     let mut id: [u8; 32] = Default::default();
@@ -17,6 +15,10 @@ fn generate_contract_id() -> [u8; 32] {
 
 fn generate_keypair() -> Keypair {
     Keypair::generate(&mut thread_rng())
+}
+
+fn to_ed25519(e: &Env, kp: &Keypair) -> Identifier {
+    Identifier::Ed25519(kp.public.to_bytes().into_val(e))
 }
 
 fn create_token_contract(e: &Env, admin: &Keypair) -> (BytesN<32>, Token) {
