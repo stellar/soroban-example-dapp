@@ -39,23 +39,43 @@ fn get_ledger_timestamp(_e: &Env) -> u64 {
 }
 
 fn get_owner(e: &Env) -> Identifier {
-    e.contract_data().get_unchecked(DataKey::Owner).unwrap()
+    if let Some(o) = e.contract_data().get(DataKey::Owner) {
+        o.unwrap()
+    } else {
+        panic!("not initialized");
+    }
 }
 
 fn get_deadline(e: &Env) -> u64 {
-    e.contract_data().get_unchecked(DataKey::Deadline).unwrap()
+    if let Some(d) = e.contract_data().get(DataKey::Deadline) {
+        d.unwrap()
+    } else {
+        panic!("not initialized");
+    }
 }
 
 fn get_started(e: &Env) -> u64 {
-    e.contract_data().get_unchecked(DataKey::Started).unwrap()
+    if let Some(s) = e.contract_data().get(DataKey::Started) {
+        s.unwrap()
+    } else {
+        panic!("not initialized");
+    }
 }
 
 fn get_target_amount(e: &Env) -> BigInt {
-    e.contract_data().get_unchecked(DataKey::Target).unwrap()
+    if let Some(a) = e.contract_data().get(DataKey::Target) {
+        a.unwrap()
+    } else {
+        panic!("not initialized");
+    }
 }
 
 fn get_token(e: &Env) -> BytesN<32> {
-    e.contract_data().get_unchecked(DataKey::Token).unwrap()
+    if let Some(t) = e.contract_data().get(DataKey::Token) {
+        t.unwrap()
+    } else {
+        panic!("not initialized");
+    }
 }
 
 fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
