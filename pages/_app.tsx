@@ -3,14 +3,12 @@ import '../styles/globals.css'
 import {
   ChainMetadata,
   WalletProvider,
-  // apiProvider,
   chain,
   getDefaultWallets,
 } from "../wallet";
 
 const chains: ChainMetadata[] = [chain.testnet];
-const serverUrl = 'https://horizon-testnet.stellar.org';
-// const providers = [apiProvider.fallback()];
+const serverUrl = 'http://localhost:8080/api/v1/jsonrpc';
 
 const { wallets } = getDefaultWallets({
   appName: "Example Stellar App",
@@ -24,6 +22,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       appName={"Example Stellar App"}
       wallets={wallets}
       serverUrl={serverUrl}
+      allowHttp
       >
       <Component {...pageProps} />
     </WalletProvider>

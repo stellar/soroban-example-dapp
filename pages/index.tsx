@@ -1,200 +1,17 @@
-import axios from 'axios';
 import BigNumber from 'bignumber.js';
 import React from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
-import Image from 'next/image';
-import * as jsonrpc from "../jsonrpc";
-import styles from '../styles/Home.module.css';
 import * as SorobanSdk from 'soroban-sdk';
+import styles from '../styles/Home.module.css';
+import * as convert from "../convert";
+import { useNetwork, useAccount, useContractValue, useSendTransaction, ConnectButton } from "../wallet";
 let xdr = SorobanSdk.xdr;
-import { useAccount, ConnectButton } from "../wallet";
-
-// TODO: Refactor this to use the _app config
-const serverUrl = 'http://localhost:8080/api/v1/jsonrpc';
-const server = new SorobanSdk.Server(serverUrl, { allowHttp: true });
 
 // Stub dummy data for now. 
 const source = new SorobanSdk.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
 const CROWDFUND_ID = "0000000000000000000000000000000000000000000000000000000000000000";
 const TOKEN_ID = "0000000000000000000000000000000000000000000000000000000000000001";
-
-// Fetch the result value by making a json-rpc request to an rpc backend.
-async function simulateTransaction(txn: SorobanSdk.Transaction) {
-  return server.simulateTransaction(txn);
-}
-
-function addFootprint(txn: SorobanSdk.Transaction, footprint: SorobanSdk.SorobanRpc.SimulateTransactionResponse['footprint']) {
-  txn.operations = txn.operations.map(op => {
-    if ('function' in op) {
-      op.footprint = new SorobanSdk.xdr.LedgerFootprint({
-        readOnly: footprint.readOnly.map(b => SorobanSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
-        readWrite: footprint.readWrite.map(b => SorobanSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
-      });
-    }
-    return op;
-  });
-}
-
-async function sendTransaction(txn: SorobanSdk.Transaction): Promise<SorobanSdk.xdr.ScVal> {
-  // preflight and add the footprint
-  let {footprint} = await simulateTransaction(txn);
-  addFootprint(txn, footprint);
-
-  let signedTransaction = "";
-  try {
-    signedTransaction = await (window as any).freighterApi.signTransaction(
-      txn.toXDR(),
-      "SANDBOX"
-    );
-  } catch (e) {
-    throw e;
-  }
-
-  const { id } = await server.sendTransaction(signedTransaction);
-
-  // Poll for the result
-  for (let i = 0; i < 60; i++) {
-    try {
-      const response = await server.getTransactionStatus(id.toString('hex'));
-      switch (response.status) {
-      case "pending":
-        continue;
-        case "success":
-          if (response.results?.length != 1) {
-            throw new Error("Expected exactly one result");
-          }
-          return xdr.ScVal.fromXDR(Buffer.from(response.results[0].xdr, 'base64'));
-        case "error":
-          throw response.error;
-      }
-    } catch (err: any) {
-      if ('code' in err && err.code !== 404) {
-        throw err;
-      }
-    }
-  }
-  throw new Error("Timeout");
-}
-
-async function fetchContractValue(contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): Promise<SorobanSdk.xdr.ScVal> {
-  const { results } = await simulateTransaction(contractTransaction(contractId, method, ...params));
-  if (!results || results.length !== 1) {
-    throw new Error("Invalid response from simulateTransaction");
-  }
-  const result = results[0];
-  return xdr.ScVal.fromXDR(Buffer.from(result.xdr, 'base64'));
-}
-
-function contractTransaction(contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): SorobanSdk.Transaction {
-  const contract = new SorobanSdk.Contract(contractId);
-  return new SorobanSdk.TransactionBuilder(source, {
-      fee: "100",
-      networkPassphrase: SorobanSdk.Networks.SANDBOX,
-    })
-    .addOperation(contract.call(method, ...params))
-    .setTimeout(SorobanSdk.TimeoutInfinite)
-    .build();
-}
-
-function scvalToBigNumber(scval: SorobanSdk.xdr.ScVal | undefined): BigNumber {
-  let value = scval?.obj()?.bigInt() ?? xdr.ScBigInt.zero();
-  let sign = BigInt(1);
-  switch (value.switch()) {
-    case SorobanSdk.xdr.ScNumSign.zero():
-      return BigNumber(0);
-    case SorobanSdk.xdr.ScNumSign.positive():
-      sign = BigInt(1);
-      break;
-    case SorobanSdk.xdr.ScNumSign.negative():
-      sign = BigInt(-1);
-      break;
-  }
-
-  let b = BigInt(0);
-  for (let byte of value.magnitude()) {
-    b <<= BigInt(8);
-    b |= BigInt(byte);
-  };
-
-  return BigNumber((b * sign).toString());
-}
-
-// TODO: Not sure this handles negatives right
-function bigNumberToScBigInt(value: BigNumber): SorobanSdk.xdr.ScVal {
-  const b: bigint = BigInt(value.toFixed(0));
-  if (b == BigInt(0)) {
-    return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.zero()));
-  }
-  const buf = bnToBuf(b);
-  if (b > BigInt(0)) {
-    return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.positive(buf)));
-  } else {
-    return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.negative(buf)));
-  }
-}
-
-function bnToBuf(bn: bigint): Buffer {
-  var hex = BigInt(bn).toString(16);
-  if (hex.length % 2) { hex = '0' + hex; }
-
-  var len = hex.length / 2;
-  var u8 = new Uint8Array(len);
-
-  var i = 0;
-  var j = 0;
-  while (i < len) {
-    u8[i] = parseInt(hex.slice(j, j+2), 16);
-    i += 1;
-    j += 2;
-  }
-
-  return Buffer.from(u8);
-}
-
-function xdrUint64ToNumber(value: SorobanSdk.xdr.Uint64): number {
-  let b = 0;
-  b |= value.high;
-  b <<= 8;
-  b |= value.low;
-  return b;
-}
-
-function scvalToString(value: SorobanSdk.xdr.ScVal): string | undefined {
-  return value.obj()?.bin().toString();
-}
-
-function formatAmount(value: BigNumber, decimals=7): string {
-  return value.shiftedBy(decimals * -1).toString();
-}
-
-type ContractValue = {loading?: true, result?: SorobanSdk.xdr.ScVal, error?: string|unknown};
-
-function useContractValue(contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): ContractValue {
-  const [value, setValue] = React.useState<ContractValue>({ loading: true });
-  React.useEffect(() => {
-    (async () => {
-      try {
-        let result = await fetchContractValue(contractId, method, ...params);
-        setValue({ result });
-      } catch (error) {
-        if (typeof error == 'string') {
-          setValue({ error });
-          return;
-        }
-        if ('message' in (error as any)) {
-          setValue({ error: (error as any).message });
-          return;
-        }
-        setValue({ error });
-      }
-    })();
-  // Have this re-fetch if the contractId/method/params change. Total hack with
-  // xdr-base64 to enforce real equality instead of object equality
-  // shenanigans.
-  }, [contractId, method, ...params.map(p => p.toXDR().toString('base64'))]);
-  return value;
-};
 
 const Home: NextPage = () => {
   const { data: account } = useAccount();
@@ -216,13 +33,13 @@ const Home: NextPage = () => {
   ])));
 
   // Convert the result ScVals to js types
-  const tokenBalance = scvalToBigNumber(token.balance.result);
+  const tokenBalance = convert.scvalToBigNumber(token.balance.result);
   const tokenDecimals = token.decimals.result && (token.decimals.result?.u32() ?? 7);
-  const tokenName = token.name.result && scvalToString(token.name.result);
-  const tokenSymbol = token.symbol.result && scvalToString(token.symbol.result);
-  const deadlineDate = deadline.result && new Date(xdrUint64ToNumber(deadline.result.obj()?.u64() ?? xdr.Int64.fromString("0")) * 1000);
-  const startedDate = started.result && new Date(xdrUint64ToNumber(started.result.obj()?.u64() ?? xdr.Int64.fromString("0")) * 1000);
-  const yourDeposits = scvalToBigNumber(yourDepositsXdr.result);
+  const tokenName = token.name.result && convert.scvalToString(token.name.result);
+  const tokenSymbol = token.symbol.result && convert.scvalToString(token.symbol.result);
+  const deadlineDate = deadline.result && new Date(convert.xdrUint64ToNumber(deadline.result.obj()?.u64() ?? xdr.Int64.fromString("0")) * 1000);
+  const startedDate = started.result && new Date(convert.xdrUint64ToNumber(started.result.obj()?.u64() ?? xdr.Int64.fromString("0")) * 1000);
+  const yourDeposits = convert.scvalToBigNumber(yourDepositsXdr.result);
   
   return (
     <div className={styles.container}>
@@ -287,7 +104,14 @@ const Home: NextPage = () => {
   )
 }
 
+function formatAmount(value: BigNumber, decimals=7): string {
+  return value.shiftedBy(decimals * -1).toString();
+}
+
 function DepositForm({account, decimals}: {account: {address: string}, decimals: number}) {
+  const { activeChain } = useNetwork();
+  const networkPassphrase = activeChain?.networkPassphrase ?? "";
+
   const user = xdr.ScVal.scvObject(xdr.ScObject.scoVec([
     xdr.ScVal.scvSymbol("Account"),
     // TODO: Parse this as an address or whatever.
@@ -299,23 +123,25 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
     xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')))
   ]));
   const allowanceScval = useContractValue(TOKEN_ID, "allowance", user, spender);
-  const allowance = scvalToBigNumber(allowanceScval.result);
+  const allowance = convert.scvalToBigNumber(allowanceScval.result);
 
   const [amount, setAmount] = React.useState("");
   const parsedAmount = BigNumber(amount);
   const needsApproval = allowance.eq(0) || allowance.lt(parsedAmount);
+  const { sendTransaction } = useSendTransaction();
 
   // TODO: Check and handle approval
   return (
     <form onSubmit={async e => {
       e.preventDefault();
       // TODO: These will change depending on how auth works.
-      let from = account.address; // TODO: This should be a signature.
-      let nonce = 0;
-      const amountScVal = bigNumberToScBigInt(parsedAmount.multipliedBy(decimals).decimalPlaces(0));
+      let accountKey = SorobanSdk.StrKey.decodeEd25519PublicKey(account.address);
+      let from = xdr.ScVal.scvObject(xdr.ScObject.scoBytes(accountKey));
+      let nonce = xdr.ScVal.scvU32(0);
+      const amountScVal = convert.bigNumberToScBigInt(parsedAmount.multipliedBy(decimals).decimalPlaces(0));
       let txn = needsApproval
-        ? contractTransaction(TOKEN_ID, "approve", from, nonce, spender, amountScVal)
-        : contractTransaction(CROWDFUND_ID, "deposit", user, amountScVal);
+        ? contractTransaction(networkPassphrase, TOKEN_ID, "approve", from, nonce, spender, amountScVal)
+        : contractTransaction(networkPassphrase, CROWDFUND_ID, "deposit", user, amountScVal);
       let result = await sendTransaction(txn);
       // TODO: Show some user feedback while we are awaiting, and then based on the result
       console.debug(result);
@@ -328,6 +154,19 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
       </button>
     </form>
   );
+}
+
+// Small helper to build a contract invokation transaction
+function contractTransaction(networkPassphrase: string, contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): SorobanSdk.Transaction {
+  const contract = new SorobanSdk.Contract(contractId);
+  return new SorobanSdk.TransactionBuilder(source, {
+      // TODO: Figure out the fee
+      fee: "100",
+      networkPassphrase,
+    })
+    .addOperation(contract.call(method, ...params))
+    .setTimeout(SorobanSdk.TimeoutInfinite)
+    .build();
 }
 
 export default Home
