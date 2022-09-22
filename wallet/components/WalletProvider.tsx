@@ -1,5 +1,6 @@
 import Head from "next/head";
 import React from 'react';
+import * as SorobanSdk from 'soroban-sdk';
 import { AppContext, AppContextType, defaultAppContext } from '../AppContext';
 import { WalletList } from "../Wallet";
 import { WalletChain, } from '../WalletChainContext';
@@ -10,6 +11,7 @@ export interface WalletProviderProps {
   chains: WalletChain[];
   children: React.ReactNode;
   serverUrl?: string;
+  allowHttp?: boolean;
   wallets: WalletList;
 }
 
@@ -19,6 +21,7 @@ export function WalletProvider({
   chains,
   children,
   serverUrl,
+  allowHttp = false,
   wallets,
 }: WalletProviderProps) {
 
@@ -32,7 +35,7 @@ export function WalletProvider({
     wallets,
     activeWallet,
     activeChain: chains.length == 1 ? chains[0] : undefined,
-    serverUrl: serverUrl || "",
+    server: new SorobanSdk.Server(serverUrl || "", {allowHttp}),
     connect: async () => {
       let address = await appContext.activeWallet?.getPublicKey();
       setAppContext(c => ({ ...c, address }));

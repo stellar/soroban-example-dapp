@@ -9,6 +9,8 @@ backed by smart contracts on Stellar.
 
 1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
 2. Run `./initialize.sh` to load the contracts and initialize it.
+  - Note: this will create a `.soroban` sub-directory, to contain the sandbox
+    network data.
 3. Run the backend with `soroban-cli serve`
 
 ### Frontend
@@ -17,8 +19,6 @@ Then, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -43,30 +43,13 @@ Then via the web UI, users should be able to:
 - See their deposit(s) appear on the page as the transactions are confirmed.
 - "Live"-Update the page with the total amount with the new amount
 
-## TODO
+## Wallet Integration & Data Fetching
 
-- [ ] Build the proper backend rpc server, and update instructions.
-- [ ] Local env setup script/walkthrough
-- [ ] Contract deployment walkthrough and/or tooling
-- [ ] Contract tests
-- [ ] Sending a txn to update data in the contract
-	- [ ] txnbuilding with new xdr
-- [ ] Waiting for the txn success and showing new value
-	- how to poll/stream these changes?
-	- should just be submitting the txn to horizon, and waiting for the result,
-    then refreshing from the rpc node.
-  - The more interesting bit is if other users change the value. How do we make
-    it "multiplayer" efficiently?
-- [ ] clean up the debris in the codebase
-	- [ ] clean up api provider thing, and setup process. can simplify a lot for us for now.
-- [ ] dropdowns for network, and disconnect menu
-  - freigher can't disconnect yet, afaik
-- [ ] strongly-typed contract rpc querying
-	- blocked on manifest format/generation
-	- [ ] generate a `useContract` hook, that gives a class with methods
-- [ ] better scval formatting/parsing
-	- was struggling with u64s & hypers
-	- [ ] format scvals to string
-	- [ ] parse scvals from string
-- [ ] nicer loading indicator
-- [ ] nicer error handling
+There is a `./wallet` directory, which contains a small library to connect to
+the user's freighter wallet, as well as some React hooks to talk to a
+soroban-rpc server (e.g. `soroban-cli serve`), to fetch data and send
+transactions.
+
+Data from contracts is fetched using the `useContractValue` hook in
+`./wallet/hooks/useContractValue.tsx`. Transactions are submitted to the network
+using the `useSendTransactions` hook in `./wallet/hooks/useSendTransaction.tsx`.
