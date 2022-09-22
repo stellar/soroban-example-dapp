@@ -183,6 +183,11 @@ impl Crowdfund {
             panic!("sale is not running")
         };
 
+        let owner = get_owner(&e);
+        if user == owner {
+            panic!("owner may not deposit")
+        }
+
         let balance = get_user_deposited(&e, &user);
         set_user_deposited(&e, &user, balance + amount.clone());
 
@@ -212,7 +217,6 @@ impl Crowdfund {
                 transfer(&e, get_token(&e), &owner, &get_balance(&e, get_token(&e)))
             }
             State::Expired => {
-                // TODO: Is this right? What if the owner called deposit?
                 if to == owner {
                     panic!("sale expired, the owner may not withdraw")
                 }
