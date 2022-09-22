@@ -1,4 +1,5 @@
 import React from "react";
+import * as SorobanSdk from "soroban-sdk";
 import { ChainMetadata } from "./provideWalletChains";
 import { Wallet, WalletList } from "./Wallet";
 
@@ -6,7 +7,7 @@ export const defaultAppContext: AppContextType = {
   appName: undefined,
   chains: [],
   wallet: [],
-  serverUrl: 'https://horizon.stellar.org',
+  server: new SorobanSdk.Server("https://soroban-rpc.stellar.org"),
   async connect() {},
 };
 
@@ -18,7 +19,7 @@ export interface AppContextType {
   activeChain?: ChainMetadata;
   address?: string;
   activeWallet?: Wallet;
-  serverUrl: string;
+  server: SorobanSdk.Server;
   connect: () => Promise<void>;
 }
 

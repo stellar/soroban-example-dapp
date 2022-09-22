@@ -43,23 +43,38 @@ fn get_ledger_timestamp(e: &Env) -> u64 {
 }
 
 fn get_owner(e: &Env) -> Identifier {
-    e.contract_data().get_unchecked(DataKey::Owner).unwrap()
+    e.contract_data()
+        .get(DataKey::Owner)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_deadline(e: &Env) -> u64 {
-    e.contract_data().get_unchecked(DataKey::Deadline).unwrap()
+    e.contract_data()
+        .get(DataKey::Deadline)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_started(e: &Env) -> u64 {
-    e.contract_data().get_unchecked(DataKey::Started).unwrap()
+    e.contract_data()
+        .get(DataKey::Started)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_target_amount(e: &Env) -> BigInt {
-    e.contract_data().get_unchecked(DataKey::Target).unwrap()
+    e.contract_data()
+        .get(DataKey::Target)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_token(e: &Env) -> BytesN<32> {
-    e.contract_data().get_unchecked(DataKey::Token).unwrap()
+    e.contract_data()
+        .get(DataKey::Token)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {

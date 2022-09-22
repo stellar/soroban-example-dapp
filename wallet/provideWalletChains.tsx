@@ -1,3 +1,4 @@
+import * as SorobanSdk from "soroban-sdk";
 import { isNotNullish } from './utils/isNotNullish';
 import type { WalletChain } from './WalletChainContext';
 
@@ -6,11 +7,13 @@ import type { WalletChain } from './WalletChainContext';
 export type ChainName =
   | 'futurenet'
   | 'public'
-  | 'testnet';
+  | 'testnet'
+  | 'sandbox';
 
 export type ChainMetadata = {
   id: string;
   name?: string;
+  networkPassphrase: string;
   iconBackground?: string;
   iconUrl?: string | (() => Promise<string>) | null;
 };
@@ -19,19 +22,29 @@ const chainMetadataByName: Record<ChainName, ChainMetadata> = {
   public: {
     id: "0",
     name: "Public",
+    networkPassphrase: SorobanSdk.Networks.PUBLIC,
     iconBackground: '#e84141',
     // iconUrl: async () => (await import('./chainIcons/public.svg')).default,
   },
   testnet: {
     id: "1",
     name: "Testnet",
+    networkPassphrase: SorobanSdk.Networks.TESTNET,
     iconBackground: '#484c50',
     // iconUrl: async () => (await import('./chainIcons/testnet.svg')).default,
   },
   futurenet: {
     id: "2",
     name: "Futurenet",
+    networkPassphrase: SorobanSdk.Networks.FUTURENET,
     iconBackground: '#96bedc',
+    // iconUrl: async () => (await import('./chainIcons/futurenet.svg')).default,
+  },
+  sandbox: {
+    id: "3",
+    name: "Sandbox",
+    networkPassphrase: SorobanSdk.Networks.SANDBOX,
+    iconBackground: '#dac695',
     // iconUrl: async () => (await import('./chainIcons/futurenet.svg')).default,
   },
 };
