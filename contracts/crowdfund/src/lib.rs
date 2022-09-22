@@ -39,43 +39,38 @@ fn get_ledger_timestamp(_e: &Env) -> u64 {
 }
 
 fn get_owner(e: &Env) -> Identifier {
-    if let Some(o) = e.contract_data().get(DataKey::Owner) {
-        o.unwrap()
-    } else {
-        panic!("not initialized");
-    }
+    e.contract_data()
+        .get(DataKey::Owner)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_deadline(e: &Env) -> u64 {
-    if let Some(d) = e.contract_data().get(DataKey::Deadline) {
-        d.unwrap()
-    } else {
-        panic!("not initialized");
-    }
+    e.contract_data()
+        .get(DataKey::Deadline)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_started(e: &Env) -> u64 {
-    if let Some(s) = e.contract_data().get(DataKey::Started) {
-        s.unwrap()
-    } else {
-        panic!("not initialized");
-    }
+    e.contract_data()
+        .get(DataKey::Started)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_target_amount(e: &Env) -> BigInt {
-    if let Some(a) = e.contract_data().get(DataKey::Target) {
-        a.unwrap()
-    } else {
-        panic!("not initialized");
-    }
+    e.contract_data()
+        .get(DataKey::Target)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_token(e: &Env) -> BytesN<32> {
-    if let Some(t) = e.contract_data().get(DataKey::Token) {
-        t.unwrap()
-    } else {
-        panic!("not initialized");
-    }
+    e.contract_data()
+        .get(DataKey::Token)
+        .expect("not initialized")
+        .unwrap()
 }
 
 fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
