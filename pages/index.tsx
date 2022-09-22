@@ -10,64 +10,21 @@ import * as SorobanSdk from 'soroban-sdk';
 let xdr = SorobanSdk.xdr;
 import { useAccount, ConnectButton } from "../wallet";
 
+// TODO: Refactor this to use the _app config
+const serverUrl = 'http://localhost:8080/api/v1/jsonrpc';
+const server = new SorobanSdk.Server(serverUrl, { allowHttp: true });
+
 // Stub dummy data for now. 
 const source = new SorobanSdk.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
 const CROWDFUND_ID = "0000000000000000000000000000000000000000000000000000000000000000";
 const TOKEN_ID = "0000000000000000000000000000000000000000000000000000000000000001";
 
-interface SimulateTransactionResponse {
-  cost: {};
-  footprint: {
-    readOnly: string[];
-    readWrite: string[];
-  };
-  results: {
-    xdr: string;
-  }[];
-  latestLedger: number;
-}
-
 // Fetch the result value by making a json-rpc request to an rpc backend.
-async function simulateTransaction(txn: SorobanSdk.Transaction): Promise<SimulateTransactionResponse> {
-  let url = 'http://localhost:8080/api/v1/jsonrpc';
-  // let url = '/api/mock';
-
-  const response = await axios.post<jsonrpc.Response<SimulateTransactionResponse>>(url, {
-    jsonrpc: "2.0",
-    id: 1,
-    method: "simulateTransaction",
-    params: [txn.toXDR()],
-  });
-  console.debug(response);
-  if ('error' in response.data) {
-    throw response.data.error;
-  } else {
-    return response.data?.result;
-  }
+async function simulateTransaction(txn: SorobanSdk.Transaction) {
+  return server.simulateTransaction(txn);
 }
 
-interface SendTransactionResponse {
-  id: string;
-  status: "pending" | "success" | "error";
-  error?: {
-    code?: string;
-    message?: string;
-    data?: any;
-  };
-}
-
-interface GetTransactionStatusResponse {
-  id: string;
-  status: "pending" | "success" | "error";
-  results?: {xdr: string}[];
-  error?: {
-    code?: string;
-    message?: string;
-    data?: any;
-  };
-}
-
-function addFootprint(txn: SorobanSdk.Transaction, footprint: SimulateTransactionResponse['footprint']) {
+function addFootprint(txn: SorobanSdk.Transaction, footprint: SorobanSdk.SorobanRpc.SimulateTransactionResponse['footprint']) {
   txn.operations = txn.operations.map(op => {
     if ('function' in op) {
       op.footprint = new SorobanSdk.xdr.LedgerFootprint({
@@ -80,9 +37,6 @@ function addFootprint(txn: SorobanSdk.Transaction, footprint: SimulateTransactio
 }
 
 async function sendTransaction(txn: SorobanSdk.Transaction): Promise<SorobanSdk.xdr.ScVal> {
-  let url = 'http://localhost:8080/api/v1/jsonrpc';
-  // let url = '/api/mock';
-
   // preflight and add the footprint
   let {footprint} = await simulateTransaction(txn);
   addFootprint(txn, footprint);
@@ -91,46 +45,33 @@ async function sendTransaction(txn: SorobanSdk.Transaction): Promise<SorobanSdk.
   try {
     signedTransaction = await (window as any).freighterApi.signTransaction(
       txn.toXDR(),
-      "TESTNET"
+      "SANDBOX"
     );
   } catch (e) {
     throw e;
   }
 
-  const response = await axios.post<jsonrpc.Response<SendTransactionResponse>>(url, {
-    jsonrpc: "2.0",
-    id: 1,
-    method: "sendTransaction",
-    params: [signedTransaction],
-  });
-  console.debug(response);
-  if ('error' in response.data) {
-    throw response.data.error;
-  }
+  const { id } = await server.sendTransaction(signedTransaction);
 
-  const id = response.data?.id;
   // Poll for the result
   for (let i = 0; i < 60; i++) {
-    const status = await axios.post<jsonrpc.Response<GetTransactionStatusResponse>>(url, {
-      jsonrpc: "2.0",
-      id: 1,
-      method: "getTransactionStatus",
-      params: [id],
-    });
-    console.debug(status);
-    if ('error' in status.data) {
-      throw status.data.error;
-    }
-    switch (status.data?.result.status) {
-    case "pending":
-      continue;
-      case "success":
-        if (status.data?.result.results?.length != 1) {
-          throw new Error("Expected exactly one result");
-        }
-        return xdr.ScVal.fromXDR(Buffer.from(status.data?.result.results[0].xdr, 'base64'));
-      case "error":
-        throw status.data.result.error;
+    try {
+      const response = await server.getTransactionStatus(id.toString('hex'));
+      switch (response.status) {
+      case "pending":
+        continue;
+        case "success":
+          if (response.results?.length != 1) {
+            throw new Error("Expected exactly one result");
+          }
+          return xdr.ScVal.fromXDR(Buffer.from(response.results[0].xdr, 'base64'));
+        case "error":
+          throw response.error;
+      }
+    } catch (err: any) {
+      if ('code' in err && err.code !== 404) {
+        throw err;
+      }
     }
   }
   throw new Error("Timeout");
@@ -138,7 +79,7 @@ async function sendTransaction(txn: SorobanSdk.Transaction): Promise<SorobanSdk.
 
 async function fetchContractValue(contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): Promise<SorobanSdk.xdr.ScVal> {
   const { results } = await simulateTransaction(contractTransaction(contractId, method, ...params));
-  if (results.length !== 1) {
+  if (!results || results.length !== 1) {
     throw new Error("Invalid response from simulateTransaction");
   }
   const result = results[0];
@@ -149,7 +90,7 @@ function contractTransaction(contractId: string, method: string, ...params: Soro
   const contract = new SorobanSdk.Contract(contractId);
   return new SorobanSdk.TransactionBuilder(source, {
       fee: "100",
-      networkPassphrase: SorobanSdk.Networks.TESTNET,
+      networkPassphrase: SorobanSdk.Networks.SANDBOX,
     })
     .addOperation(contract.call(method, ...params))
     .setTimeout(SorobanSdk.TimeoutInfinite)
