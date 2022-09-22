@@ -22,7 +22,9 @@ interface SimulateTransactionResponse {
     readOnly: string[];
     readWrite: string[];
   };
-  xdr: string;
+  results: {
+    xdr: string;
+  }[];
   latestLedger: number;
 }
 
@@ -136,7 +138,11 @@ async function sendTransaction(txn: StellarSdk.Transaction): Promise<StellarSdk.
 }
 
 async function fetchContractValue(contractId: string, method: string, ...params: StellarSdk.xdr.ScVal[]): Promise<StellarSdk.xdr.ScVal> {
-  let result = await simulateTransaction(contractTransaction(contractId, method, ...params));
+  const { results } = await simulateTransaction(contractTransaction(contractId, method, ...params));
+  if (results.length !== 1) {
+    throw new Error("Invalid response from simulateTransaction");
+  }
+  const result = results[0];
   return xdr.ScVal.fromXDR(Buffer.from(result.xdr, 'base64'));
 }
 
@@ -206,7 +212,7 @@ function bnToBuf(bn: bigint): Buffer {
   return Buffer.from(u8);
 }
 
-function xdrInt64ToNumber(value: StellarSdk.xdr.Int64): number {
+function xdrUint64ToNumber(value: StellarSdk.xdr.Uint64): number {
   let b = 0;
   b |= value.high;
   b <<= 8;
@@ -274,8 +280,8 @@ const Home: NextPage = () => {
   const tokenDecimals = token.decimals.result && (token.decimals.result?.u32() ?? 7);
   const tokenName = token.name.result && scvalToString(token.name.result);
   const tokenSymbol = token.symbol.result && scvalToString(token.symbol.result);
-  const deadlineDate = deadline.result && new Date(xdrInt64ToNumber(deadline.result.u63() ?? xdr.Int64.fromString("0")) * 1000);
-  const startedDate = started.result && new Date(xdrInt64ToNumber(started.result.u63() ?? xdr.Int64.fromString("0")) * 1000);
+  const deadlineDate = deadline.result && new Date(xdrUint64ToNumber(deadline.result.obj()?.u64() ?? xdr.Int64.fromString("0")) * 1000);
+  const startedDate = started.result && new Date(xdrUint64ToNumber(started.result.obj()?.u64() ?? xdr.Int64.fromString("0")) * 1000);
   const yourDeposits = scvalToBigNumber(yourDepositsXdr.result);
   
   return (
