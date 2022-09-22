@@ -1,5 +1,5 @@
 import React from "react";
-import StellarSdk from "stellar-sdk";
+import SorobanSdk from "soroban-sdk";
 import { TransactionResponse } from "../provideWalletChains";
 import { AppContext } from "../AppContext";
 
@@ -28,9 +28,10 @@ export function useSendTransaction(defaultTxn?: string): SendTransactionResult {
       return {};
     }
     const signed = activeWallet.signTransaction(xdr, activeChain.id.toUpperCase());
-    const server = StellarSdk.Server(serverUrl);
-    const transactionToSubmit = StellarSdk.TransactionBuilder.fromXDR(signed, serverUrl);
-    return await server.submitTransaction(transactionToSubmit);
+    const server = SorobanSdk.Server(serverUrl);
+    const transactionToSubmit = SorobanSdk.TransactionBuilder.fromXDR(signed, serverUrl);
+    // TODO: Poll `server.getTransactionStatus(transactionToSubmit.hash())` for status
+    return await server.sendTransaction(transactionToSubmit);
   }, [activeWallet, activeChain, defaultTxn]);
 
   return {

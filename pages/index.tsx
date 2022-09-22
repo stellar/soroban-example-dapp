@@ -6,13 +6,12 @@ import Head from 'next/head';
 import Image from 'next/image';
 import * as jsonrpc from "../jsonrpc";
 import styles from '../styles/Home.module.css';
-// TODO: Use the SDK
-import * as StellarSdk from 'stellar-sdk';
-let xdr = StellarSdk.xdr;
+import * as SorobanSdk from 'soroban-sdk';
+let xdr = SorobanSdk.xdr;
 import { useAccount, ConnectButton } from "../wallet";
 
 // Stub dummy data for now. 
-const source = new StellarSdk.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
+const source = new SorobanSdk.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
 const CROWDFUND_ID = "0000000000000000000000000000000000000000000000000000000000000000";
 const TOKEN_ID = "0000000000000000000000000000000000000000000000000000000000000001";
 
@@ -29,7 +28,7 @@ interface SimulateTransactionResponse {
 }
 
 // Fetch the result value by making a json-rpc request to an rpc backend.
-async function simulateTransaction(txn: StellarSdk.Transaction): Promise<SimulateTransactionResponse> {
+async function simulateTransaction(txn: SorobanSdk.Transaction): Promise<SimulateTransactionResponse> {
   let url = 'http://localhost:8080/api/v1/jsonrpc';
   // let url = '/api/mock';
 
@@ -68,19 +67,19 @@ interface GetTransactionStatusResponse {
   };
 }
 
-function addFootprint(txn: StellarSdk.Transaction, footprint: SimulateTransactionResponse['footprint']) {
+function addFootprint(txn: SorobanSdk.Transaction, footprint: SimulateTransactionResponse['footprint']) {
   txn.operations = txn.operations.map(op => {
     if ('function' in op) {
-      op.footprint = new StellarSdk.xdr.LedgerFootprint({
-        readOnly: footprint.readOnly.map(b => StellarSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
-        readWrite: footprint.readWrite.map(b => StellarSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
+      op.footprint = new SorobanSdk.xdr.LedgerFootprint({
+        readOnly: footprint.readOnly.map(b => SorobanSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
+        readWrite: footprint.readWrite.map(b => SorobanSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
       });
     }
     return op;
   });
 }
 
-async function sendTransaction(txn: StellarSdk.Transaction): Promise<StellarSdk.xdr.ScVal> {
+async function sendTransaction(txn: SorobanSdk.Transaction): Promise<SorobanSdk.xdr.ScVal> {
   let url = 'http://localhost:8080/api/v1/jsonrpc';
   // let url = '/api/mock';
 
@@ -137,7 +136,7 @@ async function sendTransaction(txn: StellarSdk.Transaction): Promise<StellarSdk.
   throw new Error("Timeout");
 }
 
-async function fetchContractValue(contractId: string, method: string, ...params: StellarSdk.xdr.ScVal[]): Promise<StellarSdk.xdr.ScVal> {
+async function fetchContractValue(contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): Promise<SorobanSdk.xdr.ScVal> {
   const { results } = await simulateTransaction(contractTransaction(contractId, method, ...params));
   if (results.length !== 1) {
     throw new Error("Invalid response from simulateTransaction");
@@ -146,27 +145,27 @@ async function fetchContractValue(contractId: string, method: string, ...params:
   return xdr.ScVal.fromXDR(Buffer.from(result.xdr, 'base64'));
 }
 
-function contractTransaction(contractId: string, method: string, ...params: StellarSdk.xdr.ScVal[]): StellarSdk.Transaction {
-  const contract = new StellarSdk.Contract(contractId);
-  return new StellarSdk.TransactionBuilder(source, {
+function contractTransaction(contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): SorobanSdk.Transaction {
+  const contract = new SorobanSdk.Contract(contractId);
+  return new SorobanSdk.TransactionBuilder(source, {
       fee: "100",
-      networkPassphrase: StellarSdk.Networks.TESTNET,
+      networkPassphrase: SorobanSdk.Networks.TESTNET,
     })
     .addOperation(contract.call(method, ...params))
-    .setTimeout(StellarSdk.TimeoutInfinite)
+    .setTimeout(SorobanSdk.TimeoutInfinite)
     .build();
 }
 
-function scvalToBigNumber(scval: StellarSdk.xdr.ScVal | undefined): BigNumber {
+function scvalToBigNumber(scval: SorobanSdk.xdr.ScVal | undefined): BigNumber {
   let value = scval?.obj()?.bigInt() ?? xdr.ScBigInt.zero();
   let sign = BigInt(1);
   switch (value.switch()) {
-    case StellarSdk.xdr.ScNumSign.zero():
+    case SorobanSdk.xdr.ScNumSign.zero():
       return BigNumber(0);
-    case StellarSdk.xdr.ScNumSign.positive():
+    case SorobanSdk.xdr.ScNumSign.positive():
       sign = BigInt(1);
       break;
-    case StellarSdk.xdr.ScNumSign.negative():
+    case SorobanSdk.xdr.ScNumSign.negative():
       sign = BigInt(-1);
       break;
   }
@@ -181,7 +180,7 @@ function scvalToBigNumber(scval: StellarSdk.xdr.ScVal | undefined): BigNumber {
 }
 
 // TODO: Not sure this handles negatives right
-function bigNumberToScBigInt(value: BigNumber): StellarSdk.xdr.ScVal {
+function bigNumberToScBigInt(value: BigNumber): SorobanSdk.xdr.ScVal {
   const b: bigint = BigInt(value.toFixed(0));
   if (b == BigInt(0)) {
     return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.zero()));
@@ -212,7 +211,7 @@ function bnToBuf(bn: bigint): Buffer {
   return Buffer.from(u8);
 }
 
-function xdrUint64ToNumber(value: StellarSdk.xdr.Uint64): number {
+function xdrUint64ToNumber(value: SorobanSdk.xdr.Uint64): number {
   let b = 0;
   b |= value.high;
   b <<= 8;
@@ -220,7 +219,7 @@ function xdrUint64ToNumber(value: StellarSdk.xdr.Uint64): number {
   return b;
 }
 
-function scvalToString(value: StellarSdk.xdr.ScVal): string | undefined {
+function scvalToString(value: SorobanSdk.xdr.ScVal): string | undefined {
   return value.obj()?.bin().toString();
 }
 
@@ -228,9 +227,9 @@ function formatAmount(value: BigNumber, decimals=7): string {
   return value.shiftedBy(decimals * -1).toString();
 }
 
-type ContractValue = {loading?: true, result?: StellarSdk.xdr.ScVal, error?: string|unknown};
+type ContractValue = {loading?: true, result?: SorobanSdk.xdr.ScVal, error?: string|unknown};
 
-function useContractValue(contractId: string, method: string, ...params: StellarSdk.xdr.ScVal[]): ContractValue {
+function useContractValue(contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): ContractValue {
   const [value, setValue] = React.useState<ContractValue>({ loading: true });
   React.useEffect(() => {
     (async () => {
