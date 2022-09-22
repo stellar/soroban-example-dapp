@@ -1,7 +1,13 @@
 #![no_std]
 use soroban_auth::{Identifier, Signature};
 use soroban_sdk::{contractimpl, contracttype, BigInt, BytesN, Env, IntoVal, RawVal};
-use soroban_token_contract::TokenClient;
+
+mod token {
+    soroban_sdk::contractimport!(file = "../token/soroban_token_contract.wasm");
+}
+
+mod test;
+pub mod testutils;
 
 #[derive(Clone)]
 #[contracttype]
@@ -32,10 +38,8 @@ fn get_contract_id(e: &Env) -> Identifier {
     Identifier::Contract(e.get_current_contract().into())
 }
 
-fn get_ledger_timestamp(_e: &Env) -> u64 {
-    // TODO: Use this once we can get the ledger timestamp. For now it panics with "missing ledger info", as in soroban-cli we aren't setting up the ledger.
-    // e.ledger().timestamp()
-    1
+fn get_ledger_timestamp(e: &Env) -> u64 {
+    e.ledger().timestamp()
 }
 
 fn get_owner(e: &Env) -> Identifier {
@@ -81,7 +85,7 @@ fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
 }
 
 fn get_balance(e: &Env, contract_id: BytesN<32>) -> BigInt {
-    let client = TokenClient::new(&e, &contract_id);
+    let client = token::ContractClient::new(&e, &contract_id);
     client.balance(&get_contract_id(e))
 }
 
@@ -106,9 +110,8 @@ fn set_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
 }
 
 fn transfer(e: &Env, contract_id: BytesN<32>, to: &Identifier, amount: &BigInt) {
-    // TODO: Real nonce/auth here
     let nonce: BigInt = BigInt::zero(&e);
-    let client = TokenClient::new(&e, &contract_id);
+    let client = token::ContractClient::new(&e, &contract_id);
     client.xfer(&Signature::Contract, &nonce, to, amount);
 }
 
@@ -127,16 +130,14 @@ impl Crowdfund {
     pub fn initialize(
         e: Env,
         owner: Identifier,
-        deadline: i64,
+        deadline: u64,
         target_amount: BigInt,
         token: BytesN<32>,
     ) {
         if e.contract_data().has(DataKey::Owner) {
             panic!("already initialized");
         }
-        if deadline < 0 {
-            panic!("deadline must be positive");
-        }
+
         e.contract_data().set(DataKey::Owner, owner);
         e.contract_data()
             .set(DataKey::Started, get_ledger_timestamp(&e));
@@ -166,12 +167,11 @@ impl Crowdfund {
     }
 
     pub fn balance(e: Env, user: Identifier) -> BigInt {
-        let _owner = get_owner(&e);
+        let owner = get_owner(&e);
         if get_state(&e) == State::Success {
-            // TODO: Do this when we have working auth
-            // if user != owner {
-            //     return BigInt::zero(&e);
-            // };
+            if user != owner {
+                return BigInt::zero(&e);
+            };
             return get_balance(&e, get_token(&e));
         };
 
@@ -183,12 +183,16 @@ impl Crowdfund {
             panic!("sale is not running")
         };
 
+        let owner = get_owner(&e);
+        if user == owner {
+            panic!("owner may not deposit")
+        }
+
         let balance = get_user_deposited(&e, &user);
         set_user_deposited(&e, &user, balance + amount.clone());
 
-        // TODO: Real nonce/auth here
-        let nonce: BigInt = BigInt::zero(&e);
-        let client = TokenClient::new(&e, &get_token(&e));
+        let nonce = BigInt::zero(&e);
+        let client = token::ContractClient::new(&e, &get_token(&e));
         client.xfer_from(
             &Signature::Contract,
             &nonce,
@@ -198,40 +202,30 @@ impl Crowdfund {
         );
     }
 
-    // TODO: Track deposited amounts per-donor, so you can't just withdraw all
-    // TODO: Authenticate this with more than the destination address, maybe?
-    pub fn withdraw(e: Env, to: Identifier, amount: BigInt) {
-        // TODO: Do this when we have working auth
-        // let auth_id = auth.get_identifier(&e);
-        let auth_id = &to;
-
+    pub fn withdraw(e: Env, to: Identifier) {
         let state = get_state(&e);
-        let _owner = get_owner(&e);
+        let owner = get_owner(&e);
+
         match state {
             State::Running => {
                 panic!("sale is still running")
             }
             State::Success => {
-                // TODO: Do this when we have working auth
-                // if auth_id != owner {
-                //     panic!("sale was successful, only the owner may withdraw")
-                // }
+                if to != owner {
+                    panic!("sale was successful, only the owner may withdraw")
+                }
+                transfer(&e, get_token(&e), &owner, &get_balance(&e, get_token(&e)))
             }
             State::Expired => {
-                // TODO: Do this when we have working auth
-                // if auth_id == owner {
-                //     panic!("sale expired, the owner may not withdraw")
-                // }
-
-                // Sale expired, we're refunding users. Check they can only withdraw as much as
-                // they deposited.
-                let balance = get_user_deposited(&e, &auth_id);
-                if amount > balance {
-                    panic!("insufficient funds")
+                if to == owner {
+                    panic!("sale expired, the owner may not withdraw")
                 }
-                set_user_deposited(&e, &auth_id, balance - amount.clone());
+
+                // Withdraw full amount
+                let balance = get_user_deposited(&e, &to);
+                transfer(&e, get_token(&e), &to, &balance);
+                set_user_deposited(&e, &to, BigInt::zero(&e));
             }
         };
-        transfer(&e, get_token(&e), &to, &amount);
     }
 }
