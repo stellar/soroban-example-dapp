@@ -223,8 +223,8 @@ impl Crowdfund {
 
                 // Withdraw full amount
                 let balance = get_user_deposited(&e, &to);
-                transfer(&e, get_token(&e), &to, &balance);
                 set_user_deposited(&e, &to, BigInt::zero(&e));
+                transfer(&e, get_token(&e), &to, &balance);
             }
         };
     }
