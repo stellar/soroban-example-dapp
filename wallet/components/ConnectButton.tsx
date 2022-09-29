@@ -69,7 +69,6 @@ export function ConnectButton({
   chainStatus = defaultProps.chainStatus,
   label = defaultProps.label,
 }: ConnectButtonProps) {
-  const [modalOpen, setModalOpen] = React.useState<'connect' | 'chain' | 'account' | null>(null);
   const {connect} = React.useContext(AppContext);
   const openConnectModal = async () => {
     await connect();
@@ -177,7 +176,7 @@ export function ConnectButton({
                             borderRadius: "100%",
                           }}
                           height="24"
-                          src={chain.iconUrl()}
+                          src={chain.iconUrl}
                           width="24"
                         />
                       </div>
