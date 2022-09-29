@@ -69,7 +69,6 @@ export function ConnectButton({
   chainStatus = defaultProps.chainStatus,
   label = defaultProps.label,
 }: ConnectButtonProps) {
-  const [modalOpen, setModalOpen] = React.useState<'connect' | 'chain' | 'account' | null>(null);
   const {connect} = React.useContext(AppContext);
   const openConnectModal = async () => {
     await connect();
