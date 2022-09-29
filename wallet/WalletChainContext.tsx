@@ -3,9 +3,12 @@ import React from 'react';
 export interface WalletChain {
   id: string;
   name?: string;
-  iconUrl?: string | (() => Promise<string>) | null;
+  networkPassphrase: string;
   iconBackground?: string;
-}
+  iconUrl?: string | null;
+  // TODO: Use this to indicate which chains a dapp supports
+  unsupported?: boolean;
+};
 
 export const WalletChainContext = React.createContext<WalletChain[]>([]);
 

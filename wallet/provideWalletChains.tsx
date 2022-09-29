@@ -10,15 +10,7 @@ export type ChainName =
   | 'testnet'
   | 'sandbox';
 
-export type ChainMetadata = {
-  id: string;
-  name?: string;
-  networkPassphrase: string;
-  iconBackground?: string;
-  iconUrl?: string | null;
-  // TODO: Use this to indicate which chains a dapp supports
-  unsupported?: boolean;
-};
+export type ChainMetadata = WalletChain;
 
 const chainMetadataByName: Record<ChainName, ChainMetadata> = {
   public: {
