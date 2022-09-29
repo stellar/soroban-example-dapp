@@ -177,7 +177,7 @@ export function ConnectButton({
                             borderRadius: "100%",
                           }}
                           height="24"
-                          src={chain.iconUrl()}
+                          src={chain.iconUrl}
                           width="24"
                         />
                       </div>

@@ -15,7 +15,7 @@ export type ChainMetadata = {
   name?: string;
   networkPassphrase: string;
   iconBackground?: string;
-  iconUrl?: string | (() => Promise<string>) | null;
+  iconUrl?: string | null;
   // TODO: Use this to indicate which chains a dapp supports
   unsupported?: boolean;
 };
