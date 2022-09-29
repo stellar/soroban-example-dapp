@@ -10,13 +10,7 @@ export type ChainName =
   | 'testnet'
   | 'sandbox';
 
-export type ChainMetadata = {
-  id: string;
-  name?: string;
-  networkPassphrase: string;
-  iconBackground?: string;
-  iconUrl?: string | (() => Promise<string>) | null;
-};
+export type ChainMetadata = WalletChain;
 
 const chainMetadataByName: Record<ChainName, ChainMetadata> = {
   public: {

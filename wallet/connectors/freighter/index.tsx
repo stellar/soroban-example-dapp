@@ -7,7 +7,7 @@ export interface FreighterOptions {
   chains: WalletChain[];
 }
 
-export function freighter({ appName, chains }: FreighterOptions): Wallet {
+export function freighter(_: FreighterOptions): Wallet {
   const installed = typeof window !== "undefined" && !!((window as any)?.freighterApi);
 
   return {
