@@ -19,7 +19,8 @@ export function useContractValue(contractId: string, method: string, ...params: 
 
   React.useEffect(() => {
     if (!activeChain) {
-      return { error: "No active chain" };
+      setValue({ error: "No active chain" });
+      return;
     }
 
     (async () => {
