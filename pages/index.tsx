@@ -11,7 +11,7 @@ let xdr = SorobanSdk.xdr;
 // Stub dummy data for now. 
 const source = new SorobanSdk.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
 const CROWDFUND_ID = "0000000000000000000000000000000000000000000000000000000000000000";
-const TOKEN_ID = "0000000000000000000000000000000000000000000000000000000000000001";
+const TOKEN_ID = process.env.TOKEN_ID ?? "";
 
 const Home: NextPage = () => {
   const { data: account } = useAccount();

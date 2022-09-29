@@ -7,18 +7,17 @@ set -e
 admin="AAAABAAAAAEAAAAAAAAAAgAAAAUAAAAHQWNjb3VudAAAAAAEAAAAAQAAAAQAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
 echo Deploy the token contract
-soroban-cli deploy --id 1 --wasm contracts/token/soroban_token_contract.wasm
-
-echo Initialize the token contract
-soroban-cli invoke --id 1 \
-  --fn initialize \
-  --arg-xdr "$admin" \
-  --arg-xdr AAAAAQAAAAc= \
-  --arg-xdr AAAABAAAAAEAAAAEAAAAEENpcmNsZSBVUyBEb2xsYXI= \
-  --arg-xdr AAAABAAAAAEAAAAEAAAABFVTREM=
+TOKEN_ID="$(
+  soroban-cli token create \
+    --name "Example Token" \
+    --symbol "EXT" \
+    --decimal 2
+)"
+mkdir -p .soroban
+echo "$TOKEN_ID" > .soroban/token_id
 
 echo Build the crowdfund contract
-cargo build --release --target wasm32-unknown-unknown
+make build
 
 echo Deploy the crowdfund contract
 soroban-cli deploy --id 0 --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
@@ -30,4 +29,4 @@ soroban-cli invoke --id 0 \
   --arg-xdr "$admin" \
   --arg "$deadline" \
   --arg "1000000000" \
-  --arg '[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]'
+  --arg "$TOKEN_ID"
