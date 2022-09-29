@@ -31,7 +31,7 @@ export function bigNumberToScBigInt(value: BigNumber): SorobanSdk.xdr.ScVal {
   if (b == BigInt(0)) {
     return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.zero()));
   }
-  const buf = bnToBuf(b);
+  const buf = bigintToBuf(b);
   if (b > BigInt(0)) {
     return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.positive(buf)));
   } else {
