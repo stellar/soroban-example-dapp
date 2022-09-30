@@ -17,20 +17,14 @@ const Home: NextPage = () => {
   const { data: account } = useAccount();
   // Call the contract rpcs to fetch values
   const token = {
-    balance: useContractValue(TOKEN_ID, "balance", xdr.ScVal.scvObject(xdr.ScObject.scoVec([
-      xdr.ScVal.scvSymbol("Account"),
-      xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')))
-    ]))),
+    balance: useContractValue(TOKEN_ID, "balance", accountIdentifier(Buffer.from(CROWDFUND_ID, 'hex'))),
     decimals: useContractValue(TOKEN_ID, "decimals"),
     name: useContractValue(TOKEN_ID, "name"),
     symbol: useContractValue(TOKEN_ID, "symbol"),
   };
   const deadline = useContractValue(CROWDFUND_ID, "deadline");
   const started = useContractValue(CROWDFUND_ID, "started");
-  const yourDepositsXdr = useContractValue(CROWDFUND_ID, "balance", xdr.ScVal.scvObject(xdr.ScObject.scoVec([
-    xdr.ScVal.scvSymbol("Account"),
-    xdr.ScVal.scvObject(account ? xdr.ScObject.scoBytes(Buffer.from(account.address)) : null)
-  ])));
+  const yourDepositsXdr = useContractValue(CROWDFUND_ID, "balance", accountIdentifier(account && SorobanSdk.StrKey.decodeEd25519PublicKey(account.address)));
 
   // Convert the result ScVals to js types
   const tokenBalance = convert.scvalToBigNumber(token.balance.result);
@@ -112,11 +106,7 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
   const { activeChain } = useNetwork();
   const networkPassphrase = activeChain?.networkPassphrase ?? "";
 
-  const user = xdr.ScVal.scvObject(xdr.ScObject.scoVec([
-    xdr.ScVal.scvSymbol("Account"),
-    // TODO: Parse this as an address or whatever.
-    xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(account.address, 'hex')))
-  ]));
+  const user = accountIdentifier(Buffer.from(account.address, 'hex'));
   const spender = xdr.ScVal.scvObject(xdr.ScObject.scoVec([
     xdr.ScVal.scvSymbol("Contract"),
     // TODO: Parse this as an address or whatever.
@@ -167,6 +157,18 @@ function contractTransaction(networkPassphrase: string, contractId: string, meth
     .addOperation(contract.call(method, ...params))
     .setTimeout(SorobanSdk.TimeoutInfinite)
     .build();
+}
+
+function accountIdentifier(account: Buffer | null | undefined): SorobanSdk.xdr.ScVal {
+  return xdr.ScVal.scvObject(account
+    ? xdr.ScObject.scoVec([
+        xdr.ScVal.scvSymbol("Account"),
+        xdr.ScVal.scvObject(
+          xdr.ScObject.scoAccountId(xdr.PublicKey.publicKeyTypeEd25519(account))
+        )
+      ])
+    : null
+  );
 }
 
 export default Home
