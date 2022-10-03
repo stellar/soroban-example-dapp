@@ -20,11 +20,11 @@ ed25519-dalek = { version = "1.0.1", optional = true }
 sha2 = { version = "0.10.2", optional = true }
 
 [target.'cfg(not(target_family="wasm"))'.dependencies]
-soroban-token-contract = { git = "https://github.com/stellar/soroban-examples", rev = "821dd95", default-features = false, optional = true }
+soroban-token-contract = { git = "https://github.com/stellar/soroban-examples", rev = "4c0d9251", default-features = false, optional = true }
 
 [dev_dependencies]
 soroban-sdk = { version = "0.0.4", features = ["testutils"] }
 soroban-auth = { version = "0.0.4", features = ["testutils"] }
-soroban-token-contract = { git = "https://github.com/stellar/soroban-examples", rev = "821dd95", default-features = false, features = ["testutils"] }
+soroban-token-contract = { git = "https://github.com/stellar/soroban-examples", rev = "4c0d9251", default-features = false, features = ["testutils"] }
 soroban-crowdfund-contract = { path = ".", default-features = false, features = ["testutils"] }
 rand = { version = "0.7.3" }
