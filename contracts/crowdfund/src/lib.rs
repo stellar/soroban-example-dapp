@@ -3,7 +3,7 @@ use soroban_auth::{Identifier, Signature};
 use soroban_sdk::{contractimpl, contracttype, BigInt, BytesN, Env, IntoVal, RawVal};
 
 mod token {
-    soroban_sdk::contractimport!(file = "../token/soroban_token_contract.wasm");
+    soroban_sdk::contractimport!(file = "../token/soroban_token_spec.wasm");
 }
 
 mod test;
@@ -43,49 +43,49 @@ fn get_ledger_timestamp(e: &Env) -> u64 {
 }
 
 fn get_owner(e: &Env) -> Identifier {
-    e.contract_data()
+    e.data()
         .get(DataKey::Owner)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_deadline(e: &Env) -> u64 {
-    e.contract_data()
+    e.data()
         .get(DataKey::Deadline)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_started(e: &Env) -> u64 {
-    e.contract_data()
+    e.data()
         .get(DataKey::Started)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_target_amount(e: &Env) -> BigInt {
-    e.contract_data()
+    e.data()
         .get(DataKey::Target)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_token(e: &Env) -> BytesN<32> {
-    e.contract_data()
+    e.data()
         .get(DataKey::Token)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
-    e.contract_data()
+    e.data()
         .get(DataKey::User(user.clone()))
         .unwrap_or_else(|| Ok(BigInt::zero(&e)))
         .unwrap()
 }
 
 fn get_balance(e: &Env, contract_id: BytesN<32>) -> BigInt {
-    let client = token::ContractClient::new(&e, &contract_id);
+    let client = token::Client::new(&e, &contract_id);
     client.balance(&get_contract_id(e))
 }
 
@@ -106,13 +106,13 @@ fn get_state(e: &Env) -> State {
 }
 
 fn set_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
-    e.contract_data().set(DataKey::User(user.clone()), amount)
+    e.data().set(DataKey::User(user.clone()), amount)
 }
 
 fn transfer(e: &Env, contract_id: BytesN<32>, to: &Identifier, amount: &BigInt) {
     let nonce: BigInt = BigInt::zero(&e);
-    let client = token::ContractClient::new(&e, &contract_id);
-    client.xfer(&Signature::Contract, &nonce, to, amount);
+    let client = token::Client::new(&e, &contract_id);
+    client.xfer(&Signature::Invoker, &nonce, to, amount);
 }
 
 struct Crowdfund;
@@ -134,16 +134,15 @@ impl Crowdfund {
         target_amount: BigInt,
         token: BytesN<32>,
     ) {
-        if e.contract_data().has(DataKey::Owner) {
+        if e.data().has(DataKey::Owner) {
             panic!("already initialized");
         }
 
-        e.contract_data().set(DataKey::Owner, owner);
-        e.contract_data()
-            .set(DataKey::Started, get_ledger_timestamp(&e));
-        e.contract_data().set(DataKey::Deadline, deadline);
-        e.contract_data().set(DataKey::Target, target_amount);
-        e.contract_data().set(DataKey::Token, token);
+        e.data().set(DataKey::Owner, owner);
+        e.data().set(DataKey::Started, get_ledger_timestamp(&e));
+        e.data().set(DataKey::Deadline, deadline);
+        e.data().set(DataKey::Target, target_amount);
+        e.data().set(DataKey::Token, token);
     }
 
     pub fn deadline(e: Env) -> u64 {
@@ -192,9 +191,9 @@ impl Crowdfund {
         set_user_deposited(&e, &user, balance + amount.clone());
 
         let nonce = BigInt::zero(&e);
-        let client = token::ContractClient::new(&e, &get_token(&e));
+        let client = token::Client::new(&e, &get_token(&e));
         client.xfer_from(
-            &Signature::Contract,
+            &Signature::Invoker,
             &nonce,
             &user,
             &get_contract_id(&e),
