@@ -5,13 +5,13 @@ import Head from 'next/head';
 import * as SorobanSdk from 'soroban-sdk';
 import styles from '../styles/Home.module.css';
 import * as convert from "../convert";
-import { useNetwork, useAccount, useContractValue, useSendTransaction, ConnectButton } from "../wallet";
+import { ContractValue, useNetwork, useAccount, useContractValue, useSendTransaction, ConnectButton } from "../wallet";
 let xdr = SorobanSdk.xdr;
 
 // Stub dummy data for now. 
 const source = new SorobanSdk.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
 const CROWDFUND_ID = "0000000000000000000000000000000000000000000000000000000000000000";
-const TOKEN_ID = process.env.TOKEN_ID ?? "";
+const TOKEN_ID: string = process.env.TOKEN_ID ?? "";
 
 const Home: NextPage = () => {
   const { data: account } = useAccount();
@@ -24,7 +24,6 @@ const Home: NextPage = () => {
   };
   const deadline = useContractValue(CROWDFUND_ID, "deadline");
   const started = useContractValue(CROWDFUND_ID, "started");
-  const yourDepositsXdr = useContractValue(CROWDFUND_ID, "balance", accountIdentifier(account && SorobanSdk.StrKey.decodeEd25519PublicKey(account.address)));
 
   // Convert the result ScVals to js types
   const tokenBalance = convert.scvalToBigNumber(token.balance.result);
@@ -33,7 +32,6 @@ const Home: NextPage = () => {
   const tokenSymbol = token.symbol.result && convert.scvalToString(token.symbol.result);
   const deadlineDate = deadline.result && new Date(convert.xdrUint64ToNumber(deadline.result.obj()?.u64() ?? xdr.Int64.fromString("0")) * 1000);
   const startedDate = started.result && new Date(convert.xdrUint64ToNumber(started.result.obj()?.u64() ?? xdr.Int64.fromString("0")) * 1000);
-  const yourDeposits = convert.scvalToBigNumber(yourDepositsXdr.result);
   
   return (
     <div className={styles.container}>
@@ -83,13 +81,7 @@ const Home: NextPage = () => {
               <DepositForm account={account} decimals={token.decimals.result.u32()} />
             )}
             <div>
-              Your Deposits: {yourDepositsXdr.loading || token.decimals.loading || token.name.loading || token.symbol.loading ? (
-                <span>Loading...</span>
-              ) : yourDeposits ? (
-                <span>{formatAmount(yourDeposits, tokenDecimals)} <span title={tokenName}>{tokenSymbol}</span></span>
-              ) : (
-                <span>{JSON.stringify(yourDepositsXdr.error)}</span>
-              )}
+              Your Deposits: <YourDeposits account={account} token={token} />
             </div>
           </div>
         )}
@@ -106,7 +98,7 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
   const { activeChain } = useNetwork();
   const networkPassphrase = activeChain?.networkPassphrase ?? "";
 
-  const user = accountIdentifier(Buffer.from(account.address, 'hex'));
+  const user = accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(account.address));
   const spender = xdr.ScVal.scvObject(xdr.ScObject.scoVec([
     xdr.ScVal.scvSymbol("Contract"),
     // TODO: Parse this as an address or whatever.
@@ -146,6 +138,33 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
   );
 }
 
+function YourDeposits(
+  {account, token}: {
+    account: {address: string},
+    token: {
+      decimals: ContractValue,
+      name: ContractValue,
+      symbol: ContractValue
+    }
+  }
+) {
+  const yourDepositsXdr = useContractValue(CROWDFUND_ID, "balance", accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(account.address)));
+
+  if (token.decimals.loading || token.name.loading || token.symbol.loading) {
+    return <span>Loading...</span>;
+  }
+  if (token.decimals.error || token.name.error || token.symbol.error) {
+    return <span>{JSON.stringify(token.decimals.error || token.name.error || token.symbol.error)}</span>;
+  }
+
+  const yourDeposits = convert.scvalToBigNumber(yourDepositsXdr.result);
+  const tokenDecimals = token.decimals.result && (token.decimals.result?.u32() ?? 7);
+  const tokenName = token.name.result && convert.scvalToString(token.name.result);
+  const tokenSymbol = token.symbol.result && convert.scvalToString(token.symbol.result);
+
+  return <span>{formatAmount(yourDeposits, tokenDecimals)} <span title={tokenName}>{tokenSymbol}</span></span>;
+}
+
 // Small helper to build a contract invokation transaction
 function contractTransaction(networkPassphrase: string, contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): SorobanSdk.Transaction {
   const contract = new SorobanSdk.Contract(contractId);
@@ -159,15 +178,14 @@ function contractTransaction(networkPassphrase: string, contractId: string, meth
     .build();
 }
 
-function accountIdentifier(account: Buffer | null | undefined): SorobanSdk.xdr.ScVal {
-  return xdr.ScVal.scvObject(account
-    ? xdr.ScObject.scoVec([
-        xdr.ScVal.scvSymbol("Account"),
-        xdr.ScVal.scvObject(
-          xdr.ScObject.scoAccountId(xdr.PublicKey.publicKeyTypeEd25519(account))
-        )
-      ])
-    : null
+function accountIdentifier(account: Buffer): SorobanSdk.xdr.ScVal {
+  return xdr.ScVal.scvObject(
+    xdr.ScObject.scoVec([
+      xdr.ScVal.scvSymbol("Account"),
+      xdr.ScVal.scvObject(
+        xdr.ScObject.scoAccountId(xdr.PublicKey.publicKeyTypeEd25519(account))
+      )
+    ])
   );
 }
 

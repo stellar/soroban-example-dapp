@@ -3,6 +3,6 @@ var fs = require('fs');
 module.exports = {
   reactStrictMode: true,
   env: {
-    TOKEN_ID: fs.readFileSync('.soroban/token_id'),
+    TOKEN_ID: fs.readFileSync('.soroban/token_id').toString().trim(),
   },
 };
