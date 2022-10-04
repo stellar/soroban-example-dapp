@@ -117,7 +117,7 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
       }
       let { sequence } = await server.getAccount(account.address);
       let source = new SorobanSdk.Account(account.address, sequence);
-      let nonce = xdr.ScVal.scvU32(0);
+      let nonce = convert.bigNumberToScBigInt(BigNumber(0));
       const amountScVal = convert.bigNumberToScBigInt(parsedAmount.multipliedBy(decimals).decimalPlaces(0));
       let txn = needsApproval
         ? contractTransaction(networkPassphrase, source, TOKEN_ID, "approve", user, nonce, spender, amountScVal)
