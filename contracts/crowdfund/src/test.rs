@@ -1,11 +1,13 @@
 #![cfg(test)]
 
+use super::token::{Client as Token, TokenMetadata};
 use crate::testutils::{register_test_contract as register_crowdfund, Crowdfund};
-use ed25519_dalek::Keypair;
 use rand::{thread_rng, RngCore};
-use soroban_auth::Identifier;
-use soroban_sdk::{testutils::LedgerInfo, BigInt, BytesN, Env, IntoVal};
-use soroban_token_contract::testutils::{register_test_contract as register_token, Token};
+use soroban_auth::{Identifier, Signature};
+use soroban_sdk::{
+    testutils::{Accounts, Ledger},
+    AccountId, BigInt, BytesN, Env, IntoVal,
+};
 
 fn generate_contract_id() -> [u8; 32] {
     let mut id: [u8; 32] = Default::default();
@@ -13,26 +15,25 @@ fn generate_contract_id() -> [u8; 32] {
     id
 }
 
-fn generate_keypair() -> Keypair {
-    Keypair::generate(&mut thread_rng())
-}
-
-fn to_ed25519(e: &Env, kp: &Keypair) -> Identifier {
-    Identifier::Ed25519(kp.public.to_bytes().into_val(e))
-}
-
-fn create_token_contract(e: &Env, admin: &Keypair) -> (BytesN<32>, Token) {
+fn create_token_contract(e: &Env, admin: &AccountId) -> (BytesN<32>, Token) {
     let id = generate_contract_id();
-    register_token(&e, &id);
+    e.register_contract_token(&BytesN::from_array(e, &id));
     let token = Token::new(e, &id);
     // decimals, name, symbol don't matter in tests
-    token.initialize(&to_ed25519(&e, admin), 7, "name", "symbol");
+    token.init(
+        &Identifier::Account(admin.clone()),
+        &TokenMetadata {
+            name: "name".into_val(&e),
+            symbol: "symbol".into_val(&e),
+            decimals: 7,
+        },
+    );
     (BytesN::from_array(&e, &id), token)
 }
 
 fn create_crowdfund_contract(
     e: &Env,
-    owner: &Keypair,
+    owner: &AccountId,
     deadline: &u64,
     target_amount: &BigInt,
     token: &BytesN<32>,
@@ -40,25 +41,24 @@ fn create_crowdfund_contract(
     let id = generate_contract_id();
     register_crowdfund(&e, &id);
     let crowdfund = Crowdfund::new(e, &id);
-    crowdfund
-        .client()
-        .initialize(&to_ed25519(&e, owner), &deadline, &target_amount, &token);
+    crowdfund.client().initialize(
+        &Identifier::Account(owner.clone()),
+        &deadline,
+        &target_amount,
+        &token,
+    );
     (BytesN::from_array(&e, &id), crowdfund)
 }
 
 fn advance_ledger(e: &Env, delta: u64) {
-    e.set_ledger(LedgerInfo {
-        protocol_version: e.ledger().protocol_version(),
-        sequence_number: e.ledger().sequence(),
-        timestamp: e.ledger().timestamp() + delta,
-        base_reserve: 1, // TODO: can't get current base reserve... does this matter for tests?
-        network_passphrase: Default::default(), //TODO: Figure out how to go from Bytes to Vec so we can use ledger.network_passphrase?
+    e.ledger().with_mut(|l| {
+        l.timestamp += delta;
     });
 }
 
 struct Setup {
     env: Env,
-    user2: Keypair,
+    user2: AccountId,
     owner_id: Identifier,
     user1_id: Identifier,
     user2_id: Identifier,
@@ -75,28 +75,43 @@ struct Setup {
 impl Setup {
     fn new() -> Self {
         let e: Env = Default::default();
-        let owner = generate_keypair();
-        let owner_id = to_ed25519(&e, &owner);
-        let user1 = generate_keypair();
-        let user1_id = to_ed25519(&e, &user1);
-        let user2 = generate_keypair();
-        let user2_id = to_ed25519(&e, &user2);
+        let owner = e.accounts().generate_and_create();
+        let owner_id = Identifier::Account(owner.clone());
+        let user1 = e.accounts().generate_and_create();
+        let user1_id = Identifier::Account(user1.clone());
+        let user2 = e.accounts().generate_and_create();
+        let user2_id = Identifier::Account(user2.clone());
 
         // the deadline is 10 seconds from now
         let deadline = e.ledger().timestamp() + 10;
         let target_amount = BigInt::from_i32(&e, 15);
 
-        let token_admin = generate_keypair();
+        let token_admin = e.accounts().generate_and_create();
         let (contract_token, token) = create_token_contract(&e, &token_admin);
 
         let (contract_crowdfund, crowdfund) =
             create_crowdfund_contract(&e, &owner, &deadline, &target_amount, &contract_token);
         let crowdfund_id = Identifier::Contract(contract_crowdfund);
 
-        token.mint(&token_admin, &user1_id, &BigInt::from_u32(&e, 10));
-        token.mint(&token_admin, &user2_id, &BigInt::from_u32(&e, 5));
+        token.with_source_account(&token_admin).mint(
+            &Signature::Invoker,
+            &BigInt::zero(&e),
+            &user1_id,
+            &BigInt::from_u32(&e, 10),
+        );
+        token.with_source_account(&token_admin).mint(
+            &Signature::Invoker,
+            &BigInt::zero(&e),
+            &user2_id,
+            &BigInt::from_u32(&e, 5),
+        );
 
-        token.approve(&user1, &crowdfund_id, &BigInt::from_u32(&e, 10));
+        token.with_source_account(&user1).approve(
+            &Signature::Invoker,
+            &BigInt::zero(&e),
+            &crowdfund_id,
+            &BigInt::from_u32(&e, 10),
+        );
         crowdfund
             .client()
             .deposit(&user1_id, &BigInt::from_u32(&e, 10));
@@ -134,8 +149,9 @@ fn test_expired() {
 #[test]
 fn test_success() {
     let setup = Setup::new();
-    setup.token.approve(
-        &setup.user2,
+    setup.token.with_source_account(&setup.user2).approve(
+        &Signature::Invoker,
+        &BigInt::zero(&setup.env),
         &setup.crowdfund_id,
         &BigInt::from_u32(&setup.env, 5),
     );
@@ -189,8 +205,9 @@ fn sale_still_running() {
 #[should_panic(expected = "sale was successful, only the owner may withdraw")]
 fn sale_successful_only_owner() {
     let setup = Setup::new();
-    setup.token.approve(
-        &setup.user2,
+    setup.token.with_source_account(&setup.user2).approve(
+        &Signature::Invoker,
+        &BigInt::zero(&setup.env),
         &setup.crowdfund_id,
         &BigInt::from_u32(&setup.env, 5),
     );
