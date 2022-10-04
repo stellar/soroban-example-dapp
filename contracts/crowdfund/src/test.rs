@@ -93,22 +93,20 @@ impl Setup {
             create_crowdfund_contract(&e, &owner, &deadline, &target_amount, &contract_token);
         let crowdfund_id = Identifier::Contract(contract_crowdfund);
 
-        e.set_source_account(&token_admin);
-        token.mint(
+        token.with_source_account(&token_admin).mint(
             &Signature::Invoker,
             &BigInt::zero(&e),
             &user1_id,
             &BigInt::from_u32(&e, 10),
         );
-        token.mint(
+        token.with_source_account(&token_admin).mint(
             &Signature::Invoker,
             &BigInt::zero(&e),
             &user2_id,
             &BigInt::from_u32(&e, 5),
         );
 
-        e.set_source_account(&user1);
-        token.approve(
+        token.with_source_account(&user1).approve(
             &Signature::Invoker,
             &BigInt::zero(&e),
             &crowdfund_id,
@@ -151,8 +149,7 @@ fn test_expired() {
 #[test]
 fn test_success() {
     let setup = Setup::new();
-    setup.env.set_source_account(&setup.user2);
-    setup.token.approve(
+    setup.token.with_source_account(&setup.user2).approve(
         &Signature::Invoker,
         &BigInt::zero(&setup.env),
         &setup.crowdfund_id,
@@ -208,8 +205,7 @@ fn sale_still_running() {
 #[should_panic(expected = "sale was successful, only the owner may withdraw")]
 fn sale_successful_only_owner() {
     let setup = Setup::new();
-    setup.env.set_source_account(&setup.user2);
-    setup.token.approve(
+    setup.token.with_source_account(&setup.user2).approve(
         &Signature::Invoker,
         &BigInt::zero(&setup.env),
         &setup.crowdfund_id,
