@@ -103,10 +103,7 @@ function addFootprint(txn: Transaction, footprint: SorobanSdk.SorobanRpc.Simulat
   }
   txn.operations = txn.operations.map(op => {
     if ('function' in op) {
-      op.footprint = new SorobanSdk.xdr.LedgerFootprint({
-        readOnly: footprint.readOnly.map(b => SorobanSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
-        readWrite: footprint.readWrite.map(b => SorobanSdk.xdr.LedgerKey.fromXDR(Buffer.from(b, 'base64'))),
-      });
+      op.footprint = new SorobanSdk.xdr.LedgerFootprint.fromXDR(footprint, 'base64');
     }
     return op;
   });
