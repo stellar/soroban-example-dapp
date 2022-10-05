@@ -128,7 +128,7 @@ function addFootprint(raw: Transaction, networkPassphrase: string, footprint: So
       txn.addOperation(SorobanSdk.Operation.invokeHostFunction({
         function: rawOp.function,
         parameters: rawOp.parameters,
-        footprint: new SorobanSdk.xdr.LedgerFootprint.fromXDR(footprint, 'base64'),
+        footprint: SorobanSdk.xdr.LedgerFootprint.fromXDR(footprint, 'base64'),
       }));
     } else {
       // TODO: Handle this.
