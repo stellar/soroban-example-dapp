@@ -5,11 +5,7 @@ import picture from '../../../assets/example.png'
 import { AuthorInfo } from '../../atoms'
 import avatar from '../../../assets/avatar.png'
 
-export interface CampaignProps {
-  label?: string
-}
-
-export function Campaign({}: CampaignProps) {
+export function Campaign() {
   return (
     <div className={styles.content}>
       <h6>Starfund #821</h6>

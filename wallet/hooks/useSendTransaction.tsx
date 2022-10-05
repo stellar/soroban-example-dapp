@@ -55,12 +55,18 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
 
     // TODO: Use freighter to sign when that is supported
     txn.sign(SorobanSdk.Keypair.fromSecret("SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L"));
-    const signed = txn.toEnvelope().toXDR('base64');
-    // const signed = await activeWallet.signTransaction(txn.toXDR(), activeChain.id.toUpperCase());
+    //const signed = txn.toEnvelope().toXDR('base64');
+    console.log(txn.toXDR())
+    const signed = await activeWallet.signTransaction(
+      txn.toXDR(),
+      activeChain.name!.toUpperCase(),
+      'GB7SFVY7FQIF3JKEQRGPGG7VKN4R7FU2MOA5JM7FHCD23RP72X6NWBX5'
+    )
 
     const transactionToSubmit = SorobanSdk.TransactionBuilder.fromXDR(signed, networkPassphrase);
     const { id } = await server.sendTransaction(transactionToSubmit);
     const sleepTime = Math.min(1000, timeout);
+            console.log('2')
     for (let i = 0; i <= timeout; i+= sleepTime) {
       await sleep(sleepTime);
       try {
@@ -69,6 +75,7 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
         case "pending":
           continue;
           case "success":
+            console.log('sucess')
             if (response.results?.length != 1) {
               throw new Error("Expected exactly one result");
             }

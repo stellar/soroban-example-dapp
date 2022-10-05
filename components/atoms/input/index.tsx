@@ -1,12 +1,28 @@
-import React, { ReactNode } from 'react'
+import React, { Dispatch, ReactNode, SetStateAction } from 'react'
 import styles from './style.module.css'
 
 export interface InputProps {
   placeHolder: string
+  setAmount: Dispatch<SetStateAction<number | undefined>>
 }
 
-export function Input({ placeHolder }: InputProps) {
+export function Input({ placeHolder, setAmount }: InputProps) {
+  
+  const handleChange = (event: {
+    target: { name: string; value: string }
+  }): void => {
+    if (event.target.value) {
+      setAmount(parseInt(event.target.value))
+    }
+  }
+
   return (
-    <input type="text" placeholder={placeHolder} className={styles.input} />
+    <input
+      type="number"
+      placeholder={placeHolder}
+      className={styles.input}
+      onChange={handleChange}
+      min={0}
+    />
   )
 }

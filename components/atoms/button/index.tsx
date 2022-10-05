@@ -3,13 +3,14 @@ import styles from './style.module.css'
 
 export interface ButtonProps {
   title: string
-  onClick: () => void
+  onClick: () => void,
+  disabled: boolean
 }
 
-export function Button({ title, onClick }: ButtonProps) {
+export function Button({ title, onClick, disabled }: ButtonProps) {
   return (
-    <div className={styles.button} onClick={onClick}>
+    <button className={styles.button} onClick={onClick} disabled={disabled}>
       {title}
-    </div>
+    </button>
   )
 }
