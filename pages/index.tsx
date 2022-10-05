@@ -97,8 +97,10 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
   const { activeChain, server } = useNetwork();
   const networkPassphrase = activeChain?.networkPassphrase ?? "";
 
-  const user = accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(account.address));
-  const spender = accountIdentifier(Buffer.from(CROWDFUND_ID, 'hex'));
+  let address = "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI";
+  let secret = "SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L";
+  const user = accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(address));
+  const spender = contractIdentifier(Buffer.from(CROWDFUND_ID, 'hex'));
   const allowanceScval = useContractValue(TOKEN_ID, "allowance", user, spender);
   const allowance = convert.scvalToBigNumber(allowanceScval.result);
 
@@ -115,14 +117,14 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
         // TODO: Alert here or something
         return;
       }
-      let { sequence } = await server.getAccount(account.address);
-      let source = new SorobanSdk.Account(account.address, sequence);
+      let { sequence } = await server.getAccount(address);
+      let source = new SorobanSdk.Account(address, sequence);
       let from = xdr.ScVal.scvObject(xdr.ScObject.scoVec([xdr.ScVal.scvSymbol("Invoker")]));
       let nonce = convert.bigNumberToScBigInt(BigNumber(0));
       const amountScVal = convert.bigNumberToScBigInt(parsedAmount.multipliedBy(decimals).decimalPlaces(0));
       let txn = needsApproval
         ? contractTransaction(networkPassphrase, source, TOKEN_ID, "approve", from, nonce, spender, amountScVal)
-        : contractTransaction(networkPassphrase, source, CROWDFUND_ID, "deposit", accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(account.address)), amountScVal);
+        : contractTransaction(networkPassphrase, source, CROWDFUND_ID, "deposit", accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(address)), amountScVal);
       let result = await sendTransaction(txn);
       // TODO: Show some user feedback while we are awaiting, and then based on the result
       console.debug(result);

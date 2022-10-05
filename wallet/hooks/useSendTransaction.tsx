@@ -47,13 +47,21 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
     const networkPassphrase = activeChain.networkPassphrase;
     setState('loading');
 
+    console.debug("SimulateTransaction:", txn.toEnvelope().toXDR('base64'));
+
     // preflight and add the footprint
     if (!skipAddingFootprint) {
       let {footprint} = await server.simulateTransaction(txn);
       txn = addFootprint(txn, networkPassphrase, footprint);
     }
 
-    const signed = await activeWallet.signTransaction(txn.toXDR(), activeChain.id.toUpperCase());
+    console.debug("SendingTransaction:", txn.toEnvelope().toXDR('base64'));
+
+    // TODO: Use freighter to sign when that is supported
+    txn.sign(SorobanSdk.Keypair.fromSecret("SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L"));
+    const signed = txn.toEnvelope().toXDR('base64');
+    // const signed = await activeWallet.signTransaction(txn.toXDR(), activeChain.id.toUpperCase());
+
     const transactionToSubmit = SorobanSdk.TransactionBuilder.fromXDR(signed, networkPassphrase);
     const { id } = await server.sendTransaction(transactionToSubmit);
     const sleepTime = Math.min(1000, timeout);
