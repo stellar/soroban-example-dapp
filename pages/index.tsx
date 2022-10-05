@@ -11,6 +11,7 @@ let xdr = SorobanSdk.xdr;
 // Stub dummy data for now. 
 const CROWDFUND_ID = "0000000000000000000000000000000000000000000000000000000000000000";
 const TOKEN_ID: string = process.env.TOKEN_ID ?? "";
+const TOKEN_ADMIN: string = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
 
 const Home: NextPage = () => {
   const { data: account } = useAccount();
@@ -42,6 +43,7 @@ const Home: NextPage = () => {
 
       <header className={styles.header}>
         <h1>Crowdfund Template</h1>
+        {account && tokenDecimals && tokenSymbol ? <MintButton account={account} decimals={tokenDecimals} symbol={tokenSymbol} /> : null}
         <ConnectButton />
       </header>
       <main className={styles.main}>
@@ -97,8 +99,10 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
   const { activeChain, server } = useNetwork();
   const networkPassphrase = activeChain?.networkPassphrase ?? "";
 
+  // TODO: Replace with freighter wallet address
   let address = "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI";
   let secret = "SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L";
+
   const user = accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(address));
   const spender = contractIdentifier(Buffer.from(CROWDFUND_ID, 'hex'));
   const allowanceScval = useContractValue(TOKEN_ID, "allowance", user, spender);
@@ -119,11 +123,12 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
       }
       let { sequence } = await server.getAccount(address);
       let source = new SorobanSdk.Account(address, sequence);
-      let from = xdr.ScVal.scvObject(xdr.ScObject.scoVec([xdr.ScVal.scvSymbol("Invoker")]));
+      let invoker = xdr.ScVal.scvObject(xdr.ScObject.scoVec([xdr.ScVal.scvSymbol("Invoker")]));
       let nonce = convert.bigNumberToScBigInt(BigNumber(0));
-      const amountScVal = convert.bigNumberToScBigInt(parsedAmount.multipliedBy(decimals).decimalPlaces(0));
+      const amountScVal = convert.bigNumberToScBigInt(parsedAmount.shiftedBy(decimals).decimalPlaces(0));
+
       let txn = needsApproval
-        ? contractTransaction(networkPassphrase, source, TOKEN_ID, "approve", from, nonce, spender, amountScVal)
+        ? contractTransaction(networkPassphrase, source, TOKEN_ID, "approve", invoker, nonce, spender, amountScVal)
         : contractTransaction(networkPassphrase, source, CROWDFUND_ID, "deposit", accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(address)), amountScVal);
       let result = await sendTransaction(txn);
       // TODO: Show some user feedback while we are awaiting, and then based on the result
@@ -164,6 +169,39 @@ function YourDeposits(
   const tokenSymbol = token.symbol.result && convert.scvalToString(token.symbol.result);
 
   return <span>{formatAmount(yourDeposits, tokenDecimals)} <span title={tokenName}>{tokenSymbol}</span></span>;
+}
+
+// MintButton mints 100.00 tokens to the user's wallet for testing
+function MintButton({account, decimals, symbol}: {account: {address: string}, decimals: number, symbol: string}) {
+  const { activeChain, server } = useNetwork();
+  const networkPassphrase = activeChain?.networkPassphrase ?? "";
+
+  // TODO: Replace with freighter wallet address
+  let address = "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI";
+  let secret = "SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L";
+
+  const { sendTransaction } = useSendTransaction();
+
+  const amount = BigNumber(100);
+
+  // TODO: Check and handle approval
+  return (
+    <button type="button" onClick={async e => {
+      e.preventDefault();
+      let { sequence } = await server.getAccount(TOKEN_ADMIN);
+      let source = new SorobanSdk.Account(TOKEN_ADMIN, sequence);
+      let invoker = xdr.ScVal.scvObject(xdr.ScObject.scoVec([xdr.ScVal.scvSymbol("Invoker")]));
+      let nonce = convert.bigNumberToScBigInt(BigNumber(0));
+      const recipient = accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(address));
+      const amountScVal = convert.bigNumberToScBigInt(amount.shiftedBy(decimals).decimalPlaces(0));
+      let mint = contractTransaction(networkPassphrase, source, TOKEN_ID, "mint", invoker, nonce, recipient, amountScVal)
+      let result = await sendTransaction(mint);
+      // TODO: Show some user feedback while we are awaiting, and then based on the result
+      console.debug(result);
+    }}>
+        Mint {amount.decimalPlaces(decimals).toString()} {symbol}
+    </button>
+  );
 }
 
 // Small helper to build a contract invokation transaction
