@@ -31,7 +31,7 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
   const [status, setState] = React.useState<TransactionStatus>('idle');
 
   const sendTransaction = React.useCallback(async function(passedTxn?: Transaction, passedOptions?: SendTransactionOptions): Promise<SorobanSdk.xdr.ScVal> {
-    const txn = passedTxn ?? defaultTxn;
+    let txn = passedTxn ?? defaultTxn;
     if (!txn || !activeWallet || !activeChain) {
       throw new Error("No transaction or wallet or chain");
     }
@@ -50,10 +50,14 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
     // preflight and add the footprint
     if (!skipAddingFootprint) {
       let {footprint} = await server.simulateTransaction(txn);
-      addFootprint(txn, footprint);
+      txn = addFootprint(txn, networkPassphrase, footprint);
     }
 
-    const signed = await activeWallet.signTransaction(txn.toXDR(), activeChain.id.toUpperCase());
+    // TODO: Use freighter to sign when that is supported
+    txn.sign(SorobanSdk.Keypair.fromSecret("SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L"));
+    const signed = txn.toEnvelope().toXDR('base64');
+    // const signed = await activeWallet.signTransaction(txn.toXDR(), activeChain.id.toUpperCase());
+
     const transactionToSubmit = SorobanSdk.TransactionBuilder.fromXDR(signed, networkPassphrase);
     const { id } = await server.sendTransaction(transactionToSubmit);
     const sleepTime = Math.min(1000, timeout);
@@ -95,19 +99,39 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
   };
 }
 
-function addFootprint(txn: Transaction, footprint: SorobanSdk.SorobanRpc.SimulateTransactionResponse['footprint']): Transaction {
-  if ('innerTransaction' in txn) {
-    // It's a feebump, modify the inner.
-    addFootprint(txn.innerTransaction, footprint);
-    return txn;
+// TODO: Transaction is immutable, so we need to re-build it here. :(
+function addFootprint(raw: Transaction, networkPassphrase: string, footprint: SorobanSdk.SorobanRpc.SimulateTransactionResponse['footprint']): Transaction {
+  if ('innerTransaction' in raw) {
+    // TODO: Handle feebump transactions
+    return addFootprint(raw.innerTransaction, networkPassphrase, footprint);
   }
-  txn.operations = txn.operations.map(op => {
-    if ('function' in op) {
-      op.footprint = new SorobanSdk.xdr.LedgerFootprint.fromXDR(footprint, 'base64');
-    }
-    return op;
+  // TODO: Figure out a cleaner way to clone this transaction.
+  const source = new SorobanSdk.Account(raw.source, raw.sequence);
+  const txn = new SorobanSdk.TransactionBuilder(source, {
+    fee: raw.fee,
+    memo: raw.memo,
+    networkPassphrase,
+    timebounds: raw.timeBounds,
+    ledgerbounds: raw.ledgerBounds,
+    minAccountSequence: raw.minAccountSequence,
+    minAccountSequenceAge: raw.minAccountSequenceAge,
+    minAccountSequenceLedgerGap: raw.minAccountSequenceLedgerGap,
+    extraSigners: raw.extraSigners,
   });
-  return txn;
+  for (let rawOp of raw.operations) {
+    if ('function' in rawOp) {
+      // TODO: Figure out a cleaner way to clone these operations
+      txn.addOperation(SorobanSdk.Operation.invokeHostFunction({
+        function: rawOp.function,
+        parameters: rawOp.parameters,
+        footprint: SorobanSdk.xdr.LedgerFootprint.fromXDR(footprint, 'base64'),
+      }));
+    } else {
+      // TODO: Handle this.
+      throw new Error("Unsupported operation type");
+    }
+  }
+  return txn.build();
 }
 
 async function sleep(ms: number) {
