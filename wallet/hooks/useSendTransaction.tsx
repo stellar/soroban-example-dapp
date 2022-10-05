@@ -47,15 +47,11 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
     const networkPassphrase = activeChain.networkPassphrase;
     setState('loading');
 
-    console.debug("SimulateTransaction:", txn.toEnvelope().toXDR('base64'));
-
     // preflight and add the footprint
     if (!skipAddingFootprint) {
       let {footprint} = await server.simulateTransaction(txn);
       txn = addFootprint(txn, networkPassphrase, footprint);
     }
-
-    console.debug("SendingTransaction:", txn.toEnvelope().toXDR('base64'));
 
     // TODO: Use freighter to sign when that is supported
     txn.sign(SorobanSdk.Keypair.fromSecret("SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L"));
