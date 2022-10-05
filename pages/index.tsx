@@ -9,7 +9,6 @@ import { ContractValue, useNetwork, useAccount, useContractValue, useSendTransac
 let xdr = SorobanSdk.xdr;
 
 // Stub dummy data for now. 
-const source = new SorobanSdk.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
 const CROWDFUND_ID = "0000000000000000000000000000000000000000000000000000000000000000";
 const TOKEN_ID: string = process.env.TOKEN_ID ?? "";
 
@@ -17,7 +16,7 @@ const Home: NextPage = () => {
   const { data: account } = useAccount();
   // Call the contract rpcs to fetch values
   const token = {
-    balance: useContractValue(TOKEN_ID, "balance", accountIdentifier(Buffer.from(CROWDFUND_ID, 'hex'))),
+    balance: useContractValue(TOKEN_ID, "balance", contractIdentifier(Buffer.from(CROWDFUND_ID, 'hex'))),
     decimals: useContractValue(TOKEN_ID, "decimals"),
     name: useContractValue(TOKEN_ID, "name"),
     symbol: useContractValue(TOKEN_ID, "symbol"),
@@ -95,15 +94,13 @@ function formatAmount(value: BigNumber, decimals=7): string {
 }
 
 function DepositForm({account, decimals}: {account: {address: string}, decimals: number}) {
-  const { activeChain } = useNetwork();
+  const { activeChain, server } = useNetwork();
   const networkPassphrase = activeChain?.networkPassphrase ?? "";
 
-  const user = accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(account.address));
-  const spender = xdr.ScVal.scvObject(xdr.ScObject.scoVec([
-    xdr.ScVal.scvSymbol("Contract"),
-    // TODO: Parse this as an address or whatever.
-    xdr.ScVal.scvObject(xdr.ScObject.scoBytes(Buffer.from(CROWDFUND_ID, 'hex')))
-  ]));
+  let address = "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI";
+  let secret = "SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L";
+  const user = accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(address));
+  const spender = contractIdentifier(Buffer.from(CROWDFUND_ID, 'hex'));
   const allowanceScval = useContractValue(TOKEN_ID, "allowance", user, spender);
   const allowance = convert.scvalToBigNumber(allowanceScval.result);
 
@@ -116,14 +113,18 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
   return (
     <form onSubmit={async e => {
       e.preventDefault();
-      // TODO: These will change depending on how auth works.
-      let accountKey = SorobanSdk.StrKey.decodeEd25519PublicKey(account.address);
-      let from = xdr.ScVal.scvObject(xdr.ScObject.scoBytes(accountKey));
-      let nonce = xdr.ScVal.scvU32(0);
+      if (!amount) {
+        // TODO: Alert here or something
+        return;
+      }
+      let { sequence } = await server.getAccount(address);
+      let source = new SorobanSdk.Account(address, sequence);
+      let from = xdr.ScVal.scvObject(xdr.ScObject.scoVec([xdr.ScVal.scvSymbol("Invoker")]));
+      let nonce = convert.bigNumberToScBigInt(BigNumber(0));
       const amountScVal = convert.bigNumberToScBigInt(parsedAmount.multipliedBy(decimals).decimalPlaces(0));
       let txn = needsApproval
-        ? contractTransaction(networkPassphrase, TOKEN_ID, "approve", from, nonce, spender, amountScVal)
-        : contractTransaction(networkPassphrase, CROWDFUND_ID, "deposit", user, amountScVal);
+        ? contractTransaction(networkPassphrase, source, TOKEN_ID, "approve", from, nonce, spender, amountScVal)
+        : contractTransaction(networkPassphrase, source, CROWDFUND_ID, "deposit", accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(address)), amountScVal);
       let result = await sendTransaction(txn);
       // TODO: Show some user feedback while we are awaiting, and then based on the result
       console.debug(result);
@@ -131,7 +132,7 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
       <input name="amount" type="text" value={amount} onChange={e => {
         setAmount(e.currentTarget.value);
       }} />
-      <button type="button" disabled={allowanceScval.loading}>
+      <button type="submit" disabled={allowanceScval.loading}>
         {needsApproval ? "Approve" : "Deposit"}
       </button>
     </form>
@@ -166,7 +167,7 @@ function YourDeposits(
 }
 
 // Small helper to build a contract invokation transaction
-function contractTransaction(networkPassphrase: string, contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): SorobanSdk.Transaction {
+function contractTransaction(networkPassphrase: string, source: SorobanSdk.Account, contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): SorobanSdk.Transaction {
   const contract = new SorobanSdk.Contract(contractId);
   return new SorobanSdk.TransactionBuilder(source, {
       // TODO: Figure out the fee
@@ -185,6 +186,15 @@ function accountIdentifier(account: Buffer): SorobanSdk.xdr.ScVal {
       xdr.ScVal.scvObject(
         xdr.ScObject.scoAccountId(xdr.PublicKey.publicKeyTypeEd25519(account))
       )
+    ])
+  );
+}
+
+function contractIdentifier(contract: Buffer): SorobanSdk.xdr.ScVal {
+  return xdr.ScVal.scvObject(
+    xdr.ScObject.scoVec([
+      xdr.ScVal.scvSymbol("Contract"),
+      xdr.ScVal.scvObject(xdr.ScObject.scoBytes(contract))
     ])
   );
 }
