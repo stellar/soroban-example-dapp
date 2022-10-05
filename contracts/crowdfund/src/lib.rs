@@ -145,6 +145,10 @@ impl Crowdfund {
         e.data().set(DataKey::Token, token);
     }
 
+    pub fn owner(e: Env) -> Identifier {
+        get_owner(&e)
+    }
+
     pub fn deadline(e: Env) -> u64 {
         get_deadline(&e)
     }

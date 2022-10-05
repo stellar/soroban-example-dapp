@@ -16,7 +16,7 @@ const Home: NextPage = () => {
   const { data: account } = useAccount();
   // Call the contract rpcs to fetch values
   const token = {
-    balance: useContractValue(TOKEN_ID, "balance", accountIdentifier(Buffer.from(CROWDFUND_ID, 'hex'))),
+    balance: useContractValue(TOKEN_ID, "balance", contractIdentifier(Buffer.from(CROWDFUND_ID, 'hex'))),
     decimals: useContractValue(TOKEN_ID, "decimals"),
     name: useContractValue(TOKEN_ID, "name"),
     symbol: useContractValue(TOKEN_ID, "symbol"),
@@ -117,11 +117,12 @@ function DepositForm({account, decimals}: {account: {address: string}, decimals:
       }
       let { sequence } = await server.getAccount(account.address);
       let source = new SorobanSdk.Account(account.address, sequence);
+      let from = xdr.ScVal.scvObject(xdr.ScObject.scoVec([xdr.ScVal.scvSymbol("Invoker")]));
       let nonce = convert.bigNumberToScBigInt(BigNumber(0));
       const amountScVal = convert.bigNumberToScBigInt(parsedAmount.multipliedBy(decimals).decimalPlaces(0));
       let txn = needsApproval
-        ? contractTransaction(networkPassphrase, source, TOKEN_ID, "approve", user, nonce, spender, amountScVal)
-        : contractTransaction(networkPassphrase, source, CROWDFUND_ID, "deposit", user, amountScVal);
+        ? contractTransaction(networkPassphrase, source, TOKEN_ID, "approve", from, nonce, spender, amountScVal)
+        : contractTransaction(networkPassphrase, source, CROWDFUND_ID, "deposit", accountIdentifier(SorobanSdk.StrKey.decodeEd25519PublicKey(account.address)), amountScVal);
       let result = await sendTransaction(txn);
       // TODO: Show some user feedback while we are awaiting, and then based on the result
       console.debug(result);
@@ -183,6 +184,15 @@ function accountIdentifier(account: Buffer): SorobanSdk.xdr.ScVal {
       xdr.ScVal.scvObject(
         xdr.ScObject.scoAccountId(xdr.PublicKey.publicKeyTypeEd25519(account))
       )
+    ])
+  );
+}
+
+function contractIdentifier(contract: Buffer): SorobanSdk.xdr.ScVal {
+  return xdr.ScVal.scvObject(
+    xdr.ScObject.scoVec([
+      xdr.ScVal.scvSymbol("Contract"),
+      xdr.ScVal.scvObject(xdr.ScObject.scoBytes(contract))
     ])
   );
 }
