@@ -70,7 +70,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const { sendTransaction } = useSendTransaction()
 
   const closeModal = (): void => {
-    //TODO: Make reload only the component
+    // TODO: Make this reload only the component
     if (resultSubmit?.status == 'success') {
       window.location.reload()
     }
