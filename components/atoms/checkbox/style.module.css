@@ -1,0 +1,26 @@
+.label {
+  position: relative;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.label [type='checkbox'] {
+  display: none;
+}
+
+.label [type='checkbox'] + span {
+  width: 100%;
+  display: inline-block;
+  padding: 1em;
+  border: 1px solid #e5e4e7;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.label :checked + span {
+  display: inline-block;
+  border: 1px solid #3e63dd;
+  color: #3e63dd;
+  border-radius: 8px;
+}

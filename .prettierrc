@@ -1,0 +1,9 @@
+{
+  "semi": false,
+  "singleQuote": true,
+  "arrowParens": "avoid",
+  "bracketSpacing": true,
+  "jsxBracketSameLine": false,
+  "importOrder": ["react", "<THIRD_PARTY_MODULES>", "components/*", "app/*|config/*|interfaces/*|stories/*", "^[./]"],
+  "importOrderSeparation": true
+}

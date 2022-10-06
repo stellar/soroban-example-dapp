@@ -13,26 +13,30 @@ export function freighter(_: FreighterOptions): Wallet {
   return {
     id: 'freighter',
     name: 'Freighter',
-    iconUrl: async () => "",
+    iconUrl: async () => '',
     // iconUrl: async () => (await import('./freighter.svg')).default,
     iconBackground: '#fff',
     installed,
     downloadUrls: {
       browserExtension:
-        'https://chrome.google.com/webstore/detail/freighter/bcacfldlkkdogcmkkibnjlakofdplcbk?hl=en'
+        'https://chrome.google.com/webstore/detail/freighter/bcacfldlkkdogcmkkibnjlakofdplcbk?hl=en',
     },
     isConnected(): boolean {
-      return !!(window as any).freighterApi?.isConnected();
+      return !!(window as any).freighterApi?.isConnected()
     },
     getPublicKey(): Promise<string> {
-      return (window as any).freighterApi.getPublicKey();
+      return (window as any).freighterApi.getPublicKey()
     },
-    signTransaction(xdr: string, network: string): Promise<string> {
-      return (window as any).freighterApi.signTransaction(xdr, network);
+    signTransaction(xdr: string, network: string, publicKey: string): Promise<string> {
+      return (window as any).freighterApi.signTransaction(
+        xdr,
+        network,
+        publicKey
+      )
     },
-    createConnector: (_args) => {
+    createConnector: _args => {
       // TODO: Implement this
-      return {};
+      return {}
     },
-  };
+  }
 };
