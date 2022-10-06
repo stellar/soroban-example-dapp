@@ -2,11 +2,6 @@
 
 set -e
 
-if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
-    echo "Usage: $0 [FREIGHTER_WALLET_ADDRESS]"
-    exit 1
-fi
-
 # TODO: Set the owner to something reasonable here. Probably whatever account
 # soroban is running stuff as?
 # This is an Identifier for Account GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF
@@ -37,10 +32,3 @@ soroban invoke --id 0 \
   --arg "$deadline" \
   --arg "1000000000" \
   --arg "$TOKEN_ID"
-
-if [ -n "$1" ]; then
-  echo Minting 100.00 tokens to the user wallet: "$1"
-  ./mint.sh "$1" 10000
-else
-  echo User wallet not specified, skipping minting tokens.
-fi

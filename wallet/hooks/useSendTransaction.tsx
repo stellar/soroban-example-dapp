@@ -66,21 +66,29 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
       try {
         const response = await server.getTransactionStatus(id);
         switch (response.status) {
-        case "pending":
-          continue;
-          case "success":
+        case "pending": {
+            continue;
+          }
+        case "success": {
             if (response.results?.length != 1) {
               throw new Error("Expected exactly one result");
             }
             setState('success');
             return SorobanSdk.xdr.ScVal.fromXDR(Buffer.from(response.results[0].xdr, 'base64'));
-          case "error":
+          }
+        case "error": {
             setState('error');
             throw response.error;
+          }
+        default: {
+            throw new Error("Unexpected transaction status: " + response.status);
+          }
         }
       } catch (err: any) {
         setState('error');
-        if ('code' in err && err.code !== 404) {
+        if ('code' in err && err.code === 404) {
+          // No-op
+        } else {
           throw err;
         }
       }
