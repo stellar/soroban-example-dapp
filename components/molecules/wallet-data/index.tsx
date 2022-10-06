@@ -6,7 +6,7 @@ import styles from './style.module.css'
 import Image from 'next/image'
 
 // TODO: Eliminate flash of unconnected content on loading
-export function WalletStatus() {
+export function WalletData() {
   const mounted = useIsMounted()
 
   const { data: account } = useAccount()

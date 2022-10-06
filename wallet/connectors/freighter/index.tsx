@@ -28,7 +28,6 @@ export function freighter(_: FreighterOptions): Wallet {
       return (window as any).freighterApi.getPublicKey()
     },
     signTransaction(xdr: string, network: string, publicKey: string): Promise<string> {
-      console.log(xdr)
       return (window as any).freighterApi.signTransaction(
         xdr,
         network,

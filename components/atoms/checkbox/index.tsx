@@ -6,6 +6,7 @@ export interface CheckboxProps {
   value: number
   isChecked: boolean
   setAmount: Dispatch<SetStateAction<number | undefined>>
+  clearInput: () => void
 }
 
 export function Checkbox({
@@ -13,10 +14,12 @@ export function Checkbox({
   value,
   isChecked,
   setAmount,
+  clearInput,
 }: CheckboxProps) {
   const handleCheckBox = (event: {
     target: { checked: any; value: string }
   }) => {
+    clearInput()
     setAmount(parseInt(event.target.value))
   }
 

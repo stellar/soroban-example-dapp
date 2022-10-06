@@ -7,7 +7,6 @@ const formatAmount = (value: BigNumber, decimals = 7): string => {
 }
 
 const getRemainingTime = (date?: Date): string => {
-  console.log(date)
   if (!date) {
     return 'Undefined'
   }

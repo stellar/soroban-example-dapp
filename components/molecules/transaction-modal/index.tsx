@@ -9,7 +9,7 @@ import {
   LinkSvg,
   TwitterSvg,
 } from '../../../assets/icons'
-import { IResultSubmit } from '../../organisms/pledge'
+import { IResultSubmit } from '../form-pledge'
 
 export interface TransactionModalProps {
   result: IResultSubmit
@@ -33,7 +33,9 @@ export function TransactionModal({
             height={64}
             alt="avatar"
           />
-          <span className={styles.value}>{result.value}</span>
+          <span className={styles.value}>
+            {isSuccess ? `${result.value} ${result.symbol}` : ''}
+          </span>
           <h6>{isSuccess ? 'SUCCESSFULLY PLEDGED' : 'ERROR'}</h6>
           <span className={styles.message}>
             {isSuccess

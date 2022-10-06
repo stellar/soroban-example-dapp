@@ -12,7 +12,7 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  margin: 1rem 0 2rem 0;
+  margin-top: 1rem;
 }
 
 .button:disabled {
