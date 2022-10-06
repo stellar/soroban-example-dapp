@@ -189,7 +189,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         setInput={setInput}
       />
       <Button
-        title="Back this project"
+        title={needsApproval ? 'Approve transfer' : 'Back this project'}
         onClick={handleSubmit}
         disabled={!amount || isSubmitting}
         isLoading={isSubmitting}
