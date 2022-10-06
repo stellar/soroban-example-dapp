@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Button, Checkbox, Input } from '../../atoms'
+import React, { FunctionComponent, useState } from 'react'
+import { Button, Checkbox, Input, Loading } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import styles from './style.module.css'
 import {
@@ -35,10 +35,11 @@ export interface IResultSubmit {
   symbol?: string
 }
 
-export function FormPledge(props: IFormPledgeProps) {
+const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const [amount, setAmount] = useState<number>()
   const [resultSubmit, setResultSubmit] = useState<IResultSubmit | undefined>()
   const [input, setInput] = useState('')
+  const [isSubmitting, setSubmitting] = useState(false)
   const { server } = useNetwork()
 
   // Stub dummy data for now.
@@ -63,10 +64,16 @@ export function FormPledge(props: IFormPledgeProps) {
     spender
   )
   const allowance = convert.scvalToBigNumber(allowanceScval.result)
+  const parsedAmount = BigNumber(amount || 0)
+  const needsApproval = allowance.eq(0) || allowance.lt(parsedAmount)
 
   const { sendTransaction } = useSendTransaction()
 
   const closeModal = (): void => {
+    //TODO: Make reload only the component
+    if (resultSubmit?.status == 'success') {
+      window.location.reload()
+    }
     setResultSubmit(undefined)
   }
 
@@ -75,8 +82,7 @@ export function FormPledge(props: IFormPledgeProps) {
   }
 
   const handleSubmit = async (): Promise<void> => {
-    const parsedAmount = BigNumber(amount || 0)
-    const needsApproval = allowance.eq(0) || allowance.lt(parsedAmount)
+    setSubmitting(true)
 
     let { sequence } = await server.getAccount(props.address)
     let source = new SorobanSdk.Account(props.address, sequence)
@@ -111,13 +117,15 @@ export function FormPledge(props: IFormPledgeProps) {
         )
 
     try {
-      let result = await sendTransaction(txn)
+      //let result = await sendTransaction(txn)
       setResultSubmit({
-        status: 'sucess',
-        scVal: result,
+        status: 'success',
+        //scVal: result,
         value: amount,
         symbol: props.symbol,
       })
+      setInput('')
+      setAmount(undefined)
     } catch (e) {
       if (e instanceof Error) {
         setResultSubmit({
@@ -125,6 +133,8 @@ export function FormPledge(props: IFormPledgeProps) {
           error: e?.message || 'An error has occurred',
         })
       }
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -192,7 +202,8 @@ export function FormPledge(props: IFormPledgeProps) {
       <Button
         title="Back this project"
         onClick={handleSubmit}
-        disabled={!amount}
+        disabled={!amount || isSubmitting}
+        isLoading={isSubmitting}
       />
       {props.account && props.decimals && props.symbol ? (
         <div>
@@ -269,3 +280,5 @@ export function FormPledge(props: IFormPledgeProps) {
     )
   }
 }
+
+export { FormPledge }
