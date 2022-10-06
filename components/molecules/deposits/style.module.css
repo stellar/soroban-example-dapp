@@ -1,0 +1,13 @@
+.pledgeContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.values {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 30px;
+  color: #000000;
+}

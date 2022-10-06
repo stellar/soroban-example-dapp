@@ -1,0 +1,20 @@
+.card {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
+  height: 38px;
+  background: #ffffff;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 22px;
+  color: #1a1523;
+  margin-right: 1rem;
+}
+
+.displayData {
+  display: flex;
+}

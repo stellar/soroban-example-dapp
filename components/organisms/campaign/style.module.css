@@ -1,0 +1,5 @@
+.content {
+  margin-right: 64px;
+  display: flex;
+  flex-direction: column;
+}

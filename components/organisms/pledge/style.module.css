@@ -1,0 +1,29 @@
+.pledgeAmount {
+  margin: 4px 0 0 0;
+  color: #3e63dd;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 36px;
+}
+
+.wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.pledgeGoal {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.values {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 30px;
+  color: #000000;
+}

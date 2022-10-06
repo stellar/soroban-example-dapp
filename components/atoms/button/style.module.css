@@ -1,0 +1,21 @@
+.button {
+  width: 100%;
+  display: flex;
+  padding: 16px 12px;
+  height: 50px;
+  background: #3e63dd;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 16px;
+  color: #ffffff;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.button:disabled {
+  background: #889cde;
+  cursor: not-allowed;
+}
