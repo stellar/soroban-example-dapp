@@ -25,7 +25,7 @@ const Pledge: FunctionComponent = () => {
 
   const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
-  // Stub dummy data for now.
+  // TODO: Stub dummy data for now. replace with freighter wallet account
   const source = new SorobanSdk.Account(Constants.Account, '0')
 
   // Call the contract rpcs to fetch values
