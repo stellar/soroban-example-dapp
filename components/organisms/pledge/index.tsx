@@ -56,6 +56,7 @@ const Pledge: FunctionComponent = () => {
   let yourDepositsXdr = useLoadDeposits()
   let deadline = useContractValue(Constants.CrowndfundId, 'deadline')
   let started = useContractValue(Constants.CrowndfundId, 'started')
+  let targetAmountXdr = useContractValue(Constants.CrowndfundId, 'target')
 
   // Convert the result ScVals to js types
   const tokenBalance = convert.scvalToBigNumber(token.balance.result)
@@ -72,6 +73,7 @@ const Pledge: FunctionComponent = () => {
         deadline.result.obj()?.u64() ?? xdr.Int64.fromString('0')
       ) * 1000
     )
+  const targetAmount = convert.scvalToBigNumber(targetAmountXdr.result)
   const yourDeposits = convert.scvalToBigNumber(yourDepositsXdr.result)
 
   const startedDate =
@@ -103,10 +105,13 @@ const Pledge: FunctionComponent = () => {
           <div className={styles.pledgeAmount}>
             {Utils.formatAmount(tokenBalance, tokenDecimals)} {tokenSymbol}
           </div>
-          <span
-            className={styles.pledgeGoal}
-          >{`of 160.000 ${tokenSymbol} goal`}</span>
-          <ProgressBar value={(tokenBalance.toNumber() / 160000) * 100} />
+          <span className={styles.pledgeGoal}>{`of ${Utils.formatAmount(
+            targetAmount,
+            tokenDecimals
+          )} ${tokenSymbol} goal`}</span>
+          <ProgressBar
+            value={Utils.percentage(tokenBalance, targetAmount, tokenDecimals)}
+          />
           <div className={styles.wrapper}>
             <div>
               <h6>Time remaining</h6>
