@@ -19,4 +19,5 @@ export function contractIdentifier(contract: Buffer): SorobanSdk.xdr.ScVal {
       xdr.ScVal.scvObject(xdr.ScObject.scoBytes(contract)),
     ])
   )
+  
 }

@@ -7,7 +7,7 @@ import { WalletData } from '../components/molecules'
 
 const Home: NextPage = () => {
   return (
-    <div className={styles.container}>
+    <>
       <Head>
         <title>
           Crowdfund Template - An example of how to run a crowdfund campaign on
@@ -21,7 +21,7 @@ const Home: NextPage = () => {
       </Head>
 
       <header className={styles.header}>
-        <h1>Crowdfund Template</h1>
+        <h3>Starfund</h3>
         <WalletData />
       </header>
       <main className={styles.main}>
@@ -30,7 +30,7 @@ const Home: NextPage = () => {
           <Pledge />
         </div>
       </main>
-    </div>
+    </>
   )
 }
 

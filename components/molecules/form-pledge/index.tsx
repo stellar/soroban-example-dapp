@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState } from 'react'
-import { Button, Checkbox, Input, Loading } from '../../atoms'
+import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import styles from './style.module.css'
 import {
@@ -12,7 +12,7 @@ import BigNumber from 'bignumber.js'
 import * as convert from '../../../convert'
 import { Account } from 'soroban-sdk'
 import { Constants } from '../../../shared/constants'
-import { accountIdentifier } from '../../../shared/identifiers'
+import { accountIdentifier, contractIdentifier } from '../../../shared/identifiers'
 import { Spacer } from '../../atoms/spacer'
 let xdr = SorobanSdk.xdr
 
@@ -42,21 +42,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const [isSubmitting, setSubmitting] = useState(false)
   const { server } = useNetwork()
 
-  // Stub dummy data for now.
-  const TOKEN_ID: string = process.env.TOKEN_ID ?? ''
-
   const user = accountIdentifier(
     SorobanSdk.StrKey.decodeEd25519PublicKey(props.account)
   )
-  const spender = xdr.ScVal.scvObject(
-    xdr.ScObject.scoVec([
-      xdr.ScVal.scvSymbol('Contract'),
-      // TODO: Parse this as an address or whatever.
-      xdr.ScVal.scvObject(
-        xdr.ScObject.scoBytes(Buffer.from(props.crowdfundId, 'hex'))
-      ),
-    ])
-  )
+  const spender = contractIdentifier(Buffer.from(props.crowdfundId, 'hex'))
   const allowanceScval = useContractValue(
     props.tokenId,
     'allowance',
@@ -117,10 +106,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         )
 
     try {
-      //let result = await sendTransaction(txn)
+      let result = await sendTransaction(txn)
       setResultSubmit({
         status: 'success',
-        //scVal: result,
+        scVal: result,
         value: amount,
         symbol: props.symbol,
       })
@@ -193,7 +182,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       <div className={styles.centerContent}>
         <h6>OR</h6>
       </div>
-      <Input
+      <AmountInput
         placeHolder="Custom amount"
         setAmount={setAmount}
         input={input}
@@ -263,7 +252,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           let mint = contractTransaction(
             networkPassphrase,
             source,
-            TOKEN_ID,
+            props.tokenId,
             'mint',
             invoker,
             nonce,

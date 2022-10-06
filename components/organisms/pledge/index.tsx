@@ -27,19 +27,18 @@ const Pledge: FunctionComponent = () => {
 
   // Stub dummy data for now.
   const source = new SorobanSdk.Account(Constants.Account, '0')
-  const TOKEN_ID: string = process.env.TOKEN_ID ?? ''
 
   // Call the contract rpcs to fetch values
   const useLoadToken = (): any => {
     return {
       balance: useContractValue(
-        TOKEN_ID,
+        Constants.TokenId,
         'balance',
         contractIdentifier(Buffer.from(Constants.CrowndfundId, 'hex'))
       ),
-      decimals: useContractValue(TOKEN_ID, 'decimals'),
-      name: useContractValue(TOKEN_ID, 'name'),
-      symbol: useContractValue(TOKEN_ID, 'symbol'),
+      decimals: useContractValue(Constants.TokenId, 'decimals'),
+      name: useContractValue(Constants.TokenId, 'name'),
+      symbol: useContractValue(Constants.TokenId, 'symbol'),
     }
   }
 
@@ -100,7 +99,7 @@ const Pledge: FunctionComponent = () => {
         <Loading size={64} />
       ) : (
         <>
-          <h6>PLEDGE</h6>
+          <h6>PLEDGED</h6>
           <div className={styles.pledgeAmount}>
             {Utils.formatAmount(tokenBalance, tokenDecimals)} {tokenSymbol}
           </div>
@@ -125,7 +124,7 @@ const Pledge: FunctionComponent = () => {
             (account ? (
               <FormPledge
                 account={account.address}
-                tokenId={TOKEN_ID}
+                tokenId={Constants.TokenId}
                 crowdfundId={Constants.CrowndfundId}
                 decimals={tokenDecimals || 7}
                 networkPassphrase={networkPassphrase}

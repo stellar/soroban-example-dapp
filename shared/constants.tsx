@@ -3,12 +3,14 @@ const CrowndfundId =
   '0000000000000000000000000000000000000000000000000000000000000000'
 const Address = 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI'
 const TokenAdmin = 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF'
+const TokenId = process.env.TOKEN_ID ?? ''
 
 const Constants = {
   Account,
   CrowndfundId,
   Address,
   TokenAdmin,
+  TokenId,
 }
 
 export { Constants }

@@ -8,7 +8,7 @@ export interface InputProps {
   setInput: Dispatch<SetStateAction<string>>
 }
 
-export function Input({ placeHolder, setAmount, input, setInput }: InputProps) {
+export function AmountInput({ placeHolder, setAmount, input, setInput }: InputProps) {
   const handleChange = (event: {
     target: { name: string; value: string }
   }): void => {
@@ -25,6 +25,7 @@ export function Input({ placeHolder, setAmount, input, setInput }: InputProps) {
       onChange={handleChange}
       value={input}
       min={0}
+      autoComplete="off"
     />
   )
 }
