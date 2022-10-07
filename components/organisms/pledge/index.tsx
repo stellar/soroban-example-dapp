@@ -34,7 +34,7 @@ const Pledge: FunctionComponent = () => {
       balance: useContractValue(
         Constants.TokenId,
         'balance',
-        contractIdentifier(Buffer.from(Constants.CrowndfundId, 'hex'))
+        contractIdentifier(Buffer.from(Constants.CrowdfundId, 'hex'))
       ),
       decimals: useContractValue(Constants.TokenId, 'decimals'),
       name: useContractValue(Constants.TokenId, 'name'),
@@ -44,7 +44,7 @@ const Pledge: FunctionComponent = () => {
 
   const useLoadDeposits = (): ContractValue => {
     return useContractValue(
-      Constants.CrowndfundId,
+      Constants.CrowdfundId,
       'balance',
       accountIdentifier(
         SorobanSdk.StrKey.decodeEd25519PublicKey(Constants.Address)
@@ -54,9 +54,9 @@ const Pledge: FunctionComponent = () => {
 
   let token = useLoadToken()
   let yourDepositsXdr = useLoadDeposits()
-  let deadline = useContractValue(Constants.CrowndfundId, 'deadline')
-  let started = useContractValue(Constants.CrowndfundId, 'started')
-  let targetAmountXdr = useContractValue(Constants.CrowndfundId, 'target')
+  let deadline = useContractValue(Constants.CrowdfundId, 'deadline')
+  let started = useContractValue(Constants.CrowdfundId, 'started')
+  let targetAmountXdr = useContractValue(Constants.CrowdfundId, 'target')
 
   // Convert the result ScVals to js types
   const tokenBalance = convert.scvalToBigNumber(token.balance.result)
@@ -130,7 +130,7 @@ const Pledge: FunctionComponent = () => {
               <FormPledge
                 account={account.address}
                 tokenId={Constants.TokenId}
-                crowdfundId={Constants.CrowndfundId}
+                crowdfundId={Constants.CrowdfundId}
                 decimals={tokenDecimals || 7}
                 networkPassphrase={networkPassphrase}
                 source={source}
@@ -146,7 +146,7 @@ const Pledge: FunctionComponent = () => {
               decimals={tokenDecimals || 7}
               name={tokenName}
               symbol={tokenSymbol}
-              idCrowdfund={Constants.CrowndfundId}
+              idCrowdfund={Constants.CrowdfundId}
               yourDeposits={yourDeposits}
             />
           )}

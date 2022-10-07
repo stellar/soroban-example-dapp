@@ -22,11 +22,16 @@ echo Build the crowdfund contract
 make build
 
 echo Deploy the crowdfund contract
-soroban deploy --id 0 --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
+CROWDFUND_ID="$(
+  soroban deploy \
+    --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
+)"
+echo "$CROWDFUND_ID" > .soroban/crowdfund_id
 
 echo Initialize the crowdfund contract
 deadline="$(($(date +"%s") + 86400))"
-soroban invoke --id 0 \
+soroban invoke \
+  --id "$CROWDFUND_ID" \
   --fn initialize \
   --arg-xdr "$admin" \
   --arg "$deadline" \
