@@ -221,6 +221,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     decimals: number
     symbol: string
   }) {
+    const [isSubmitting, setSubmitting] = useState(false)
     const { activeChain, server } = useNetwork()
     const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
@@ -234,10 +235,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
     // TODO: Check and handle approval
     return (
-      <button
-        type="button"
-        onClick={async e => {
-          e.preventDefault()
+      <Button
+        title={`Mint ${amount.decimalPlaces(decimals).toString()} ${symbol}`}
+        onClick={async () => {
+          setSubmitting(true)
           let { sequence } = await server.getAccount(Constants.TokenAdmin)
           let source = new SorobanSdk.Account(Constants.TokenAdmin, sequence)
           let invoker = xdr.ScVal.scvObject(
@@ -263,10 +264,11 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           let result = await sendTransaction(mint)
           // TODO: Show some user feedback while we are awaiting, and then based on the result
           console.debug(result)
+          setSubmitting(false)
         }}
-      >
-        Mint {amount.decimalPlaces(decimals).toString()} {symbol}
-      </button>
+        disabled={isSubmitting}
+        isLoading={isSubmitting}
+      />
     )
   }
 }
