@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "./initialize.sh",
+    "reset": "rm -rf .soroban ; npm run setup",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
