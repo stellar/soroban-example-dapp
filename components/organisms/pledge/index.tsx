@@ -20,13 +20,15 @@ import {
 let xdr = SorobanSdk.xdr
 
 const Pledge: FunctionComponent = () => {
-  const { data: account } = useAccount()
+  // TODO: Stub dummy data for now. replace with freighter wallet account
+  // const { data: account } = useAccount()
+  const account = {address: Constants.Address}
+
   const { activeChain } = useNetwork()
 
   const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
-  // TODO: Stub dummy data for now. replace with freighter wallet account
-  const source = new SorobanSdk.Account(Constants.Account, '0')
+  const source = new SorobanSdk.Account(account.address, '0')
 
   // Call the contract rpcs to fetch values
   const useLoadToken = (): any => {
@@ -42,18 +44,18 @@ const Pledge: FunctionComponent = () => {
     }
   }
 
-  const useLoadDeposits = (): ContractValue => {
+  const useLoadDeposits = (address: string): ContractValue => {
     return useContractValue(
       Constants.CrowdfundId,
       'balance',
       accountIdentifier(
-        SorobanSdk.StrKey.decodeEd25519PublicKey(Constants.Address)
+        SorobanSdk.StrKey.decodeEd25519PublicKey(address)
       )
     )
   }
 
   let token = useLoadToken()
-  let yourDepositsXdr = useLoadDeposits()
+  let yourDepositsXdr = useLoadDeposits(account.address)
   let deadline = useContractValue(Constants.CrowdfundId, 'deadline')
   let started = useContractValue(Constants.CrowdfundId, 'started')
   let targetAmountXdr = useContractValue(Constants.CrowdfundId, 'target')
@@ -134,7 +136,6 @@ const Pledge: FunctionComponent = () => {
                 decimals={tokenDecimals || 7}
                 networkPassphrase={networkPassphrase}
                 source={source}
-                address={Constants.Address}
                 symbol={tokenSymbol}
               />
             ) : (
@@ -142,7 +143,7 @@ const Pledge: FunctionComponent = () => {
             ))}
           {yourDeposits.toNumber() > 0 && (
             <Deposits
-              address={Constants.Address}
+              address={account.address}
               decimals={tokenDecimals || 7}
               name={tokenName}
               symbol={tokenSymbol}
