@@ -1,4 +1,5 @@
 /* eslint-disable sort-keys-fix/sort-keys-fix */
+import freighterApi from "@stellar/freighter-api";
 import { WalletChain } from '../../WalletChainContext';
 import { Wallet } from '../../Wallet';
 
@@ -8,31 +9,26 @@ export interface FreighterOptions {
 }
 
 export function freighter(_: FreighterOptions): Wallet {
-  const installed = typeof window !== "undefined" && !!((window as any)?.freighterApi);
-
   return {
     id: 'freighter',
     name: 'Freighter',
     iconUrl: async () => '',
     // iconUrl: async () => (await import('./freighter.svg')).default,
     iconBackground: '#fff',
-    installed,
+    // TODO: Check this
+    installed: true,
     downloadUrls: {
       browserExtension:
         'https://chrome.google.com/webstore/detail/freighter/bcacfldlkkdogcmkkibnjlakofdplcbk?hl=en',
     },
     isConnected(): boolean {
-      return !!(window as any).freighterApi?.isConnected()
+      return !!freighterApi?.isConnected()
     },
     getPublicKey(): Promise<string> {
-      return (window as any).freighterApi.getPublicKey()
+      return freighterApi.getPublicKey()
     },
-    signTransaction(xdr: string, network: string, publicKey: string): Promise<string> {
-      return (window as any).freighterApi.signTransaction(
-        xdr,
-        network,
-        publicKey
-      )
+    signTransaction(xdr: string, opts?: { network?: string; networkPassphrase?: string; accountToSign?: string }): Promise<string> {
+      return freighterApi.signTransaction(xdr, opts)
     },
     createConnector: _args => {
       // TODO: Implement this

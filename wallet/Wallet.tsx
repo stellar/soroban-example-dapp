@@ -39,7 +39,7 @@ export type Wallet = {
   };
   isConnected: () => boolean;
   getPublicKey: () => Promise<string>;
-  signTransaction: (xdr: string, network: string) => Promise<string>;
+  signTransaction: (xdr: string, opts?: { network?: string; networkPassphrase?: string; accountToSign?: string }) => Promise<string>;
   createConnector: (connectorArgs: {
     chainId?: number;
   }) => WalletConnector;
