@@ -83,8 +83,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       parsedAmount.shiftedBy(props.decimals).decimalPlaces(0)
     )
 
-    let txn = needsApproval
-      ? contractTransaction(
+    try {
+      if (needsApproval) {
+        // Approve the transfer first
+        await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
           props.tokenId,
@@ -93,20 +95,19 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           nonce,
           spender,
           amountScVal
-        )
-      : contractTransaction(
+        ))
+      }
+      // Deposit the tokens
+      let result = await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
           props.crowdfundId,
           'deposit',
           accountIdentifier(
-            SorobanSdk.StrKey.decodeEd25519PublicKey(props.address)
+            SorobanSdk.StrKey.decodeEd25519PublicKey(props.account)
           ),
           amountScVal
-        )
-
-    try {
-      let result = await sendTransaction(txn)
+        ))
       setResultSubmit({
         status: 'success',
         scVal: result,
@@ -189,7 +190,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         setInput={setInput}
       />
       <Button
-        title="Back this project"
+        title={needsApproval ? 'Approve transfer & Back this project' : 'Back this project'}
         onClick={handleSubmit}
         disabled={!amount || isSubmitting}
         isLoading={isSubmitting}
@@ -220,6 +221,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     decimals: number
     symbol: string
   }) {
+    const [isSubmitting, setSubmitting] = useState(false)
     const { activeChain, server } = useNetwork()
     const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
@@ -233,10 +235,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
     // TODO: Check and handle approval
     return (
-      <button
-        type="button"
-        onClick={async e => {
-          e.preventDefault()
+      <Button
+        title={`Mint ${amount.decimalPlaces(decimals).toString()} ${symbol}`}
+        onClick={async () => {
+          setSubmitting(true)
           let { sequence } = await server.getAccount(Constants.TokenAdmin)
           let source = new SorobanSdk.Account(Constants.TokenAdmin, sequence)
           let invoker = xdr.ScVal.scvObject(
@@ -262,10 +264,11 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           let result = await sendTransaction(mint)
           // TODO: Show some user feedback while we are awaiting, and then based on the result
           console.debug(result)
+          setSubmitting(false)
         }}
-      >
-        Mint {amount.decimalPlaces(decimals).toString()} {symbol}
-      </button>
+        disabled={isSubmitting}
+        isLoading={isSubmitting}
+      />
     )
   }
 }
