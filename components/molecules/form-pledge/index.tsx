@@ -121,6 +121,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           status: 'error',
           error: e?.message || 'An error has occurred',
         })
+      } else {
+        throw e;
       }
     } finally {
       setSubmitting(false)
