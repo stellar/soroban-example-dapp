@@ -27,12 +27,8 @@ export function freighter(_: FreighterOptions): Wallet {
     getPublicKey(): Promise<string> {
       return (window as any).freighterApi.getPublicKey()
     },
-    signTransaction(xdr: string, network: string, publicKey: string): Promise<string> {
-      return (window as any).freighterApi.signTransaction(
-        xdr,
-        network,
-        publicKey
-      )
+    signTransaction(xdr: string, opts?: { network?: string; networkPassphrase?: string; accountToSign?: string }): Promise<string> {
+      return (window as any).freighterApi.signTransaction(xdr, opts)
     },
     createConnector: _args => {
       // TODO: Implement this

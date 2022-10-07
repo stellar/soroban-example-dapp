@@ -42,18 +42,7 @@ const Pledge: FunctionComponent = () => {
     }
   }
 
-  const useLoadDeposits = (): ContractValue => {
-    return useContractValue(
-      Constants.CrowndfundId,
-      'balance',
-      accountIdentifier(
-        SorobanSdk.StrKey.decodeEd25519PublicKey(Constants.Address)
-      )
-    )
-  }
-
   let token = useLoadToken()
-  let yourDepositsXdr = useLoadDeposits()
   let deadline = useContractValue(Constants.CrowndfundId, 'deadline')
   let started = useContractValue(Constants.CrowndfundId, 'started')
   let targetAmountXdr = useContractValue(Constants.CrowndfundId, 'target')
@@ -74,7 +63,6 @@ const Pledge: FunctionComponent = () => {
       ) * 1000
     )
   const targetAmount = convert.scvalToBigNumber(targetAmountXdr.result)
-  const yourDeposits = convert.scvalToBigNumber(yourDepositsXdr.result)
 
   const startedDate =
     started.result &&
@@ -90,8 +78,7 @@ const Pledge: FunctionComponent = () => {
       token.decimals.loading ||
       token.name.loading ||
       token.symbol.loading ||
-      deadline.loading ||
-      yourDepositsXdr.loading
+      deadline.loading
     )
   }
 
@@ -134,20 +121,19 @@ const Pledge: FunctionComponent = () => {
                 decimals={tokenDecimals || 7}
                 networkPassphrase={networkPassphrase}
                 source={source}
-                address={Constants.Address}
+                address={account.address}
                 symbol={tokenSymbol}
               />
             ) : (
               <ConnectButton label="Connect wallet to pledge" isHigher={true} />
             ))}
-          {yourDeposits.toNumber() > 0 && (
+          {account && (
             <Deposits
-              address={Constants.Address}
+              address={account.address}
               decimals={tokenDecimals || 7}
               name={tokenName}
               symbol={tokenSymbol}
               idCrowdfund={Constants.CrowndfundId}
-              yourDeposits={yourDeposits}
             />
           )}
         </>
