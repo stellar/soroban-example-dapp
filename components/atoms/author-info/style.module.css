@@ -3,10 +3,15 @@
   margin-bottom: 1rem;
   font-weight: 500;
   font-size: 12px;
-  opacity: 0.6;
   align-items: center;
+  color: #777777;
+  line-height: 18px;
 }
 
 .author {
   margin-left: 1rem;
+}
+
+.content b {
+  color: #000000;
 }
