@@ -7,7 +7,7 @@ import {
   getDefaultWallets,
 } from "../wallet";
 
-const chains: ChainMetadata[] = [chain.testnet];
+const chains: ChainMetadata[] = [chain.sandbox];
 const serverUrl = 'http://localhost:8080/api/v1/jsonrpc';
 
 const { wallets } = getDefaultWallets({

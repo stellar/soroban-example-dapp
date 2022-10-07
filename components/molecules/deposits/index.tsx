@@ -1,8 +1,16 @@
 import React from 'react'
+import * as SorobanSdk from 'soroban-sdk'
 import styles from './style.module.css'
 import { Utils } from '../../../shared/utils'
 import BigNumber from 'bignumber.js'
 import { Spacer } from '../../atoms/spacer'
+import * as convert from '../../../convert'
+import { Constants } from '../../../shared/constants'
+import { accountIdentifier } from '../../../shared/identifiers'
+import {
+  ContractValue,
+  useContractValue,
+} from '../../../wallet'
 
 export interface IDepositsProps {
   address: string
@@ -10,17 +18,33 @@ export interface IDepositsProps {
   name?: string
   symbol?: string
   idCrowdfund: string
-  yourDeposits: BigNumber
 }
 
 export function Deposits(props: IDepositsProps) {
+  const useLoadDeposits = (): ContractValue => {
+    return useContractValue(
+      Constants.CrowndfundId,
+      'balance',
+      accountIdentifier(
+        SorobanSdk.StrKey.decodeEd25519PublicKey(props.address)
+      )
+    )
+  }
+
+  let yourDepositsXdr = useLoadDeposits()
+  const yourDeposits = convert.scvalToBigNumber(yourDepositsXdr.result)
+
+  if (yourDeposits.toNumber() <= 0) {
+    return <React.Fragment />
+  }
+
   return (
     <>
       <Spacer rem={2} />
       <h6>You’ve Pledged</h6>
       <div className={styles.pledgeContainer}>
         <span className={styles.values}>
-          {Utils.formatAmount(props.yourDeposits, props.decimals)}{' '}
+          {Utils.formatAmount(yourDeposits, props.decimals)}{' '}
           <span title={props.name}>{props.symbol}</span>
         </span>
         {/*<a>

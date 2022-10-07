@@ -122,6 +122,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           status: 'error',
           error: e?.message || 'An error has occurred',
         })
+      } else {
+        throw e;
       }
     } finally {
       setSubmitting(false)
@@ -225,10 +227,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     const { activeChain, server } = useNetwork()
     const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
-    // TODO: Replace with freighter wallet address
-    let address = 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI'
-    let secret = 'SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L'
-
     const { sendTransaction } = useSendTransaction()
 
     const amount = BigNumber(100)
@@ -246,7 +244,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           )
           let nonce = convert.bigNumberToScBigInt(BigNumber(0))
           const recipient = accountIdentifier(
-            SorobanSdk.StrKey.decodeEd25519PublicKey(address)
+            SorobanSdk.StrKey.decodeEd25519PublicKey(account)
           )
           const amountScVal = convert.bigNumberToScBigInt(
             amount.shiftedBy(decimals).decimalPlaces(0)

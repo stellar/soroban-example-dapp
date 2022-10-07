@@ -1,4 +1,3 @@
-import Head from "next/head";
 import React from 'react';
 import * as SorobanSdk from 'soroban-sdk';
 import { AppContext, AppContextType, defaultAppContext } from '../AppContext';
@@ -53,9 +52,6 @@ export function WalletProvider({
 
   return (
     <AppContext.Provider value={appContext}>
-      <Head>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-freighter-api/1.1.2/index.min.js"></script>
-      </Head>
       {children}
     </AppContext.Provider>
   );
