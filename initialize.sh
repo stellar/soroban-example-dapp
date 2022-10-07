@@ -36,4 +36,5 @@ soroban invoke \
   --arg-xdr "$admin" \
   --arg "$deadline" \
   --arg "1000000000" \
-  --arg "$TOKEN_ID"
+  --arg "$TOKEN_ID" \
+  --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm

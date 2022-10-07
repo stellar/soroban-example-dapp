@@ -8,7 +8,8 @@ export type ChainName =
   | 'futurenet'
   | 'public'
   | 'testnet'
-  | 'sandbox';
+  | 'sandbox'
+  | 'standalone';
 
 export type ChainMetadata = WalletChain;
 
@@ -38,6 +39,13 @@ const chainMetadataByName: Record<ChainName, ChainMetadata> = {
     id: "3",
     name: "Sandbox",
     networkPassphrase: SorobanSdk.Networks.SANDBOX,
+    iconBackground: '#dac695',
+    // iconUrl: async () => (await import('./chainIcons/futurenet.svg')).default,
+  },
+  standalone: {
+    id: "4",
+    name: "Standalone",
+    networkPassphrase: "Standalone Network ; February 2017",
     iconBackground: '#dac695',
     // iconUrl: async () => (await import('./chainIcons/futurenet.svg')).default,
   },
