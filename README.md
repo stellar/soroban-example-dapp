@@ -2,7 +2,7 @@
 
 ![Screenshot of the Example Dapp](screenshot.png)
 
-This is a [Next.js](https://nextjs.org/), demoing how to build a dapp frontend
+This is a [Next.js](https://nextjs.org/) project, demoing how to build a dapp frontend
 backed by smart contracts on Stellar.
 
 ## Getting Started
