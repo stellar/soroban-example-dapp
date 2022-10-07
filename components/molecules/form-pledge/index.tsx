@@ -83,8 +83,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       parsedAmount.shiftedBy(props.decimals).decimalPlaces(0)
     )
 
-    let txn = needsApproval
-      ? contractTransaction(
+    try {
+      if (needsApproval) {
+        // Approve the transfer first
+        await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
           props.tokenId,
@@ -93,20 +95,19 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           nonce,
           spender,
           amountScVal
-        )
-      : contractTransaction(
+        ))
+      }
+      // Deposit the tokens
+      let result = await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
           props.crowdfundId,
           'deposit',
           accountIdentifier(
-            SorobanSdk.StrKey.decodeEd25519PublicKey(props.address)
+            SorobanSdk.StrKey.decodeEd25519PublicKey(props.account)
           ),
           amountScVal
-        )
-
-    try {
-      let result = await sendTransaction(txn)
+        ))
       setResultSubmit({
         status: 'success',
         scVal: result,
@@ -189,7 +190,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         setInput={setInput}
       />
       <Button
-        title={needsApproval ? 'Approve transfer' : 'Back this project'}
+        title={needsApproval ? 'Approve transfer & Back this project' : 'Back this project'}
         onClick={handleSubmit}
         disabled={!amount || isSubmitting}
         isLoading={isSubmitting}
