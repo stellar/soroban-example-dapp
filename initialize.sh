@@ -2,7 +2,7 @@
 
 set -e
 
-# TODO: Set the owner to something reasonable here. Probably whatever account
+# TODO: Set the recipient to something reasonable here. Probably whatever account
 # soroban is running stuff as?
 # This is an Identifier for Account GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF
 # TODO: Have a nicer way to build Identifiers on the CLI

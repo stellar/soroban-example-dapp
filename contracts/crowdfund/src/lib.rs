@@ -13,7 +13,7 @@ pub mod testutils;
 #[contracttype]
 pub enum DataKey {
     Deadline,
-    Owner,
+    Recipient,
     Started,
     Target,
     Token,
@@ -42,9 +42,9 @@ fn get_ledger_timestamp(e: &Env) -> u64 {
     e.ledger().timestamp()
 }
 
-fn get_owner(e: &Env) -> Identifier {
+fn get_recipient(e: &Env) -> Identifier {
     e.data()
-        .get(DataKey::Owner)
+        .get(DataKey::Recipient)
         .expect("not initialized")
         .unwrap()
 }
@@ -120,33 +120,33 @@ struct Crowdfund;
 /*
 How to use this contract to run a crowdfund
 
-1. Call initialize(provider, deadline_unix_epoch, target_amount, token).
-2. Donors send USDC to this contract's address
-3. Once the target_amount is reached, the contract owner can withdraw the USDC.
-4. If the deadline passes without reaching the target_amount, the donors can withdraw their USDC again.
+1. Call initialize(recipient, deadline_unix_epoch, target_amount, token).
+2. Donors send tokens to this contract's address
+3. Once the target_amount is reached, the contract recipient can withdraw the tokens.
+4. If the deadline passes without reaching the target_amount, the donors can withdraw their tokens again.
 */
 #[contractimpl]
 impl Crowdfund {
     pub fn initialize(
         e: Env,
-        owner: Identifier,
+        recipient: Identifier,
         deadline: u64,
         target_amount: BigInt,
         token: BytesN<32>,
     ) {
-        if e.data().has(DataKey::Owner) {
+        if e.data().has(DataKey::Recipient) {
             panic!("already initialized");
         }
 
-        e.data().set(DataKey::Owner, owner);
+        e.data().set(DataKey::Recipient, recipient);
         e.data().set(DataKey::Started, get_ledger_timestamp(&e));
         e.data().set(DataKey::Deadline, deadline);
         e.data().set(DataKey::Target, target_amount);
         e.data().set(DataKey::Token, token);
     }
 
-    pub fn owner(e: Env) -> Identifier {
-        get_owner(&e)
+    pub fn recipient(e: Env) -> Identifier {
+        get_recipient(&e)
     }
 
     pub fn deadline(e: Env) -> u64 {
@@ -170,9 +170,9 @@ impl Crowdfund {
     }
 
     pub fn balance(e: Env, user: Identifier) -> BigInt {
-        let owner = get_owner(&e);
+        let recipient = get_recipient(&e);
         if get_state(&e) == State::Success {
-            if user != owner {
+            if user != recipient {
                 return BigInt::zero(&e);
             };
             return get_balance(&e, get_token(&e));
@@ -186,9 +186,9 @@ impl Crowdfund {
             panic!("sale is not running")
         };
 
-        let owner = get_owner(&e);
-        if user == owner {
-            panic!("owner may not deposit")
+        let recipient = get_recipient(&e);
+        if user == recipient {
+            panic!("recipient may not deposit")
         }
 
         let balance = get_user_deposited(&e, &user);
@@ -207,21 +207,26 @@ impl Crowdfund {
 
     pub fn withdraw(e: Env, to: Identifier) {
         let state = get_state(&e);
-        let owner = get_owner(&e);
+        let recipient = get_recipient(&e);
 
         match state {
             State::Running => {
                 panic!("sale is still running")
             }
             State::Success => {
-                if to != owner {
-                    panic!("sale was successful, only the owner may withdraw")
+                if to != recipient {
+                    panic!("sale was successful, only the recipient may withdraw")
                 }
-                transfer(&e, get_token(&e), &owner, &get_balance(&e, get_token(&e)))
+                transfer(
+                    &e,
+                    get_token(&e),
+                    &recipient,
+                    &get_balance(&e, get_token(&e)),
+                )
             }
             State::Expired => {
-                if to == owner {
-                    panic!("sale expired, the owner may not withdraw")
+                if to == recipient {
+                    panic!("sale expired, the recipient may not withdraw")
                 }
 
                 // Withdraw full amount

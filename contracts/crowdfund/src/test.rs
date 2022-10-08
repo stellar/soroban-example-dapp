@@ -33,7 +33,7 @@ fn create_token_contract(e: &Env, admin: &AccountId) -> (BytesN<32>, Token) {
 
 fn create_crowdfund_contract(
     e: &Env,
-    owner: &AccountId,
+    recipient: &AccountId,
     deadline: &u64,
     target_amount: &BigInt,
     token: &BytesN<32>,
@@ -42,7 +42,7 @@ fn create_crowdfund_contract(
     register_crowdfund(&e, &id);
     let crowdfund = Crowdfund::new(e, &id);
     crowdfund.client().initialize(
-        &Identifier::Account(owner.clone()),
+        &Identifier::Account(recipient.clone()),
         &deadline,
         &target_amount,
         &token,
@@ -59,7 +59,7 @@ fn advance_ledger(e: &Env, delta: u64) {
 struct Setup {
     env: Env,
     user2: AccountId,
-    owner_id: Identifier,
+    recipient_id: Identifier,
     user1_id: Identifier,
     user2_id: Identifier,
     token: Token,
@@ -75,8 +75,8 @@ struct Setup {
 impl Setup {
     fn new() -> Self {
         let e: Env = Default::default();
-        let owner = e.accounts().generate_and_create();
-        let owner_id = Identifier::Account(owner.clone());
+        let recipient = e.accounts().generate_and_create();
+        let recipient_id = Identifier::Account(recipient.clone());
         let user1 = e.accounts().generate_and_create();
         let user1_id = Identifier::Account(user1.clone());
         let user2 = e.accounts().generate_and_create();
@@ -90,7 +90,7 @@ impl Setup {
         let (contract_token, token) = create_token_contract(&e, &token_admin);
 
         let (contract_crowdfund, crowdfund) =
-            create_crowdfund_contract(&e, &owner, &deadline, &target_amount, &contract_token);
+            create_crowdfund_contract(&e, &recipient, &deadline, &target_amount, &contract_token);
         let crowdfund_id = Identifier::Contract(contract_crowdfund);
 
         token.with_source_account(&token_admin).mint(
@@ -118,7 +118,7 @@ impl Setup {
 
         Self {
             env: e,
-            owner_id: owner_id,
+            recipient_id: recipient_id,
             user1_id: user1_id,
             user2: user2,
             user2_id: user2_id,
@@ -174,7 +174,7 @@ fn test_success() {
     );
 
     advance_ledger(&setup.env, 10);
-    setup.crowdfund.client().withdraw(&setup.owner_id);
+    setup.crowdfund.client().withdraw(&setup.recipient_id);
 
     assert_eq!(
         setup.token.balance(&setup.user1_id),
@@ -189,7 +189,7 @@ fn test_success() {
         BigInt::zero(&setup.env)
     );
     assert_eq!(
-        setup.token.balance(&setup.owner_id),
+        setup.token.balance(&setup.recipient_id),
         BigInt::from_u32(&setup.env, 15)
     );
 }
@@ -198,12 +198,12 @@ fn test_success() {
 #[should_panic(expected = "sale is still running")]
 fn sale_still_running() {
     let setup = Setup::new();
-    setup.crowdfund.client().withdraw(&setup.owner_id);
+    setup.crowdfund.client().withdraw(&setup.recipient_id);
 }
 
 #[test]
-#[should_panic(expected = "sale was successful, only the owner may withdraw")]
-fn sale_successful_only_owner() {
+#[should_panic(expected = "sale was successful, only the recipient may withdraw")]
+fn sale_successful_only_recipient() {
     let setup = Setup::new();
     setup.token.with_source_account(&setup.user2).approve(
         &Signature::Invoker,
@@ -221,12 +221,12 @@ fn sale_successful_only_owner() {
 }
 
 #[test]
-#[should_panic(expected = "sale expired, the owner may not withdraw")]
-fn sale_expired_owner_not_allowed() {
+#[should_panic(expected = "sale expired, the recipient may not withdraw")]
+fn sale_expired_recipient_not_allowed() {
     let setup = Setup::new();
     advance_ledger(&setup.env, 10);
 
-    setup.crowdfund.client().withdraw(&setup.owner_id);
+    setup.crowdfund.client().withdraw(&setup.recipient_id);
 }
 
 #[test]
