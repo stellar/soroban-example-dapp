@@ -7,8 +7,8 @@ import {
   getDefaultWallets,
 } from "../wallet";
 
-const chains: ChainMetadata[] = [chain.sandbox];
-const serverUrl = 'http://localhost:8080/api/v1/jsonrpc';
+const chains: ChainMetadata[] = [chain.standalone];
+const serverUrl = 'http://localhost:8000/soroban/rpc';
 
 const { wallets } = getDefaultWallets({
   appName: "Example Stellar App",
