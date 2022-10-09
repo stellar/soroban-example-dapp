@@ -25,9 +25,6 @@ const Pledge: FunctionComponent = () => {
 
   const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
-  // TODO: Stub dummy data for now. replace with freighter wallet account
-  const source = new SorobanSdk.Account(Constants.Account, '0')
-
   // Call the contract rpcs to fetch values
   const useLoadToken = (): any => {
     return {
@@ -115,13 +112,11 @@ const Pledge: FunctionComponent = () => {
           {!Utils.isExpired(deadlineDate) &&
             (account ? (
               <FormPledge
-                account={account.address}
                 tokenId={Constants.TokenId}
                 crowdfundId={Constants.CrowdfundId}
                 decimals={tokenDecimals || 7}
                 networkPassphrase={networkPassphrase}
-                source={source}
-                address={account.address}
+                account={account.address}
                 symbol={tokenSymbol}
               />
             ) : (

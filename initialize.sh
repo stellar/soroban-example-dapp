@@ -4,9 +4,9 @@ set -e
 
 # TODO: Set the recipient to something reasonable here. Probably whatever account
 # soroban is running stuff as?
-# This is an Identifier for Account GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF
 # TODO: Have a nicer way to build Identifiers on the CLI
-admin="AAAABAAAAAEAAAAAAAAAAgAAAAUAAAAHQWNjb3VudAAAAAAEAAAAAQAAAAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+# This is an Identifier for Account GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI
+TOKEN_ADMIN="AAAABAAAAAEAAAAAAAAAAgAAAAUAAAAHQWNjb3VudAAAAAAEAAAAAQAAAAcAAAAAc3b96I5M1hzA+ylKF4az8dBh9fLxyldGX6qTIhG5RtY="
 
 echo Deploy the token contract
 TOKEN_ID="$(
@@ -33,7 +33,7 @@ deadline="$(($(date +"%s") + 86400))"
 soroban invoke \
   --id "$CROWDFUND_ID" \
   --fn initialize \
-  --arg-xdr "$admin" \
+  --arg-xdr "$TOKEN_ADMIN" \
   --arg "$deadline" \
   --arg "1000000000" \
   --arg "$TOKEN_ID" \
