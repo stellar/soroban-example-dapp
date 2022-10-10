@@ -7,17 +7,23 @@ backed by smart contracts on Stellar.
 
 ## Getting Started
 
-### Backend (Local Sandbox)
+### Dependencies
 
 1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
-2. Run the backend with `soroban-cli serve`
-3. Run `./initialize.sh sandbox` to load the contracts and initialize it.
+2. Install Docker for Standalone and Futurenet backends.
+
+### Backend (Local Sandbox)
+
+1. Run the backend with `soroban-cli serve`
+2. Run `./initialize.sh sandbox` to load the contracts and initialize it.
   - Note: this will create a `.soroban` sub-directory, to contain the sandbox
     network data.
-4. Configure Freighter
+3. Configure Freighter
   a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
   b. Enable "Experimental Mode" in the settings (gear icon).
   c. Add a custom network:
+    |   |   |
+    |---|---|
     | Name | Sandbox |
     | URL | http://localhost:8000/soroban/rpc |
     | Passphrase | Local Sandbox Stellar Network ; September 2022 |
@@ -26,23 +32,48 @@ backed by smart contracts on Stellar.
 
 ### Backend (Local Standalone Network)
 
-1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
-2. Run the backend docker container with `./quickstart.sh standalone`, and wait for it to start.
-3. Run `./initialize.sh standalone` to load the contracts and initialize it.
+1. Run the backend docker container with `./quickstart.sh standalone`, and wait for it to start.
+2. Run `./initialize.sh standalone` to load the contracts and initialize it.
   - Note: this state will be lost if the quickstart docker container is removed.
-4. Configure Freighter
+3. Configure Freighter
   a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
   b. Enable "Experimental Mode" in the settings (gear icon).
   c. Add a custom network:
+    |   |   |
+    |---|---|
     | Name | Standalone |
     | URL | http://localhost:8000/soroban/rpc |
     | Passphrase | Standalone Network ; February 2017 |
     | Allow HTTP connection | Enabled |
     | Switch to this network | Enabled |
-5. Add some standalone network lumens to your Freighter wallet.
+4. Add some Standalone network lumens to your Freighter wallet.
   a. Copy the address for your freighter wallet.
   b. Visit `http://localhost:8000/friendbot?addr=<your address>`
 
+### Backend (Futurenet)
+
+1. Run the backend docker container with `./quickstart.sh futurenet`, and wait for it to start.
+  - Note: This can take up to 5 minutes to start syncing. You can tell it is
+    working by visiting http://localhost:8000/, and look at the
+    `ingest_latest_ledger`, field. If it is `0`, the quickstart image is not
+    ready yet.
+2. Run `./initialize.sh futurenet` to load the contracts and initialize it.
+3. Configure Freighter
+  a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
+  b. Enable "Experimental Mode" in the settings (gear icon).
+  c. Add a custom network (Note, the out-of-the-box "Future Net" network in
+  Freighter will not work with a local quickstart container, so we need to add
+  our own):
+    |   |   |
+    |---|---|
+    | Name | Futurenet |
+    | URL | http://localhost:8000/soroban/rpc |
+    | Passphrase | Test SDF Future Network ; October 2022 |
+    | Allow HTTP connection | Enabled |
+    | Switch to this network | Enabled |
+4. Add some Futurenet network lumens to your Freighter wallet.
+  - Visit https://laboratory-futurenet.stellar.org/#create-account, and follow
+    the instructions to create your freighter account.
 
 ### Frontend
 
@@ -53,6 +84,10 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+Note: Before you can "Approve transfer & Back this project", you'll need to have
+some EXT (example token) in your freighter wallet. There is a "Mint 100 EXT"
+button, which will gift you 100 EXT tokens for that purpose.
 
 ## User Workflows
 
