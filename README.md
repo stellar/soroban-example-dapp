@@ -22,6 +22,8 @@ backed by smart contracts on Stellar.
   a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
   b. Enable "Experimental Mode" in the settings (gear icon).
   c. Add a custom network:
+    |   |   |
+    |---|---|
     | Name | Sandbox |
     | URL | http://localhost:8000/soroban/rpc |
     | Passphrase | Local Sandbox Stellar Network ; September 2022 |
@@ -37,6 +39,8 @@ backed by smart contracts on Stellar.
   a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
   b. Enable "Experimental Mode" in the settings (gear icon).
   c. Add a custom network:
+    |   |   |
+    |---|---|
     | Name | Standalone |
     | URL | http://localhost:8000/soroban/rpc |
     | Passphrase | Standalone Network ; February 2017 |
@@ -56,6 +60,8 @@ backed by smart contracts on Stellar.
   c. Add a custom network (Note, the out-of-the-box "Future Net" network in
   Freighter will not work with a local quickstart container, so we need to add
   our own):
+    |   |   |
+    |---|---|
     | Name | Futurenet |
     | URL | http://localhost:8000/soroban/rpc |
     | Passphrase | Test SDF Future Network ; October 2022 |
