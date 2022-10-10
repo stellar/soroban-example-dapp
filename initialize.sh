@@ -2,6 +2,28 @@
 
 set -e
 
+case "$1" in
+standalone)
+  echo "Using standalone network"
+  export SOROBAN_RPC_URL=http://localhost:8000/soroban/rpc
+  export SOROBAN_NETWORK_PASSPHRASE="Standalone Network ; February 2017"
+  export SOROBAN_SECRET_KEY="SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L"
+  ;;
+futurenet)
+  echo "Using Futurenet network"
+  export SOROBAN_RPC_URL=http://localhost:8000/soroban/rpc
+  export SOROBAN_NETWORK_PASSPHRASE="Test SDF Future Network ; October 2022"
+  export SOROBAN_SECRET_KEY="SC5O7VZUXDJ6JBDSZ74DSERXL7W3Y5LTOAMRF7RQRL3TAGAPS7LUVG3L"
+  ;;
+""|sandbox)
+  # no-op
+  ;;
+*)
+  echo "Usage: $0 sandbox|standalone|futurenet"
+  exit 1
+  ;;
+esac
+
 # TODO: Set the recipient to something reasonable here. Probably whatever account
 # soroban is running stuff as?
 # TODO: Have a nicer way to build Identifiers on the CLI
