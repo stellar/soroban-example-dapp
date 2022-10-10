@@ -35,7 +35,7 @@ export function WalletProvider({
       const supported = networkDetails && chains.find(c => c.networkPassphrase === networkDetails?.networkPassphrase)
       const activeChain = networkDetails && {
           id: supported?.id ?? networkDetails.networkPassphrase,
-          name: networkDetails.network ?? supported?.name,
+          name: supported?.name ?? networkDetails.network,
           networkPassphrase: networkDetails.networkPassphrase,
           iconBackground: supported?.iconBackground,
           iconUrl: supported?.iconUrl,
