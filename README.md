@@ -53,6 +53,10 @@ backed by smart contracts on Stellar.
 ### Backend (Futurenet)
 
 1. Run the backend docker container with `./quickstart.sh futurenet`, and wait for it to start.
+  - Note: This can take up to 5 minutes to start syncing. You can tell it is
+    working by visiting http://localhost:8000/, and look at the
+    `ingest_latest_ledger`, field. If it is `0`, the quickstart image is not
+    ready yet.
 2. Run `./initialize.sh futurenet` to load the contracts and initialize it.
 3. Configure Freighter
   a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
