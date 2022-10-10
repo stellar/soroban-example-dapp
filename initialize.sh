@@ -39,6 +39,7 @@ esac
 echo Deploy the token contract
 TOKEN_ID="$(
   soroban token create \
+    --admin "$TOKEN_ADMIN" \
     --name "Example Token" \
     --symbol "EXT" \
     --decimal 2
