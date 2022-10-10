@@ -22,8 +22,6 @@ export interface IFormPledgeProps {
   crowdfundId: string
   decimals: number
   networkPassphrase: string
-  source: Account
-  address: string
   symbol?: string
 }
 
@@ -73,8 +71,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const handleSubmit = async (): Promise<void> => {
     setSubmitting(true)
 
-    let { sequence } = await server.getAccount(props.address)
-    let source = new SorobanSdk.Account(props.address, sequence)
+    if (!server) throw new Error("Not connected to server")
+
+    let { sequence } = await server.getAccount(props.account)
+    let source = new SorobanSdk.Account(props.account, sequence)
     let invoker = xdr.ScVal.scvObject(
       xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
     )
@@ -237,6 +237,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         title={`Mint ${amount.decimalPlaces(decimals).toString()} ${symbol}`}
         onClick={async () => {
           setSubmitting(true)
+
+          if (!server) throw new Error("Not connected to server")
+
           let { sequence } = await server.getAccount(Constants.TokenAdmin)
           let source = new SorobanSdk.Account(Constants.TokenAdmin, sequence)
           let invoker = xdr.ScVal.scvObject(
@@ -259,7 +262,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             recipient,
             amountScVal
           )
-          let result = await sendTransaction(mint)
+          let result = await sendTransaction(mint, { secretKey: Constants.TokenAdminSecretKey })
           // TODO: Show some user feedback while we are awaiting, and then based on the result
           console.debug(result)
           setSubmitting(false)

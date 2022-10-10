@@ -23,7 +23,7 @@ export interface IDepositsProps {
 export function Deposits(props: IDepositsProps) {
   const useLoadDeposits = (): ContractValue => {
     return useContractValue(
-      Constants.CrowndfundId,
+      Constants.CrowdfundId,
       'balance',
       accountIdentifier(
         SorobanSdk.StrKey.decodeEd25519PublicKey(props.address)

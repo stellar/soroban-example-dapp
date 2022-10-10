@@ -1,28 +1,10 @@
 export type InstructionStepName = 'install' | 'create' | 'scan';
 
-export type ConnectorArgs = {
-  chainId?: number;
-};
-
-type WalletConnector = {
-  mobile?: {
-    getUri?: () => Promise<string>;
-  };
-  desktop?: {
-    getUri?: () => Promise<string>;
-  };
-  qrCode?: {
-    getUri: () => Promise<string>;
-    instructions?: {
-      learnMoreUrl: string;
-      steps: {
-        step: InstructionStepName;
-        title: string;
-        description: string;
-      }[];
-    };
-  };
-};
+export interface NetworkDetails {
+  network: string;
+  networkUrl: string;
+  networkPassphrase: string;
+}
 
 export type Wallet = {
   id: string;
@@ -38,11 +20,9 @@ export type Wallet = {
     qrCode?: string;
   };
   isConnected: () => boolean;
+  getNetworkDetails: () => Promise<NetworkDetails>;
   getPublicKey: () => Promise<string>;
   signTransaction: (xdr: string, opts?: { network?: string; networkPassphrase?: string; accountToSign?: string }) => Promise<string>;
-  createConnector: (connectorArgs: {
-    chainId?: number;
-  }) => WalletConnector;
 };
 
 export type WalletList = {

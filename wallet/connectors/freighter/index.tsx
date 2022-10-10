@@ -1,7 +1,7 @@
 /* eslint-disable sort-keys-fix/sort-keys-fix */
 import freighterApi from "@stellar/freighter-api";
 import { WalletChain } from '../../WalletChainContext';
-import { Wallet } from '../../Wallet';
+import { NetworkDetails, Wallet } from '../../Wallet';
 
 export interface FreighterOptions {
   appName?: string;
@@ -24,15 +24,14 @@ export function freighter(_: FreighterOptions): Wallet {
     isConnected(): boolean {
       return !!freighterApi?.isConnected()
     },
+    getNetworkDetails(): Promise<NetworkDetails> {
+      return freighterApi.getNetworkDetails()
+    },
     getPublicKey(): Promise<string> {
       return freighterApi.getPublicKey()
     },
     signTransaction(xdr: string, opts?: { network?: string; networkPassphrase?: string; accountToSign?: string }): Promise<string> {
       return freighterApi.signTransaction(xdr, opts)
-    },
-    createConnector: _args => {
-      // TODO: Implement this
-      return {}
     },
   }
 };

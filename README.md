@@ -7,13 +7,42 @@ backed by smart contracts on Stellar.
 
 ## Getting Started
 
-### Backend
+### Backend (Local Sandbox)
 
 1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
-2. Run `./initialize.sh` to load the contracts and initialize it.
+2. Run the backend with `soroban-cli serve`
+3. Run `./initialize.sh sandbox` to load the contracts and initialize it.
   - Note: this will create a `.soroban` sub-directory, to contain the sandbox
     network data.
-3. Run the backend with `soroban-cli serve`
+4. Configure Freighter
+  a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
+  b. Enable "Experimental Mode" in the settings (gear icon).
+  c. Add a custom network:
+    | Name | Sandbox |
+    | URL | http://localhost:8000/soroban/rpc |
+    | Passphrase | Local Sandbox Stellar Network ; September 2022 |
+    | Allow HTTP connection | Enabled |
+    | Switch to this network | Enabled |
+
+### Backend (Local Standalone Network)
+
+1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
+2. Run the backend docker container with `./quickstart.sh standalone`, and wait for it to start.
+3. Run `./initialize.sh standalone` to load the contracts and initialize it.
+  - Note: this state will be lost if the quickstart docker container is removed.
+4. Configure Freighter
+  a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
+  b. Enable "Experimental Mode" in the settings (gear icon).
+  c. Add a custom network:
+    | Name | Standalone |
+    | URL | http://localhost:8000/soroban/rpc |
+    | Passphrase | Standalone Network ; February 2017 |
+    | Allow HTTP connection | Enabled |
+    | Switch to this network | Enabled |
+5. Add some standalone network lumens to your Freighter wallet.
+  a. Copy the address for your freighter wallet.
+  b. Visit `http://localhost:8000/friendbot?addr=<your address>`
+
 
 ### Frontend
 

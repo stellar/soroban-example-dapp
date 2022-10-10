@@ -13,12 +13,12 @@ export = []
 testutils = ["soroban-sdk/testutils", "soroban-auth/testutils", "dep:stellar-xdr"]
 
 [dependencies]
-soroban-sdk = { version = "0.0.4" }
-soroban-auth = { version = "0.0.4" }
-stellar-xdr = { version = "0.0.1", features = ["next", "std"], optional = true }
+soroban-sdk = { version = "0.1.0" }
+soroban-auth = { version = "0.1.0" }
+stellar-xdr = { version = "0.0.6", features = ["next", "std"], optional = true }
 
 [dev_dependencies]
-soroban-sdk = { version = "0.0.4", features = ["testutils"] }
-soroban-auth = { version = "0.0.4", features = ["testutils"] }
+soroban-sdk = { version = "0.1.0", features = ["testutils"] }
+soroban-auth = { version = "0.1.0", features = ["testutils"] }
 soroban-crowdfund-contract = { path = ".", default-features = false, features = ["testutils"] }
 rand = { version = "0.7.3" }

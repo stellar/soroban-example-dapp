@@ -9,8 +9,6 @@ export interface WalletProviderProps {
   autoconnect?: boolean;
   chains: WalletChain[];
   children: React.ReactNode;
-  serverUrl?: string;
-  allowHttp?: boolean;
   wallets: WalletList;
 }
 
@@ -19,8 +17,6 @@ export function WalletProvider({
   autoconnect = false,
   chains,
   children,
-  serverUrl,
-  allowHttp = false,
   wallets,
 }: WalletProviderProps) {
 
@@ -34,10 +30,28 @@ export function WalletProvider({
     wallets,
     activeWallet,
     activeChain: chains.length == 1 ? chains[0] : undefined,
-    server: new SorobanSdk.Server(serverUrl || "", {allowHttp}),
     connect: async () => {
-      let address = await appContext.activeWallet?.getPublicKey();
-      setAppContext(c => ({ ...c, address }));
+      let networkDetails = await appContext.activeWallet?.getNetworkDetails()
+      const supported = networkDetails && chains.find(c => c.networkPassphrase === networkDetails?.networkPassphrase)
+      const activeChain = networkDetails && {
+          id: supported?.id ?? networkDetails.networkPassphrase,
+          name: supported?.name ?? networkDetails.network,
+          networkPassphrase: networkDetails.networkPassphrase,
+          iconBackground: supported?.iconBackground,
+          iconUrl: supported?.iconUrl,
+          unsupported: !supported,
+      }
+      let address = await appContext.activeWallet?.getPublicKey()
+      let server = networkDetails && new SorobanSdk.Server(
+        networkDetails.networkUrl,
+        { allowHttp: networkDetails.networkUrl.startsWith("http://") }
+      )
+      setAppContext(c => ({
+        ...c,
+        activeChain,
+        address,
+        server,
+      }));
     },
   });
 

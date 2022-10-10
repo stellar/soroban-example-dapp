@@ -21,6 +21,7 @@ type Transaction = SorobanSdk.Transaction | SorobanSdk.FeeBumpTransaction;
 export interface SendTransactionOptions {
   timeout?: number;
   skipAddingFootprint?: boolean
+  secretKey?: string;
 }
 
 // useSendTransaction is a hook that returns a function that can be used to
@@ -35,6 +36,9 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
     if (!txn || !activeWallet || !activeChain) {
       throw new Error("No transaction or wallet or chain");
     }
+
+    if (!server) throw new Error("Not connected to server")
+
     const {
       timeout,
       skipAddingFootprint,
@@ -53,7 +57,14 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
       txn = addFootprint(txn, networkPassphrase, footprint);
     }
 
-    const signed = await activeWallet.signTransaction(txn.toXDR(), { networkPassphrase });
+    let signed = "";
+    if (passedOptions?.secretKey) {
+      const keypair = SorobanSdk.Keypair.fromSecret(passedOptions.secretKey);
+      txn.sign(keypair);
+      signed = txn.toXDR();
+    } else {
+      signed = await activeWallet.signTransaction(txn.toXDR(), { networkPassphrase });
+    }
 
     const transactionToSubmit = SorobanSdk.TransactionBuilder.fromXDR(signed, networkPassphrase);
     const { id } = await server.sendTransaction(transactionToSubmit);
@@ -111,7 +122,7 @@ function addFootprint(raw: Transaction, networkPassphrase: string, footprint: So
     return addFootprint(raw.innerTransaction, networkPassphrase, footprint);
   }
   // TODO: Figure out a cleaner way to clone this transaction.
-  const source = new SorobanSdk.Account(raw.source, raw.sequence);
+  const source = new SorobanSdk.Account(raw.source, `${parseInt(raw.sequence)-1}`);
   const txn = new SorobanSdk.TransactionBuilder(source, {
     fee: raw.fee,
     memo: raw.memo,
