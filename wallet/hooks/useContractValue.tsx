@@ -19,8 +19,12 @@ export function useContractValue(contractId: string, method: string, ...params: 
 
   React.useEffect(() => {
     if (!activeChain) {
-      setValue({ error: "No active chain" });
-      return;
+      setValue({ error: "No active chain" })
+      return
+    }
+    if (!server) {
+      setValue({ error: "Not connected to server" })
+      return
     }
 
     (async () => {

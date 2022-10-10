@@ -36,6 +36,9 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
     if (!txn || !activeWallet || !activeChain) {
       throw new Error("No transaction or wallet or chain");
     }
+
+    if (!server) throw new Error("Not connected to server")
+
     const {
       timeout,
       skipAddingFootprint,

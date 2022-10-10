@@ -19,7 +19,7 @@ export interface AppContextType {
   activeChain?: ChainMetadata;
   address?: string;
   activeWallet?: Wallet;
-  server: SorobanSdk.Server;
+  server?: SorobanSdk.Server;
   connect: () => Promise<void>;
 }
 

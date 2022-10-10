@@ -7,8 +7,7 @@ import {
   getDefaultWallets,
 } from "../wallet";
 
-const chains: ChainMetadata[] = [chain.standalone];
-const serverUrl = 'http://localhost:8000/soroban/rpc';
+const chains: ChainMetadata[] = [chain.sandbox, chain.standalone];
 
 const { wallets } = getDefaultWallets({
   appName: "Example Stellar App",
@@ -21,8 +20,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       chains={chains}
       appName={"Example Stellar App"}
       wallets={wallets}
-      serverUrl={serverUrl}
-      allowHttp
       >
       <Component {...pageProps} />
     </WalletProvider>
