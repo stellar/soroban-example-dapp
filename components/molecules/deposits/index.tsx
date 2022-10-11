@@ -1,5 +1,5 @@
 import React from 'react'
-import * as SorobanSdk from 'soroban-sdk'
+import * as SorobanClient from 'soroban-client'
 import styles from './style.module.css'
 import { Utils } from '../../../shared/utils'
 import BigNumber from 'bignumber.js'
@@ -26,7 +26,7 @@ export function Deposits(props: IDepositsProps) {
       Constants.CrowdfundId,
       'balance',
       accountIdentifier(
-        SorobanSdk.StrKey.decodeEd25519PublicKey(props.address)
+        SorobanClient.StrKey.decodeEd25519PublicKey(props.address)
       )
     )
   }

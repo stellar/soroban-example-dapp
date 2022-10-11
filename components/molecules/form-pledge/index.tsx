@@ -7,14 +7,14 @@ import {
   useNetwork,
   useSendTransaction,
 } from '../../../wallet'
-import * as SorobanSdk from 'soroban-sdk'
+import * as SorobanClient from 'soroban-client'
 import BigNumber from 'bignumber.js'
 import * as convert from '../../../convert'
-import { Account } from 'soroban-sdk'
+import { Account } from 'soroban-client'
 import { Constants } from '../../../shared/constants'
 import { accountIdentifier, contractIdentifier } from '../../../shared/identifiers'
 import { Spacer } from '../../atoms/spacer'
-let xdr = SorobanSdk.xdr
+let xdr = SorobanClient.xdr
 
 export interface IFormPledgeProps {
   account: string
@@ -27,7 +27,7 @@ export interface IFormPledgeProps {
 
 export interface IResultSubmit {
   status: string
-  scVal?: SorobanSdk.xdr.ScVal
+  scVal?: SorobanClient.xdr.ScVal
   error?: string
   value?: number
   symbol?: string
@@ -41,7 +41,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const { server } = useNetwork()
 
   const user = accountIdentifier(
-    SorobanSdk.StrKey.decodeEd25519PublicKey(props.account)
+    SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
   )
   const spender = contractIdentifier(Buffer.from(props.crowdfundId, 'hex'))
   const allowanceScval = useContractValue(
@@ -74,7 +74,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     if (!server) throw new Error("Not connected to server")
 
     let { sequence } = await server.getAccount(props.account)
-    let source = new SorobanSdk.Account(props.account, sequence)
+    let source = new SorobanClient.Account(props.account, sequence)
     let invoker = xdr.ScVal.scvObject(
       xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
     )
@@ -104,7 +104,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           props.crowdfundId,
           'deposit',
           accountIdentifier(
-            SorobanSdk.StrKey.decodeEd25519PublicKey(props.account)
+            SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
           ),
           amountScVal
         ))
@@ -133,19 +133,19 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   // Small helper to build a contract invokation transaction
   function contractTransaction(
     networkPassphrase: string,
-    source: SorobanSdk.Account,
+    source: SorobanClient.Account,
     contractId: string,
     method: string,
-    ...params: SorobanSdk.xdr.ScVal[]
-  ): SorobanSdk.Transaction {
-    const contract = new SorobanSdk.Contract(contractId)
-    return new SorobanSdk.TransactionBuilder(source, {
+    ...params: SorobanClient.xdr.ScVal[]
+  ): SorobanClient.Transaction {
+    const contract = new SorobanClient.Contract(contractId)
+    return new SorobanClient.TransactionBuilder(source, {
       // TODO: Figure out the fee
       fee: '100',
       networkPassphrase,
     })
       .addOperation(contract.call(method, ...params))
-      .setTimeout(SorobanSdk.TimeoutInfinite)
+      .setTimeout(SorobanClient.TimeoutInfinite)
       .build()
   }
 
@@ -241,13 +241,13 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           if (!server) throw new Error("Not connected to server")
 
           let { sequence } = await server.getAccount(Constants.TokenAdmin)
-          let source = new SorobanSdk.Account(Constants.TokenAdmin, sequence)
+          let source = new SorobanClient.Account(Constants.TokenAdmin, sequence)
           let invoker = xdr.ScVal.scvObject(
             xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
           )
           let nonce = convert.bigNumberToScBigInt(BigNumber(0))
           const recipient = accountIdentifier(
-            SorobanSdk.StrKey.decodeEd25519PublicKey(account)
+            SorobanClient.StrKey.decodeEd25519PublicKey(account)
           )
           const amountScVal = convert.bigNumberToScBigInt(
             amount.shiftedBy(decimals).decimalPlaces(0)

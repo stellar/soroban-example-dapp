@@ -1,22 +1,22 @@
 import React from "react";
-import * as SorobanSdk from "soroban-sdk";
+import * as SorobanClient from "soroban-client";
 import { AppContext } from "../AppContext";
 
 export type TransactionStatus = 'idle' | 'error' | 'loading' | 'success';
 
 export interface SendTransactionResult<E = Error> {
-  data?: SorobanSdk.xdr.ScVal;
+  data?: SorobanClient.xdr.ScVal;
   error?: E;
   isError: boolean;
   isIdle: boolean;
   isLoading: boolean;
   isSuccess: boolean;
-  sendTransaction: (txn?: Transaction, opts?: SendTransactionOptions) => Promise<SorobanSdk.xdr.ScVal>;
+  sendTransaction: (txn?: Transaction, opts?: SendTransactionOptions) => Promise<SorobanClient.xdr.ScVal>;
   reset: () => void;
   status: TransactionStatus;
 }
 
-type Transaction = SorobanSdk.Transaction | SorobanSdk.FeeBumpTransaction;
+type Transaction = SorobanClient.Transaction | SorobanClient.FeeBumpTransaction;
 
 export interface SendTransactionOptions {
   timeout?: number;
@@ -31,7 +31,7 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
   const { activeChain, activeWallet, server } = React.useContext(AppContext);
   const [status, setState] = React.useState<TransactionStatus>('idle');
 
-  const sendTransaction = React.useCallback(async function(passedTxn?: Transaction, passedOptions?: SendTransactionOptions): Promise<SorobanSdk.xdr.ScVal> {
+  const sendTransaction = React.useCallback(async function(passedTxn?: Transaction, passedOptions?: SendTransactionOptions): Promise<SorobanClient.xdr.ScVal> {
     let txn = passedTxn ?? defaultTxn;
     if (!txn || !activeWallet || !activeChain) {
       throw new Error("No transaction or wallet or chain");
@@ -59,14 +59,14 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
 
     let signed = "";
     if (passedOptions?.secretKey) {
-      const keypair = SorobanSdk.Keypair.fromSecret(passedOptions.secretKey);
+      const keypair = SorobanClient.Keypair.fromSecret(passedOptions.secretKey);
       txn.sign(keypair);
       signed = txn.toXDR();
     } else {
       signed = await activeWallet.signTransaction(txn.toXDR(), { networkPassphrase });
     }
 
-    const transactionToSubmit = SorobanSdk.TransactionBuilder.fromXDR(signed, networkPassphrase);
+    const transactionToSubmit = SorobanClient.TransactionBuilder.fromXDR(signed, networkPassphrase);
     const { id } = await server.sendTransaction(transactionToSubmit);
     const sleepTime = Math.min(1000, timeout);
     for (let i = 0; i <= timeout; i+= sleepTime) {
@@ -82,7 +82,7 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
               throw new Error("Expected exactly one result");
             }
             setState('success');
-            return SorobanSdk.xdr.ScVal.fromXDR(Buffer.from(response.results[0].xdr, 'base64'));
+            return SorobanClient.xdr.ScVal.fromXDR(Buffer.from(response.results[0].xdr, 'base64'));
           }
         case "error": {
             setState('error');
@@ -116,14 +116,14 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
 }
 
 // TODO: Transaction is immutable, so we need to re-build it here. :(
-function addFootprint(raw: Transaction, networkPassphrase: string, footprint: SorobanSdk.SorobanRpc.SimulateTransactionResponse['footprint']): Transaction {
+function addFootprint(raw: Transaction, networkPassphrase: string, footprint: SorobanClient.SorobanRpc.SimulateTransactionResponse['footprint']): Transaction {
   if ('innerTransaction' in raw) {
     // TODO: Handle feebump transactions
     return addFootprint(raw.innerTransaction, networkPassphrase, footprint);
   }
   // TODO: Figure out a cleaner way to clone this transaction.
-  const source = new SorobanSdk.Account(raw.source, `${parseInt(raw.sequence)-1}`);
-  const txn = new SorobanSdk.TransactionBuilder(source, {
+  const source = new SorobanClient.Account(raw.source, `${parseInt(raw.sequence)-1}`);
+  const txn = new SorobanClient.TransactionBuilder(source, {
     fee: raw.fee,
     memo: raw.memo,
     networkPassphrase,
@@ -137,10 +137,10 @@ function addFootprint(raw: Transaction, networkPassphrase: string, footprint: So
   for (let rawOp of raw.operations) {
     if ('function' in rawOp) {
       // TODO: Figure out a cleaner way to clone these operations
-      txn.addOperation(SorobanSdk.Operation.invokeHostFunction({
+      txn.addOperation(SorobanClient.Operation.invokeHostFunction({
         function: rawOp.function,
         parameters: rawOp.parameters,
-        footprint: SorobanSdk.xdr.LedgerFootprint.fromXDR(footprint, 'base64'),
+        footprint: SorobanClient.xdr.LedgerFootprint.fromXDR(footprint, 'base64'),
       }));
     } else {
       // TODO: Handle this.

@@ -1,5 +1,5 @@
 import React from 'react';
-import * as SorobanSdk from 'soroban-sdk';
+import * as SorobanClient from 'soroban-client';
 import { AppContext, AppContextType, defaultAppContext } from '../AppContext';
 import { WalletList } from "../Wallet";
 import { WalletChain, } from '../WalletChainContext';
@@ -42,7 +42,7 @@ export function WalletProvider({
           unsupported: !supported,
       }
       let address = await appContext.activeWallet?.getPublicKey()
-      let server = networkDetails && new SorobanSdk.Server(
+      let server = networkDetails && new SorobanClient.Server(
         networkDetails.networkUrl,
         { allowHttp: networkDetails.networkUrl.startsWith("http://") }
       )
