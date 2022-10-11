@@ -1,19 +1,19 @@
 import React from "react";
-import * as SorobanSdk from "soroban-sdk";
+import * as SorobanClient from "soroban-client";
 import { AppContext } from "../AppContext";
-let xdr = SorobanSdk.xdr;
+let xdr = SorobanClient.xdr;
 
 // Dummy source account for simulation.
 // TODO: Allow the user to specify this
-const source = new SorobanSdk.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
+const source = new SorobanClient.Account('GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ', '0');
 
-export type ContractValue = {loading?: true, result?: SorobanSdk.xdr.ScVal, error?: string|unknown};
+export type ContractValue = {loading?: true, result?: SorobanClient.xdr.ScVal, error?: string|unknown};
 
 // useContractValue is a hook that fetches the value of a contract method. It
 // might be better named `useSimulateTransaction`, but not sure which is more clear...
 // TODO: Allow user to specify the wallet of the submitter, fees, etc... Maybe
 // a separate (lower-level) hook for `useSimulateTransaction` would be cleaner?
-export function useContractValue(contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): ContractValue {
+export function useContractValue(contractId: string, method: string, ...params: SorobanClient.xdr.ScVal[]): ContractValue {
   const { activeChain, server } = React.useContext(AppContext);
   const [value, setValue] = React.useState<ContractValue>({ loading: true });
 
@@ -57,17 +57,17 @@ export function useContractValue(contractId: string, method: string, ...params: 
   return value;
 };
 
-async function fetchContractValue(server: SorobanSdk.Server, networkPassphrase: string, contractId: string, method: string, ...params: SorobanSdk.xdr.ScVal[]): Promise<SorobanSdk.xdr.ScVal> {
-  const contract = new SorobanSdk.Contract(contractId);
+async function fetchContractValue(server: SorobanClient.Server, networkPassphrase: string, contractId: string, method: string, ...params: SorobanClient.xdr.ScVal[]): Promise<SorobanClient.xdr.ScVal> {
+  const contract = new SorobanClient.Contract(contractId);
   // TODO: Optionally include the wallet of the submitter here, so the
   // simulation is more accurate
-  const transaction = new SorobanSdk.TransactionBuilder(source, {
+  const transaction = new SorobanClient.TransactionBuilder(source, {
       // fee doesn't matter, we're not submitting
       fee: "100",
       networkPassphrase,
     })
     .addOperation(contract.call(method, ...params))
-    .setTimeout(SorobanSdk.TimeoutInfinite)
+    .setTimeout(SorobanClient.TimeoutInfinite)
     .build();
 
   const { results } = await server.simulateTransaction(transaction);

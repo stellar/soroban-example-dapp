@@ -1,7 +1,7 @@
-import * as SorobanSdk from 'soroban-sdk'
-let xdr = SorobanSdk.xdr
+import * as SorobanClient from 'soroban-client'
+let xdr = SorobanClient.xdr
 
-export function accountIdentifier(account: Buffer): SorobanSdk.xdr.ScVal {
+export function accountIdentifier(account: Buffer): SorobanClient.xdr.ScVal {
   return xdr.ScVal.scvObject(
     xdr.ScObject.scoVec([
       xdr.ScVal.scvSymbol('Account'),
@@ -12,7 +12,7 @@ export function accountIdentifier(account: Buffer): SorobanSdk.xdr.ScVal {
   )
 }
 
-export function contractIdentifier(contract: Buffer): SorobanSdk.xdr.ScVal {
+export function contractIdentifier(contract: Buffer): SorobanClient.xdr.ScVal {
   return xdr.ScVal.scvObject(
     xdr.ScObject.scoVec([
       xdr.ScVal.scvSymbol('Contract'),

@@ -1,17 +1,17 @@
 import BigNumber from 'bignumber.js';
-import * as SorobanSdk from 'soroban-sdk';
-let xdr = SorobanSdk.xdr;
+import * as SorobanClient from 'soroban-client';
+let xdr = SorobanClient.xdr;
 
-export function scvalToBigNumber(scval: SorobanSdk.xdr.ScVal | undefined): BigNumber {
+export function scvalToBigNumber(scval: SorobanClient.xdr.ScVal | undefined): BigNumber {
   let value = scval?.obj()?.bigInt() ?? xdr.ScBigInt.zero();
   let sign = BigInt(1);
   switch (value.switch()) {
-    case SorobanSdk.xdr.ScNumSign.zero():
+    case SorobanClient.xdr.ScNumSign.zero():
       return BigNumber(0);
-    case SorobanSdk.xdr.ScNumSign.positive():
+    case SorobanClient.xdr.ScNumSign.positive():
       sign = BigInt(1);
       break;
-    case SorobanSdk.xdr.ScNumSign.negative():
+    case SorobanClient.xdr.ScNumSign.negative():
       sign = BigInt(-1);
       break;
   }
@@ -26,7 +26,7 @@ export function scvalToBigNumber(scval: SorobanSdk.xdr.ScVal | undefined): BigNu
 }
 
 // TODO: Not sure this handles negatives right
-export function bigNumberToScBigInt(value: BigNumber): SorobanSdk.xdr.ScVal {
+export function bigNumberToScBigInt(value: BigNumber): SorobanClient.xdr.ScVal {
   const b: bigint = BigInt(value.toFixed(0));
   if (b == BigInt(0)) {
     return xdr.ScVal.scvObject(xdr.ScObject.scoBigInt(xdr.ScBigInt.zero()));
@@ -57,7 +57,7 @@ export function bigintToBuf(bn: bigint): Buffer {
   return Buffer.from(u8);
 }
 
-export function xdrUint64ToNumber(value: SorobanSdk.xdr.Uint64): number {
+export function xdrUint64ToNumber(value: SorobanClient.xdr.Uint64): number {
   let b = 0;
   b |= value.high;
   b <<= 8;
@@ -65,7 +65,7 @@ export function xdrUint64ToNumber(value: SorobanSdk.xdr.Uint64): number {
   return b;
 }
 
-export function scvalToString(value: SorobanSdk.xdr.ScVal): string | undefined {
+export function scvalToString(value: SorobanClient.xdr.ScVal): string | undefined {
   return value.obj()?.bin().toString();
 }
 

@@ -9,7 +9,7 @@ import {
   useContractValue,
   useNetwork,
 } from '../../../wallet'
-import * as SorobanSdk from 'soroban-sdk'
+import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
 import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
@@ -17,7 +17,7 @@ import {
   accountIdentifier,
   contractIdentifier,
 } from '../../../shared/identifiers'
-let xdr = SorobanSdk.xdr
+let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
   const { data: account } = useAccount()
