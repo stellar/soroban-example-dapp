@@ -72,8 +72,8 @@ backed by smart contracts on Stellar.
     | Allow HTTP connection | Enabled |
     | Switch to this network | Enabled |
 4. Add some Futurenet network lumens to your Freighter wallet.
-  - Visit https://laboratory-futurenet.stellar.org/#create-account, and follow
-    the instructions to create your freighter account.
+  - Visit https://laboratory.stellar.org/#create-account, and follow
+    the instructions to create your freighter account on Futurenet.
 
 ### Frontend
 
