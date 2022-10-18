@@ -12,12 +12,12 @@ build: fmt
 		-Z build-std-features=panic_immediate_abort
 	cd target/wasm32-unknown-unknown/release/ && \
 		for i in *.wasm ; do \
-			wasm-opt -Oz "$$i" -o "$$i.tmp" && mv "$$i.tmp" "$$i"; \
+			../../../node_modules/.bin/wasm-opt -Oz "$$i" -o "$$i.tmp" && mv "$$i.tmp" "$$i"; \
 			ls -l "$$i"; \
 		done
 	cd target-tiny/wasm32-unknown-unknown/release/ && \
 		for i in *.wasm ; do \
-			wasm-opt -Oz "$$i" -o "$$i.tmp" && mv "$$i.tmp" "$$i"; \
+			../../../node_modules/.bin/wasm-opt -Oz "$$i" -o "$$i.tmp" && mv "$$i.tmp" "$$i"; \
 			ls -l "$$i"; \
 		done
 
