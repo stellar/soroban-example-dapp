@@ -55,7 +55,7 @@ make build
 echo Deploy the crowdfund contract
 CROWDFUND_ID="$(
   soroban deploy \
-    --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
+    --wasm target-tiny/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
 )"
 echo "$CROWDFUND_ID" > .soroban/crowdfund_id
 
