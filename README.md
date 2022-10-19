@@ -9,12 +9,13 @@ backed by smart contracts on Stellar.
 
 ### Dependencies
 
-1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
-2. Install Docker for Standalone and Futurenet backends.
+1. Install the Soroban CLI, see: https://soroban.stellar.org/docs/getting-started/setup.
+2. Install the nightly Rust toolchain and some additional tools, see: https://soroban.stellar.org/docs/tutorials/build-optimized.
+3. Install Docker for Standalone and Futurenet backends.
 
 ### Backend (Local Sandbox)
 
-1. Run the backend with `soroban-cli serve`
+1. Run the backend with `soroban serve`
 2. Run `./initialize.sh sandbox` to load the contracts and initialize it.
   - Note: this will create a `.soroban` sub-directory, to contain the sandbox
     network data.
