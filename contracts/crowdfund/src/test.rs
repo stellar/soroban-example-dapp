@@ -23,12 +23,12 @@ fn create_token_contract(e: &Env, admin: &AccountId) -> (BytesN<32>, Token) {
     token.init(
         &Identifier::Account(admin.clone()),
         &TokenMetadata {
-            name: "name".into_val(&e),
-            symbol: "symbol".into_val(&e),
+            name: "name".into_val(e),
+            symbol: "symbol".into_val(e),
             decimals: 7,
         },
     );
-    (BytesN::from_array(&e, &id), token)
+    (BytesN::from_array(e, &id), token)
 }
 
 fn create_crowdfund_contract(
@@ -39,15 +39,15 @@ fn create_crowdfund_contract(
     token: &BytesN<32>,
 ) -> (BytesN<32>, Crowdfund) {
     let id = generate_contract_id();
-    register_crowdfund(&e, &id);
+    register_crowdfund(e, &id);
     let crowdfund = Crowdfund::new(e, &id);
     crowdfund.client().initialize(
         &Identifier::Account(recipient.clone()),
-        &deadline,
-        &target_amount,
-        &token,
+        deadline,
+        target_amount,
+        token,
     );
-    (BytesN::from_array(&e, &id), crowdfund)
+    (BytesN::from_array(e, &id), crowdfund)
 }
 
 fn advance_ledger(e: &Env, delta: u64) {
@@ -118,13 +118,13 @@ impl Setup {
 
         Self {
             env: e,
-            recipient_id: recipient_id,
-            user1_id: user1_id,
-            user2: user2,
-            user2_id: user2_id,
-            token: token,
-            crowdfund: crowdfund,
-            crowdfund_id: crowdfund_id,
+            recipient_id,
+            user1_id,
+            user2,
+            user2_id,
+            token,
+            crowdfund,
+            crowdfund_id,
         }
     }
 }
