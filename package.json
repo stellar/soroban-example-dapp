@@ -8,8 +8,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "wasm-opt": "wasm-opt"
+    "lint": "next lint"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^0.1.7",

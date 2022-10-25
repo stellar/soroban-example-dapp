@@ -12,6 +12,14 @@ backed by smart contracts on Stellar.
 1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
 2. Install Docker for Standalone and Futurenet backends.
 
+### Instantiate npm
+
+This installs `wasm-opt` which is used to optimize the final wasm contract binary.
+
+```bash
+npm install
+```
+
 ### Backend (Local Sandbox)
 
 1. Run the backend with `soroban-cli serve`
