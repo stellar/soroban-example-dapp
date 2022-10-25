@@ -20,7 +20,7 @@ pub enum DataKey {
     User(Identifier),
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
 pub enum State {
     Running = 0,
@@ -35,7 +35,7 @@ impl IntoVal<Env, RawVal> for State {
 }
 
 fn get_contract_id(e: &Env) -> Identifier {
-    Identifier::Contract(e.get_current_contract().into())
+    Identifier::Contract(e.get_current_contract())
 }
 
 fn get_ledger_timestamp(e: &Env) -> u64 {
@@ -80,21 +80,21 @@ fn get_token(e: &Env) -> BytesN<32> {
 fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
     e.data()
         .get(DataKey::User(user.clone()))
-        .unwrap_or_else(|| Ok(BigInt::zero(&e)))
+        .unwrap_or_else(|| Ok(BigInt::zero(e)))
         .unwrap()
 }
 
 fn get_balance(e: &Env, contract_id: BytesN<32>) -> BigInt {
-    let client = token::Client::new(&e, &contract_id);
+    let client = token::Client::new(e, &contract_id);
     client.balance(&get_contract_id(e))
 }
 
 fn get_state(e: &Env) -> State {
-    let deadline = get_deadline(&e);
-    let target_amount = get_target_amount(&e);
-    let token_id = get_token(&e);
-    let token_balance = get_balance(&e, token_id);
-    let current_timestamp = get_ledger_timestamp(&e);
+    let deadline = get_deadline(e);
+    let target_amount = get_target_amount(e);
+    let token_id = get_token(e);
+    let token_balance = get_balance(e, token_id);
+    let current_timestamp = get_ledger_timestamp(e);
 
     if current_timestamp < deadline {
         return State::Running;
@@ -102,7 +102,7 @@ fn get_state(e: &Env) -> State {
     if token_balance >= target_amount {
         return State::Success;
     };
-    return State::Expired;
+    State::Expired
 }
 
 fn set_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
@@ -110,8 +110,8 @@ fn set_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
 }
 
 fn transfer(e: &Env, contract_id: BytesN<32>, to: &Identifier, amount: &BigInt) {
-    let nonce: BigInt = BigInt::zero(&e);
-    let client = token::Client::new(&e, &contract_id);
+    let nonce: BigInt = BigInt::zero(e);
+    let client = token::Client::new(e, &contract_id);
     client.xfer(&Signature::Invoker, &nonce, to, amount);
 }
 
