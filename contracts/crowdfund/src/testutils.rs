@@ -15,10 +15,12 @@ pub struct Crowdfund {
 }
 
 impl Crowdfund {
+    #[must_use]
     pub fn client(&self) -> CrowdfundClient {
         CrowdfundClient::new(&self.env, &self.contract_id)
     }
 
+    #[must_use]
     pub fn new(env: &Env, contract_id: &[u8; 32]) -> Self {
         Self {
             env: env.clone(),

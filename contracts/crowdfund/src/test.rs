@@ -18,7 +18,7 @@ fn generate_contract_id() -> [u8; 32] {
 fn create_token_contract(e: &Env, admin: &AccountId) -> (BytesN<32>, Token) {
     let id = generate_contract_id();
     e.register_contract_token(&BytesN::from_array(e, &id));
-    let token = Token::new(e, &id);
+    let token = Token::new(e, id);
     // decimals, name, symbol don't matter in tests
     token.init(
         &Identifier::Account(admin.clone()),
@@ -34,7 +34,7 @@ fn create_token_contract(e: &Env, admin: &AccountId) -> (BytesN<32>, Token) {
 fn create_crowdfund_contract(
     e: &Env,
     recipient: &AccountId,
-    deadline: &u64,
+    deadline: u64,
     target_amount: &BigInt,
     token: &BytesN<32>,
 ) -> (BytesN<32>, Crowdfund) {
@@ -43,7 +43,7 @@ fn create_crowdfund_contract(
     let crowdfund = Crowdfund::new(e, &id);
     crowdfund.client().initialize(
         &Identifier::Account(recipient.clone()),
-        deadline,
+        &deadline,
         target_amount,
         token,
     );
@@ -74,7 +74,7 @@ struct Setup {
 ///
 impl Setup {
     fn new() -> Self {
-        let e: Env = Default::default();
+        let e: Env = soroban_sdk::Env::default();
         let recipient = e.accounts().generate_and_create();
         let recipient_id = Identifier::Account(recipient.clone());
         let user1 = e.accounts().generate_and_create();
@@ -90,7 +90,7 @@ impl Setup {
         let (contract_token, token) = create_token_contract(&e, &token_admin);
 
         let (contract_crowdfund, crowdfund) =
-            create_crowdfund_contract(&e, &recipient, &deadline, &target_amount, &contract_token);
+            create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &contract_token);
         let crowdfund_id = Identifier::Contract(contract_crowdfund);
 
         token.with_source_account(&token_admin).mint(
