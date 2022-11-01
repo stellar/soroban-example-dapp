@@ -40,26 +40,13 @@ jobs:
     runs-on: ${{ matrix.sys.os }}
     steps:
     - uses: actions/checkout@v3
+    - uses: stellar/actions/rust-cache@main
     - run: rustup update
     - run: rustup target add ${{ matrix.sys.target }}
-    - uses: actions/cache@v3
+    - uses: stellar/binaries@v12
       with:
-        path: |
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-        key: cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: cargo-
-    - uses: actions/cache@v3
-      with:
-        path: target/
-        key: ${{ github.job }}-target-${{ strategy.job-index }}-${{ github.sha }}
-        restore-keys: |
-          ${{ github.job }}-target-${{ strategy.job-index }}
-          ${{ github.job }}-target-
-    - if: github.ref_protected
-      run: rm -fr target
-    - run: cargo install --locked --version 0.5.16 cargo-hack
+        name: cargo-hack
+        version: 0.5.16
     - run: cargo clippy --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --lib
     - if: matrix.sys.test
       run: cargo hack --feature-powerset clippy --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --bins --tests --examples --benches
