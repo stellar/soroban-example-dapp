@@ -1,4 +1,4 @@
-#![cfg(any(test, feature = "testutils"))]
+#![cfg(test)]
 
 use crate::CrowdfundClient;
 

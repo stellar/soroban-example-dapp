@@ -1,7 +1,7 @@
 #![cfg(test)]
 
+use super::testutils::{register_test_contract as register_crowdfund, Crowdfund};
 use super::token::{Client as Token, TokenMetadata};
-use crate::testutils::{register_test_contract as register_crowdfund, Crowdfund};
 use rand::{thread_rng, RngCore};
 use soroban_auth::{Identifier, Signature};
 use soroban_sdk::{
