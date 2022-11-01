@@ -190,7 +190,7 @@ impl Crowdfund {
         set_user_deposited(&e, &user, balance + amount.clone());
 
         let nonce = BigInt::zero(&e);
-        let client = token::Client::new(&e, &get_token(&e));
+        let client = token::Client::new(&e, get_token(&e));
         client.xfer_from(
             &Signature::Invoker,
             &nonce,

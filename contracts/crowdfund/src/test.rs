@@ -18,7 +18,7 @@ fn generate_contract_id() -> [u8; 32] {
 fn create_token_contract(e: &Env, admin: &AccountId) -> (BytesN<32>, Token) {
     let id = generate_contract_id();
     e.register_contract_token(&BytesN::from_array(e, &id));
-    let token = Token::new(e, &id);
+    let token = Token::new(e, id);
     // decimals, name, symbol don't matter in tests
     token.init(
         &Identifier::Account(admin.clone()),
