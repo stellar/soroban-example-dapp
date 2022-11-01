@@ -7,7 +7,7 @@ mod token {
 }
 
 mod test;
-pub mod testutils;
+mod testutils;
 
 #[derive(Clone)]
 #[contracttype]

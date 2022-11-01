@@ -22,7 +22,7 @@ build: fmt
 		done
 
 check: fmt
-	cargo hack --feature-powerset check --all-targets
+	cargo check --all-targets
 	cargo check --release --target wasm32-unknown-unknown
 
 watch:

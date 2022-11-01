@@ -659,7 +659,6 @@ version = "0.0.0"
 dependencies = [
  "rand 0.7.3",
  "soroban-auth",
- "soroban-crowdfund-contract",
  "soroban-sdk",
  "stellar-xdr",
 ]

@@ -43,13 +43,9 @@ jobs:
     - uses: stellar/actions/rust-cache@main
     - run: rustup update
     - run: rustup target add ${{ matrix.sys.target }}
-    - uses: stellar/binaries@v12
-      with:
-        name: cargo-hack
-        version: 0.5.16
-    - run: cargo clippy --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --lib
+    - run: cargo clippy --target ${{ matrix.sys.target }} --lib
+    - if: matrix.sys.target != 'wasm32-unknown-unknown'
+      run: cargo clippy --target ${{ matrix.sys.target }} --bins --tests --examples --benches
+    - run: cargo build --target ${{ matrix.sys.target }}
     - if: matrix.sys.test
-      run: cargo hack --feature-powerset clippy --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --bins --tests --examples --benches
-    - run: cargo build --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }}
-    - if: matrix.sys.test
-      run: cargo hack --feature-powerset test --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }}
+      run: cargo test --target ${{ matrix.sys.target }}
