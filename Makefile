@@ -1,6 +1,6 @@
 all: check build test
 
-export RUSTFLAGS=-Dwarnings
+export RUSTFLAGS=-Dwarnings -Dclippy::all -Dclippy::pedantic
 
 test: fmt
 	cargo test
