@@ -84,8 +84,8 @@ fn get_user_deposited(e: &Env, user: &Identifier) -> BigInt {
         .unwrap()
 }
 
-fn get_balance(e: &Env, contract_id: BytesN<32>) -> BigInt {
-    let client = token::Client::new(e, &contract_id);
+fn get_balance(e: &Env, contract_id: &BytesN<32>) -> BigInt {
+    let client = token::Client::new(e, contract_id);
     client.balance(&get_contract_id(e))
 }
 
@@ -93,7 +93,7 @@ fn get_state(e: &Env) -> State {
     let deadline = get_deadline(e);
     let target_amount = get_target_amount(e);
     let token_id = get_token(e);
-    let token_balance = get_balance(e, token_id);
+    let token_balance = get_balance(e, &token_id);
     let current_timestamp = get_ledger_timestamp(e);
 
     if current_timestamp < deadline {
@@ -106,12 +106,12 @@ fn get_state(e: &Env) -> State {
 }
 
 fn set_user_deposited(e: &Env, user: &Identifier, amount: BigInt) {
-    e.data().set(DataKey::User(user.clone()), amount)
+    e.data().set(DataKey::User(user.clone()), amount);
 }
 
-fn transfer(e: &Env, contract_id: BytesN<32>, to: &Identifier, amount: &BigInt) {
+fn transfer(e: &Env, contract_id: &BytesN<32>, to: &Identifier, amount: &BigInt) {
     let nonce: BigInt = BigInt::zero(e);
-    let client = token::Client::new(e, &contract_id);
+    let client = token::Client::new(e, contract_id);
     client.xfer(&Signature::Invoker, &nonce, to, amount);
 }
 
@@ -126,6 +126,7 @@ How to use this contract to run a crowdfund
 4. If the deadline passes without reaching the target_amount, the donors can withdraw their tokens again.
 */
 #[contractimpl]
+#[allow(clippy::needless_pass_by_value)]
 impl Crowdfund {
     pub fn initialize(
         e: Env,
@@ -134,9 +135,7 @@ impl Crowdfund {
         target_amount: BigInt,
         token: BytesN<32>,
     ) {
-        if e.data().has(DataKey::Recipient) {
-            panic!("already initialized");
-        }
+        assert!(!e.data().has(DataKey::Recipient), "already initialized");
 
         e.data().set(DataKey::Recipient, recipient);
         e.data().set(DataKey::Started, get_ledger_timestamp(&e));
@@ -175,27 +174,23 @@ impl Crowdfund {
             if user != recipient {
                 return BigInt::zero(&e);
             };
-            return get_balance(&e, get_token(&e));
+            return get_balance(&e, &get_token(&e));
         };
 
         get_user_deposited(&e, &user)
     }
 
     pub fn deposit(e: Env, user: Identifier, amount: BigInt) {
-        if get_state(&e) != State::Running {
-            panic!("sale is not running")
-        };
+        assert!(!(get_state(&e) != State::Running), "sale is not running");
 
         let recipient = get_recipient(&e);
-        if user == recipient {
-            panic!("recipient may not deposit")
-        }
+        assert!(user != recipient, "recipient may not deposit");
 
         let balance = get_user_deposited(&e, &user);
         set_user_deposited(&e, &user, balance + amount.clone());
 
         let nonce = BigInt::zero(&e);
-        let client = token::Client::new(&e, &get_token(&e));
+        let client = token::Client::new(&e, get_token(&e));
         client.xfer_from(
             &Signature::Invoker,
             &nonce,
@@ -214,25 +209,23 @@ impl Crowdfund {
                 panic!("sale is still running")
             }
             State::Success => {
-                if to != recipient {
-                    panic!("sale was successful, only the recipient may withdraw")
-                }
-                transfer(
-                    &e,
-                    get_token(&e),
-                    &recipient,
-                    &get_balance(&e, get_token(&e)),
-                )
+                assert!(
+                    to == recipient,
+                    "sale was successful, only the recipient may withdraw"
+                );
+                let token = get_token(&e);
+                transfer(&e, &token, &recipient, &get_balance(&e, &token));
             }
             State::Expired => {
-                if to == recipient {
-                    panic!("sale expired, the recipient may not withdraw")
-                }
+                assert!(
+                    to != recipient,
+                    "sale expired, the recipient may not withdraw"
+                );
 
                 // Withdraw full amount
                 let balance = get_user_deposited(&e, &to);
                 set_user_deposited(&e, &to, BigInt::zero(&e));
-                transfer(&e, get_token(&e), &to, &balance);
+                transfer(&e, &get_token(&e), &to, &balance);
             }
         };
     }

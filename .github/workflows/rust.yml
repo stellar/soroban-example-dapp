@@ -6,7 +6,7 @@ on:
   pull_request:
 
 env:
-  RUSTFLAGS: -D warnings
+  RUSTFLAGS: -Dwarnings -Dclippy::all -Dclippy::pedantic
 
 jobs:
 
@@ -60,9 +60,9 @@ jobs:
     - if: github.ref_protected
       run: rm -fr target
     - run: cargo install --locked --version 0.5.16 cargo-hack
-    - run: cargo check --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --lib
+    - run: cargo clippy --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --lib
     - if: matrix.sys.test
-      run: cargo hack --feature-powerset check --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --bins --tests --examples --benches
+      run: cargo hack --feature-powerset clippy --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --bins --tests --examples --benches
     - run: cargo build --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }}
     - if: matrix.sys.test
       run: cargo hack --feature-powerset test --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }}
