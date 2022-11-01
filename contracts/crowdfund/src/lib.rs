@@ -209,17 +209,18 @@ impl Crowdfund {
                 panic!("sale is still running")
             }
             State::Success => {
-                assert!(to == recipient, "sale was successful, only the recipient may withdraw");
-                let token = get_token(&e);
-                transfer(
-                    &e,
-                    &token,
-                    &recipient,
-                    &get_balance(&e, &token),
+                assert!(
+                    to == recipient,
+                    "sale was successful, only the recipient may withdraw"
                 );
+                let token = get_token(&e);
+                transfer(&e, &token, &recipient, &get_balance(&e, &token));
             }
             State::Expired => {
-                assert!(to != recipient, "sale expired, the recipient may not withdraw");
+                assert!(
+                    to != recipient,
+                    "sale expired, the recipient may not withdraw"
+                );
 
                 // Withdraw full amount
                 let balance = get_user_deposited(&e, &to);
