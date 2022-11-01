@@ -62,6 +62,7 @@ jobs:
     - run: cargo install --locked --version 0.5.16 cargo-hack
     - if: matrix.sys.test
       run: cargo clippy --all-targets --target ${{ matrix.sys.target }}
+    - if: matrix.sys.test
       run: cargo hack --feature-powerset check --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }} --bins --tests --examples --benches
     - run: cargo build --profile ${{ matrix.sys.profile }} --target ${{ matrix.sys.target }}
     - if: matrix.sys.test
