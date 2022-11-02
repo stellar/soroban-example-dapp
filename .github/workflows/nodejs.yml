@@ -17,7 +17,6 @@ jobs:
     - run: rustup target add x86_64-unknown-linux-gnu
     - run: rustup toolchain install nightly
     - run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
-    - run: cargo fmt --all --check
     - run: cargo install --target-dir ~/.cargo/target --locked --version 0.1.2 soroban-cli
     - name: Use Node.js 17.x
       uses: actions/setup-node@v3
