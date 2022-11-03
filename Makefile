@@ -7,14 +7,15 @@ test: fmt
 
 build: fmt
 	cargo build --target wasm32-unknown-unknown --release
+	cd target/wasm32-unknown-unknown/release/ && \
+		for i in *.wasm ; do \
+			ls -l "$$i"; \
+		done
+
+build-optimized: fmt
 	CARGO_TARGET_DIR=target-tiny cargo +nightly build --target wasm32-unknown-unknown --release \
 		-Z build-std=std,panic_abort \
 		-Z build-std-features=panic_immediate_abort
-	cd target/wasm32-unknown-unknown/release/ && \
-		for i in *.wasm ; do \
-			wasm-opt -Oz "$$i" -o "$$i.tmp" && mv "$$i.tmp" "$$i"; \
-			ls -l "$$i"; \
-		done
 	cd target-tiny/wasm32-unknown-unknown/release/ && \
 		for i in *.wasm ; do \
 			wasm-opt -Oz "$$i" -o "$$i.tmp" && mv "$$i.tmp" "$$i"; \

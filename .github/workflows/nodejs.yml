@@ -1,0 +1,25 @@
+name: NodeJS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: stellar/actions/rust-cache@main
+    - run: rustup update
+    - run: rustup target add wasm32-unknown-unknown
+    - run: cargo install --target-dir ~/.cargo/target --locked --version 0.1.2 soroban-cli
+    - name: Use Node.js 17.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 17.x
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run-script setup
+    - run: npm run-script build
