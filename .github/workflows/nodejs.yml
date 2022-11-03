@@ -14,7 +14,6 @@ jobs:
     - uses: stellar/actions/rust-cache@main
     - run: rustup update
     - run: rustup target add wasm32-unknown-unknown
-    - run: rustup target add x86_64-unknown-linux-gnu
     - run: rustup toolchain install nightly
     - run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
     - run: cargo install --target-dir ~/.cargo/target --locked --version 0.1.2 soroban-cli
