@@ -50,7 +50,7 @@ mkdir -p .soroban
 echo "$TOKEN_ID" > .soroban/token_id
 
 echo Build the crowdfund contract
-make build
+make build-optimized
 
 echo Deploy the crowdfund contract
 CROWDFUND_ID="$(
