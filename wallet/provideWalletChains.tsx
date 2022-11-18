@@ -9,7 +9,7 @@ export type ChainName =
   | 'public'
   | 'testnet'
   | 'sandbox'
-  | 'standalone';
+  | 'localnet';
 
 export type ChainMetadata = WalletChain;
 
@@ -42,9 +42,9 @@ const chainMetadataByName: Record<ChainName, ChainMetadata> = {
     iconBackground: '#dac695',
     // iconUrl: async () => (await import('./chainIcons/futurenet.svg')).default,
   },
-  standalone: {
-    id: "standalone",
-    name: "Standalone",
+  localnet: {
+    id: "localnet",
+    name: "localnet",
     networkPassphrase: "Standalone Network ; February 2017",
     iconBackground: '#dac695',
     // iconUrl: async () => (await import('./chainIcons/futurenet.svg')).default,

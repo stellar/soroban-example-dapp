@@ -3,16 +3,16 @@
 set -e
 
 case "$1" in
-standalone)
-    echo "Using standalone network"
-    ARGS="--standalone"
+localnet)
+    echo "Using localnet network"
+    ARGS="--localnet"
     ;;
 futurenet)
     echo "Using Futurenet network"
     ARGS="--futurenet"
     ;;
 *)
-    echo "Usage: $0 standalone|futurenet"
+    echo "Usage: $0 localnet|futurenet"
     exit 1
     ;;
 esac

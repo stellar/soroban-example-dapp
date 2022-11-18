@@ -9,11 +9,11 @@ TOKEN_ADMIN="GDT2NORMZF6S2T4PT4OBJJ43OPD3GPRNTJG3WVVFB356TUHWZQMU6C3U"
 TOKEN_ADMIN_IDENTIFIER="AAAABAAAAAEAAAAAAAAAAgAAAAUAAAAHQWNjb3VudAAAAAAEAAAAAQAAAAcAAAAA56a6LMl9LU+PnxwUp5tzx7M+LZpNu1alDvvp0PbMGU8="
 
 case "$1" in
-standalone)
-  echo "Using standalone network"
+localnet)
+  echo "Using localnet network"
   export SOROBAN_RPC_HOST="http://localhost:8000"
   export SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
-  export SOROBAN_NETWORK_PASSPHRASE="Standalone Network ; February 2017"
+  export SOROBAN_NETWORK_PASSPHRASE="localnet Network ; February 2017"
   export SOROBAN_SECRET_KEY="SAKCFFFNCE7XAWYMYVRZQYKUK6KMUCDIINLWISJYTMYJLNR2QLCDLFVT"
 
   echo Fund token admin account from friendbot
@@ -32,7 +32,7 @@ futurenet)
   # no-op
   ;;
 *)
-  echo "Usage: $0 sandbox|standalone|futurenet"
+  echo "Usage: $0 sandbox|localnet|futurenet"
   exit 1
   ;;
 esac
