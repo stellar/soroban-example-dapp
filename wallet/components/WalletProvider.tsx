@@ -46,7 +46,7 @@ export function WalletProvider({
         networkDetails.networkUrl,
         { allowHttp: networkDetails.networkUrl.startsWith("http://") }
       )
-      setsorobanContext(c => ({
+      setSorobanContext(c => ({
         ...c,
         activeChain,
         address,
@@ -66,7 +66,7 @@ export function WalletProvider({
 
 
   return (
-    <SorobanContext.Provider value={SorobanContext}>
+    <SorobanContext.Provider value={sorobanContext}>
       {children}
     </SorobanContext.Provider>
   );
