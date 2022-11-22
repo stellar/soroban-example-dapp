@@ -1,6 +1,6 @@
 import React from 'react';
 import * as SorobanClient from 'soroban-client';
-import { AppContext, AppContextType, defaultAppContext } from '../AppContext';
+import { SorobanContext, SorobanContextType, defaultSorobanContext } from '../SorobanContext';
 import { WalletList } from "../Wallet";
 import { WalletChain, } from '../WalletChainContext';
 
@@ -22,8 +22,8 @@ export function WalletProvider({
 
   const flatWallets = wallets.flatMap(w => w.wallets);
   const activeWallet = flatWallets.length == 1 ? flatWallets[0] : undefined;
-  const [appContext, setAppContext] = React.useState<AppContextType>({
-    ...defaultAppContext,
+  const [sorobanContext, setSorobanContext] = React.useState<SorobanContextType>({
+    ...defaultSorobanContext,
     appName,
     autoconnect,
     chains,
@@ -31,7 +31,7 @@ export function WalletProvider({
     activeWallet,
     activeChain: chains.length == 1 ? chains[0] : undefined,
     connect: async () => {
-      let networkDetails = await appContext.activeWallet?.getNetworkDetails()
+      let networkDetails = await sorobanContext.activeWallet?.getNetworkDetails()
       const supported = networkDetails && chains.find(c => c.networkPassphrase === networkDetails?.networkPassphrase)
       const activeChain = networkDetails && {
           id: supported?.id ?? networkDetails.networkPassphrase,
@@ -41,12 +41,12 @@ export function WalletProvider({
           iconUrl: supported?.iconUrl,
           unsupported: !supported,
       }
-      let address = await appContext.activeWallet?.getPublicKey()
+      let address = await sorobanContext.activeWallet?.getPublicKey()
       let server = networkDetails && new SorobanClient.Server(
         networkDetails.networkUrl,
         { allowHttp: networkDetails.networkUrl.startsWith("http://") }
       )
-      setAppContext(c => ({
+      setsorobanContext(c => ({
         ...c,
         activeChain,
         address,
@@ -56,17 +56,18 @@ export function WalletProvider({
   });
 
   React.useEffect(() => {
-    if (appContext.address) return;
-    if (!appContext.activeWallet) return;
-    if (appContext.autoconnect || appContext.activeWallet.isConnected()) {
-      appContext.connect();
+    console.log("Something changing... in WalletProvider.tsx")
+    if (sorobanContext.address) return;
+    if (!sorobanContext.activeWallet) return;
+    if (sorobanContext.autoconnect || sorobanContext.activeWallet.isConnected()) {
+      sorobanContext.connect();
     }
-  }, [appContext.address, appContext.activeWallet, appContext.autoconnect]);
+  }, [sorobanContext.address, sorobanContext.activeWallet, sorobanContext.autoconnect]);
 
 
   return (
-    <AppContext.Provider value={appContext}>
+    <SorobanContext.Provider value={SorobanContext}>
       {children}
-    </AppContext.Provider>
+    </SorobanContext.Provider>
   );
 }

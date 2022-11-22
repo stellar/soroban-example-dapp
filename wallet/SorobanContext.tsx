@@ -3,7 +3,7 @@ import * as SorobanClient from "soroban-client";
 import { ChainMetadata } from "./provideWalletChains";
 import { Wallet, WalletList } from "./Wallet";
 
-export const defaultAppContext: AppContextType = {
+export const defaultSorobanContext: SorobanContextType = {
   appName: undefined,
   chains: [],
   wallets: [],
@@ -11,7 +11,7 @@ export const defaultAppContext: AppContextType = {
   async connect() {},
 };
 
-export interface AppContextType {
+export interface SorobanContextType {
   autoconnect?: boolean;
   appName?: string;
   chains: ChainMetadata[];
@@ -23,4 +23,4 @@ export interface AppContextType {
   connect: () => Promise<void>;
 }
 
-export const AppContext = React.createContext<AppContextType>(defaultAppContext);
+export const SorobanContext = React.createContext<SorobanContextType>(defaultSorobanContext);

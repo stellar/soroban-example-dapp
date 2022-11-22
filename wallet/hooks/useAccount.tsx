@@ -1,10 +1,10 @@
 import React from 'react';
-import { AppContext } from "../AppContext";
+import { SorobanContext } from "../SorobanContext";
 
 export function useAccount() {
-  const {address} = React.useContext(AppContext);
+  const {address} = React.useContext(SorobanContext);
 
-  if (!address) {
+  if (!address) {|
     return {};
   }
 

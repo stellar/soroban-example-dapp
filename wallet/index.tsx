@@ -1,5 +1,5 @@
 export * from "./components";
-export * from "./AppContext";
+export * from "./SorobanContext";
 export * from "./WalletChainContext";
 export * from "./hooks";
 export * from "./provideWalletChains";
