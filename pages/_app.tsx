@@ -2,7 +2,7 @@ import type { AppProps } from 'next/app'
 import '../styles/globals.css'
 import {
   ChainMetadata,
-  WalletProvider,
+  SorobanReactProvider,
   chain,
   getDefaultWallets,
 } from "../wallet";
@@ -16,13 +16,13 @@ const { wallets } = getDefaultWallets({
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <WalletProvider
+    <SorobanReactProvider
       chains={chains}
       appName={"Example Stellar App"}
       wallets={wallets}
       >
       <Component {...pageProps} />
-    </WalletProvider>
+    </SorobanReactProvider>
   );
 }
 

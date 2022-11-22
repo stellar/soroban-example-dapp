@@ -1,10 +1,10 @@
 import React from 'react';
 import * as SorobanClient from 'soroban-client';
-import { SorobanContext, SorobanContextType, defaultSorobanContext } from '..//soroban-react/';
+import { SorobanContext, SorobanContextType, defaultSorobanContext } from '.';
 import { WalletList } from "../Wallet";
 import { WalletChain, } from '../WalletChainContext';
 
-export interface WalletProviderProps {
+export interface SorobanReactProviderProps {
   appName?: string;
   autoconnect?: boolean;
   chains: WalletChain[];
@@ -12,13 +12,13 @@ export interface WalletProviderProps {
   wallets: WalletList;
 }
 
-export function WalletProvider({
+export function SorobanReactProvider({
   appName,
   autoconnect = false,
   chains,
   children,
   wallets,
-}: WalletProviderProps) {
+}: SorobanReactProviderProps) {
 
   const flatWallets = wallets.flatMap(w => w.wallets);
   const activeWallet = flatWallets.length == 1 ? flatWallets[0] : undefined;
@@ -56,7 +56,7 @@ export function WalletProvider({
   });
 
   React.useEffect(() => {
-    console.log("Something changing... in WalletProvider.tsx")
+    console.log("Something changing... in SorobanReactProvider.tsx")
     if (sorobanContext.address) return;
     if (!sorobanContext.activeWallet) return;
     if (sorobanContext.autoconnect || sorobanContext.activeWallet.isConnected()) {

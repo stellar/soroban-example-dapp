@@ -1,4 +1,3 @@
-export * from "./components";
 export * from "./WalletChainContext";
 export * from "./hooks";
 export * from "./soroban-react";
