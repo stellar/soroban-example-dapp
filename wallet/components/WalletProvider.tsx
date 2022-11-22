@@ -1,6 +1,6 @@
 import React from 'react';
 import * as SorobanClient from 'soroban-client';
-import { SorobanContext, SorobanContextType, defaultSorobanContext } from '../SorobanContext';
+import { SorobanContext, SorobanContextType, defaultSorobanContext } from '..//soroban-react/';
 import { WalletList } from "../Wallet";
 import { WalletChain, } from '../WalletChainContext';
 

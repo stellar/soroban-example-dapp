@@ -1,6 +1,6 @@
 import React from "react";
 import * as SorobanClient from "soroban-client";
-import { SorobanContext } from "../SorobanContext";
+import { SorobanContext } from "../soroban-react/";
 
 export type TransactionStatus = 'idle' | 'error' | 'loading' | 'success';
 

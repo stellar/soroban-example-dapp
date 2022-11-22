@@ -1,5 +1,5 @@
 import React from 'react';
-import { SorobanContext } from "../SorobanContext";
+import { SorobanContext } from "../soroban-react/";
 import { chain } from "../provideWalletChains";
 
 export function useNetwork() {

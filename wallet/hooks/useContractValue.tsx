@@ -1,6 +1,6 @@
 import React from "react";
 import * as SorobanClient from "soroban-client";
-import { SorobanContext } from "../SorobanContext";
+import { SorobanContext } from "../soroban-react/";
 let xdr = SorobanClient.xdr;
 
 // Dummy source account for simulation.
