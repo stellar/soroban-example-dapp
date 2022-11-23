@@ -12,13 +12,13 @@ import {
     appName: "Exanple Stellar App",
     chains
   })
-  export default function ProviderExample({children}) {
+  export default function ProviderExample({children}:{children: React.ReactNode}) {
     return (
       <SorobanReactProvider
         chains={chains}
         appName={"Example Stellar App"}
-        connectors={connectors}
-        children={children}>
+        connectors={connectors}>
+          {children}
       </SorobanReactProvider>
     )
   }
