@@ -1,5 +1,5 @@
 import { WalletChain } from './WalletChainContext';
-import { WalletList } from './types/Wallet';
+import { ConnectorsList } from './types';
 import { freighter } from './connectors';
 
 export const getDefaultWallets = ({
@@ -9,18 +9,18 @@ export const getDefaultWallets = ({
   appName: string;
   chains: WalletChain[];
 }): {
-  wallets: WalletList;
+  connectors: ConnectorsList;
 } => {
-  const wallets: WalletList = [
+  const connectors: ConnectorsList = [
     {
       groupName: 'Popular',
-      wallets: [
+      connectors: [
         freighter({ appName, chains }),
       ],
     },
   ];
 
   return {
-    wallets,
+    connectors,
   };
 };

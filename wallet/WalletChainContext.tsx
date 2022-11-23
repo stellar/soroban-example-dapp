@@ -9,7 +9,7 @@ export interface WalletChain {
   // TODO: Use this to indicate which chains a dapp supports
   unsupported?: boolean;
 };
-
+ 
 export const WalletChainContext = React.createContext<WalletChain[]>([]);
 
 export const useWalletChains = () => React.useContext(WalletChainContext);
