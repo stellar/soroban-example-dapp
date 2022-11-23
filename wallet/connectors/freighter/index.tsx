@@ -1,7 +1,7 @@
 /* eslint-disable sort-keys-fix/sort-keys-fix */
 import freighterApi from "@stellar/freighter-api";
 import { WalletChain } from '../../WalletChainContext';
-import { NetworkDetails, Wallet } from '../../Wallet';
+import { NetworkDetails, Wallet } from '../../types/Wallet';
 
 export interface FreighterOptions {
   appName?: string;

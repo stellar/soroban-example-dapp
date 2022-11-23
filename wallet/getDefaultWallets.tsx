@@ -1,5 +1,5 @@
 import { WalletChain } from './WalletChainContext';
-import { WalletList } from './Wallet';
+import { WalletList } from './types/Wallet';
 import { freighter } from './connectors';
 
 export const getDefaultWallets = ({
