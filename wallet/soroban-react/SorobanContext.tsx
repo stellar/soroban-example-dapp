@@ -21,7 +21,7 @@ export interface SorobanContextType {
   activeWallet?: Connector;
   server?: SorobanClient.Server;
   connect: () => Promise<void>;
-  date: any
+  disconnect: () => Promise<void>;
 }
 
 export const SorobanContext = createContext<SorobanContextType | undefined>(undefined)
