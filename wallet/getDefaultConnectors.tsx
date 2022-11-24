@@ -1,17 +1,13 @@
 import { WalletChain } from './WalletChainContext';
-import { ConnectorsList } from './types';
+import { ConnectorList } from './types';
 import { freighter } from './connectors';
 
-export const getDefaultWallets = ({
-  appName,
-  chains,
-}: {
-  appName: string;
-  chains: WalletChain[];
-}): {
-  connectors: ConnectorsList;
-} => {
-  const connectors: ConnectorsList = [
+export const getDefaultConnectors = (
+  {appName,chains,}: {appName: string; chains: WalletChain[];})
+    : {
+
+  connectors: ConnectorList;} => {
+  const connectors: ConnectorList = [
     {
       groupName: 'Popular',
       connectors: [

@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import * as SorobanClient from 'soroban-client';
 import { SorobanContext, SorobanContextType, defaultSorobanContext } from '.';
-import { ConnectorsList } from "../types";
+import { ConnectorList } from "../types";
 import { WalletChain, } from '../WalletChainContext';
  
 /**
@@ -13,7 +13,7 @@ export interface SorobanReactProviderProps {
   autoconnect?: boolean;
   chains: WalletChain[];
   children: React.ReactNode;
-  connectors: ConnectorsList;
+  connectors: ConnectorList;
 }
 
 export function SorobanReactProvider({

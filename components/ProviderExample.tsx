@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import {useSorobanReact, SorobanReactProvider } from '../wallet';
+import {getDefaultConnectors} from '../wallet/getDefaultConnectors'
 
 import {
     ChainMetadata,
@@ -8,10 +9,10 @@ import {
   } from "../wallet";
   
   const chains: ChainMetadata[] = [chain.sandbox, chain.standalone, chain.futurenet];
-  const {connectors} = getDefaultWallets({
-    appName: "Exanple Stellar App",
-    chains
-  })
+  const {connectors} = getDefaultConnectors({
+                            appName: "Exanple Stellar App",
+                            chains})
+                            
   export default function ProviderExample({children}:{children: React.ReactNode}) {
     return (
       <SorobanReactProvider
