@@ -1,5 +1,5 @@
 import React from 'react'
-import { AppContext } from '../../../wallet'
+import { SorobanContext } from '../../../wallet'
 import styles from './style.module.css'
 
 export interface ConnectButtonProps {
@@ -8,7 +8,7 @@ export interface ConnectButtonProps {
 }
 
 export function ConnectButton({ label, isHigher }: ConnectButtonProps) {
-  const { connect } = React.useContext(AppContext)
+  const { connect } = React.useContext(SorobanContext)
   const openConnectModal = async () => {
     await connect()
   }

@@ -1,6 +1,6 @@
 import React from "react";
 import * as SorobanClient from "soroban-client";
-import { AppContext } from "../AppContext";
+import { useSorobanReact } from "../soroban-react/";
 
 export type TransactionStatus = 'idle' | 'error' | 'loading' | 'success';
 
@@ -28,7 +28,7 @@ export interface SendTransactionOptions {
 // send a transaction. Upon sending, it will poll server.getTransactionStatus,
 // until the transaction succeeds/fails, and return the result.
 export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultOptions?: SendTransactionOptions): SendTransactionResult<E> {
-  const { activeChain, activeWallet, server } = React.useContext(AppContext);
+  const { activeChain, activeWallet, server } = useSorobanReact()
   const [status, setState] = React.useState<TransactionStatus>('idle');
 
   const sendTransaction = React.useCallback(async function(passedTxn?: Transaction, passedOptions?: SendTransactionOptions): Promise<SorobanClient.xdr.ScVal> {

@@ -1,8 +1,8 @@
 import React from 'react';
-import { AppContext } from "../AppContext";
+import { useSorobanReact } from "../soroban-react/";
 
 export function useAccount() {
-  const {address} = React.useContext(AppContext);
+  const {address} = useSorobanReact()
 
   if (!address) {
     return {};

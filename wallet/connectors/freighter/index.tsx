@@ -1,14 +1,14 @@
 /* eslint-disable sort-keys-fix/sort-keys-fix */
 import freighterApi from "@stellar/freighter-api";
 import { WalletChain } from '../../WalletChainContext';
-import { NetworkDetails, Wallet } from '../../Wallet';
+import { NetworkDetails, Connector } from '../../types';
 
 export interface FreighterOptions {
   appName?: string;
   chains: WalletChain[];
 }
 
-export function freighter(_: FreighterOptions): Wallet {
+export function freighter(_: FreighterOptions): Connector {
   return {
     id: 'freighter',
     name: 'Freighter',

@@ -1,26 +1,27 @@
-import React from "react";
+import React, {createContext} from "react";
 import * as SorobanClient from "soroban-client";
 import { ChainMetadata } from "./provideWalletChains";
-import { Wallet, WalletList } from "./Wallet";
+import { Connector, ConnectorList } from "./Wallet";
 
-export const defaultAppContext: AppContextType = {
+export const defaultSorobanContext: SorobanContextType = {
   appName: undefined,
   chains: [],
-  wallets: [],
+  connectors: [],
   server: new SorobanClient.Server("https://soroban-rpc.stellar.org"),
   async connect() {},
 };
 
-export interface AppContextType {
+export interface SorobanContextType {
   autoconnect?: boolean;
   appName?: string;
   chains: ChainMetadata[];
-  wallets: WalletList;
+  connectors: ConnectorList;
   activeChain?: ChainMetadata;
   address?: string;
-  activeWallet?: Wallet;
+  activeWallet?: Connector;
   server?: SorobanClient.Server;
   connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
 }
 
-export const AppContext = React.createContext<AppContextType>(defaultAppContext);
+export const SorobanContext = createContext<SorobanContextType | undefined>(undefined)

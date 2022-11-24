@@ -6,7 +6,7 @@ export interface NetworkDetails {
   networkPassphrase: string;
 }
 
-export type Wallet = {
+export type Connector = {
   id: string;
   name: string;
   shortName?: string;
@@ -25,7 +25,7 @@ export type Wallet = {
   signTransaction: (xdr: string, opts?: { network?: string; networkPassphrase?: string; accountToSign?: string }) => Promise<string>;
 };
 
-export type WalletList = {
+export type ConnectorList = {
   groupName: string;
-  wallets: Wallet[]
+  connectors: Connector[]
 }[];
