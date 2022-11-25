@@ -1,9 +1,8 @@
 import React from 'react';
-import { AppContext } from "../AppContext";
-import { chain } from "../provideWalletChains";
+import { useSorobanReact } from "@soroban-react/core";import { chain } from "../provideWalletChains";
 
 export function useNetwork() {
-  const { activeChain, server } = React.useContext(AppContext);
+  const { activeChain, server } = useSorobanReact()
   return {
     activeChain,
     server,
