@@ -10,7 +10,7 @@ backed by smart contracts on Stellar.
 ### Dependencies
 
 1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
-2. Install Docker for Standalone and Futurenet backends.
+2. Install Docker for Localnet and Futurenet backends.
 
 ### Backend (Local Sandbox)
 
@@ -30,10 +30,10 @@ backed by smart contracts on Stellar.
     | Allow HTTP connection | Enabled |
     | Switch to this network | Enabled |
 
-### Backend (Local Standalone Network)
+### Backend (Local Localnet Network)
 
-1. Run the backend docker container with `./quickstart.sh standalone`, and wait for it to start.
-2. Run `./initialize.sh standalone` to load the contracts and initialize it.
+1. Run the backend docker container with `./quickstart.sh localnet`, and wait for it to start.
+2. Run `./initialize.sh localnet` to load the contracts and initialize it.
   - Note: this state will be lost if the quickstart docker container is removed.
 3. Configure Freighter
   a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
@@ -41,12 +41,12 @@ backed by smart contracts on Stellar.
   c. Add a custom network:
     |   |   |
     |---|---|
-    | Name | Standalone |
+    | Name | Localnet |
     | URL | http://localhost:8000/soroban/rpc |
-    | Passphrase | Standalone Network ; February 2017 |
+    | Passphrase | Localnet Network ; February 2017 |
     | Allow HTTP connection | Enabled |
     | Switch to this network | Enabled |
-4. Add some Standalone network lumens to your Freighter wallet.
+4. Add some Localnet network lumens to your Freighter wallet.
   a. Copy the address for your freighter wallet.
   b. Visit `http://localhost:8000/friendbot?addr=<your address>`
 

@@ -7,7 +7,7 @@ import {
   getDefaultWallets,
 } from "../wallet";
 
-const chains: ChainMetadata[] = [chain.sandbox, chain.standalone, chain.futurenet];
+const chains: ChainMetadata[] = [chain.sandbox, chain.localnet, chain.futurenet];
 
 const { wallets } = getDefaultWallets({
   appName: "Example Stellar App",
