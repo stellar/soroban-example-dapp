@@ -11,7 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@radix-ui/react-dialog": "^0.1.7",
+    "@radix-ui/react-dialog": "1.0.2",
     "@soroban-react/core": "^1.0.2",
     "@soroban-react/freighter": "^1.0.0",
     "@soroban-react/types": "^1.0.0",
