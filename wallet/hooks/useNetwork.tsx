@@ -1,5 +1,6 @@
 import React from 'react';
-import { useSorobanReact } from "@soroban-react/core";import { chain } from "../provideWalletChains";
+import { useSorobanReact } from "@soroban-react/core";
+import { chain } from "../provideWalletChains";
 
 export function useNetwork() {
   const { activeChain, server } = useSorobanReact()
