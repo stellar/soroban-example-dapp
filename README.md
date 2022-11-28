@@ -11,6 +11,7 @@ backed by smart contracts on Stellar.
 
 1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
 2. Install Docker for Standalone and Futurenet backends.
+3. Node.js v17
 
 ### Backend (Local Sandbox)
 
