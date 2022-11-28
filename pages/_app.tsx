@@ -1,28 +1,12 @@
 import type { AppProps } from 'next/app'
 import '../styles/globals.css'
-import {
-  ChainMetadata,
-  WalletProvider,
-  chain,
-  getDefaultWallets,
-} from "../wallet";
-
-const chains: ChainMetadata[] = [chain.sandbox, chain.standalone, chain.futurenet];
-
-const { wallets } = getDefaultWallets({
-  appName: "Example Stellar App",
-  chains
-});
+import ProviderExample from '../components/ProviderExample';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <WalletProvider
-      chains={chains}
-      appName={"Example Stellar App"}
-      wallets={wallets}
-      >
+    <ProviderExample>
       <Component {...pageProps} />
-    </WalletProvider>
+    </ProviderExample>
   );
 }
 

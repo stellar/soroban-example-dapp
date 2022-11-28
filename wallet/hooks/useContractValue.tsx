@@ -1,6 +1,6 @@
 import React from "react";
 import * as SorobanClient from "soroban-client";
-import { AppContext } from "../AppContext";
+import { useSorobanReact } from "@soroban-react/core";
 let xdr = SorobanClient.xdr;
 
 // Dummy source account for simulation.
@@ -14,7 +14,7 @@ export type ContractValue = {loading?: true, result?: SorobanClient.xdr.ScVal, e
 // TODO: Allow user to specify the wallet of the submitter, fees, etc... Maybe
 // a separate (lower-level) hook for `useSimulateTransaction` would be cleaner?
 export function useContractValue(contractId: string, method: string, ...params: SorobanClient.xdr.ScVal[]): ContractValue {
-  const { activeChain, server } = React.useContext(AppContext);
+  const { activeChain, server } = useSorobanReact()
   const [value, setValue] = React.useState<ContractValue>({ loading: true });
 
   React.useEffect(() => {
