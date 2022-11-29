@@ -1,7 +1,6 @@
 import React from "react";
 import * as SorobanClient from "soroban-client";
-import { useSorobanReact } from "../soroban-react/";
-
+import { useSorobanReact } from "@soroban-react/core";
 export type TransactionStatus = 'idle' | 'error' | 'loading' | 'success';
 
 export interface SendTransactionResult<E = Error> {

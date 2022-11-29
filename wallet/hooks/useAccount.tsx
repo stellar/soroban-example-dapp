@@ -1,6 +1,5 @@
-import React from 'react';
-import { useSorobanReact } from "../soroban-react/";
-
+import React, {useContext} from 'react';
+import { useSorobanReact } from "@soroban-react/core";
 export function useAccount() {
   const {address} = useSorobanReact()
 

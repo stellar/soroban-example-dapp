@@ -1,13 +1,10 @@
 import React, {useState, useEffect} from 'react'
-import {useSorobanReact, SorobanReactProvider } from '../wallet';
-import {getDefaultConnectors} from '../wallet/getDefaultConnectors'
+import {SorobanReactProvider,
+        getDefaultConnectors} from '@soroban-react/core';
+import {ChainMetadata} from "@soroban-react/types";
 
-import {
-    ChainMetadata,
-    chain,
-    getDefaultWallets,
-  } from "../wallet";
-  
+import {chain} from '../wallet/provideWalletChains'
+      
   const chains: ChainMetadata[] = [chain.sandbox, chain.standalone, chain.futurenet];
   const {connectors} = getDefaultConnectors({
                             appName: "Exanple Stellar App",
