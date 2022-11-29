@@ -15,7 +15,7 @@ backed by smart contracts on Stellar.
 
 ### Backend (Local Sandbox)
 
-1. Run the backend with `soroban-cli serve`
+1. Run the backend with `soroban serve`
 2. Run `./initialize.sh sandbox` to load the contracts and initialize it.
   - Note: this will create a `.soroban` sub-directory, to contain the sandbox
     network data.
