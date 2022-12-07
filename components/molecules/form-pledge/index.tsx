@@ -78,8 +78,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     let invoker = xdr.ScVal.scvObject(
       xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
     )
-    let nonce = convert.bigNumberToScBigInt(BigNumber(0))
-    const amountScVal = convert.bigNumberToScBigInt(
+    let nonce = convert.bigNumberToI128(BigNumber(0))
+    const amountScVal = convert.bigNumberToI128(
       parsedAmount.shiftedBy(props.decimals).decimalPlaces(0)
     )
 
@@ -245,11 +245,11 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           let invoker = xdr.ScVal.scvObject(
             xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
           )
-          let nonce = convert.bigNumberToScBigInt(BigNumber(0))
+          let nonce = convert.bigNumberToI128(BigNumber(0))
           const recipient = accountIdentifier(
             SorobanClient.StrKey.decodeEd25519PublicKey(account)
           )
-          const amountScVal = convert.bigNumberToScBigInt(
+          const amountScVal = convert.bigNumberToI128(
             amount.shiftedBy(decimals).decimalPlaces(0)
           )
           let mint = contractTransaction(
