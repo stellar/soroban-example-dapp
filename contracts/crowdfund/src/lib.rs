@@ -43,42 +43,42 @@ fn get_ledger_timestamp(e: &Env) -> u64 {
 }
 
 fn get_recipient(e: &Env) -> Identifier {
-    e.data()
+    e.storage()
         .get(DataKey::Recipient)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_deadline(e: &Env) -> u64 {
-    e.data()
+    e.storage()
         .get(DataKey::Deadline)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_started(e: &Env) -> u64 {
-    e.data()
+    e.storage()
         .get(DataKey::Started)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_target_amount(e: &Env) -> i128 {
-    e.data()
+    e.storage()
         .get(DataKey::Target)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_token(e: &Env) -> BytesN<32> {
-    e.data()
+    e.storage()
         .get(DataKey::Token)
         .expect("not initialized")
         .unwrap()
 }
 
 fn get_user_deposited(e: &Env, user: &Identifier) -> i128 {
-    e.data()
+    e.storage()
         .get(DataKey::User(user.clone()))
         .unwrap_or(Ok(0))
         .unwrap()
@@ -106,7 +106,7 @@ fn get_state(e: &Env) -> State {
 }
 
 fn set_user_deposited(e: &Env, user: &Identifier, amount: &i128) {
-    e.data().set(DataKey::User(user.clone()), amount);
+    e.storage().set(DataKey::User(user.clone()), amount);
 }
 
 fn transfer(e: &Env, contract_id: &BytesN<32>, to: &Identifier, amount: &i128) {
@@ -135,13 +135,13 @@ impl Crowdfund {
         target_amount: i128,
         token: BytesN<32>,
     ) {
-        assert!(!e.data().has(DataKey::Recipient), "already initialized");
+        assert!(!e.storage().has(DataKey::Recipient), "already initialized");
 
-        e.data().set(DataKey::Recipient, recipient);
-        e.data().set(DataKey::Started, get_ledger_timestamp(&e));
-        e.data().set(DataKey::Deadline, deadline);
-        e.data().set(DataKey::Target, target_amount);
-        e.data().set(DataKey::Token, token);
+        e.storage().set(DataKey::Recipient, recipient);
+        e.storage().set(DataKey::Started, get_ledger_timestamp(&e));
+        e.storage().set(DataKey::Deadline, deadline);
+        e.storage().set(DataKey::Target, target_amount);
+        e.storage().set(DataKey::Token, token);
     }
 
     pub fn recipient(e: Env) -> Identifier {
