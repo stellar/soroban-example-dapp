@@ -6,7 +6,7 @@ use rand::{thread_rng, RngCore};
 use soroban_auth::{Identifier, Signature};
 use soroban_sdk::{
     testutils::{Accounts, Ledger},
-    AccountId, BigInt, BytesN, Env, IntoVal,
+    AccountId, BytesN, Env, IntoVal,
 };
 
 fn generate_contract_id() -> [u8; 32] {
@@ -35,7 +35,7 @@ fn create_crowdfund_contract(
     e: &Env,
     recipient: &AccountId,
     deadline: u64,
-    target_amount: &BigInt,
+    target_amount: &i128,
     token: &BytesN<32>,
 ) -> (BytesN<32>, Crowdfund) {
     let id = generate_contract_id();
@@ -84,7 +84,7 @@ impl Setup {
 
         // the deadline is 10 seconds from now
         let deadline = e.ledger().timestamp() + 10;
-        let target_amount = BigInt::from_i32(&e, 15);
+        let target_amount: i128 = 15;
 
         let token_admin = e.accounts().generate_and_create();
         let (contract_token, token) = create_token_contract(&e, &token_admin);
@@ -93,28 +93,17 @@ impl Setup {
             create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &contract_token);
         let crowdfund_id = Identifier::Contract(contract_crowdfund);
 
-        token.with_source_account(&token_admin).mint(
-            &Signature::Invoker,
-            &BigInt::zero(&e),
-            &user1_id,
-            &BigInt::from_u32(&e, 10),
-        );
-        token.with_source_account(&token_admin).mint(
-            &Signature::Invoker,
-            &BigInt::zero(&e),
-            &user2_id,
-            &BigInt::from_u32(&e, 5),
-        );
+        token
+            .with_source_account(&token_admin)
+            .mint(&Signature::Invoker, &0, &user1_id, &10);
+        token
+            .with_source_account(&token_admin)
+            .mint(&Signature::Invoker, &0, &user2_id, &5);
 
-        token.with_source_account(&user1).approve(
-            &Signature::Invoker,
-            &BigInt::zero(&e),
-            &crowdfund_id,
-            &BigInt::from_u32(&e, 10),
-        );
-        crowdfund
-            .client()
-            .deposit(&user1_id, &BigInt::from_u32(&e, 10));
+        token
+            .with_source_account(&user1)
+            .approve(&Signature::Invoker, &0, &crowdfund_id, &10);
+        crowdfund.client().deposit(&user1_id, &10);
 
         Self {
             env: e,
@@ -136,14 +125,8 @@ fn test_expired() {
 
     setup.crowdfund.client().withdraw(&setup.user1_id);
 
-    assert_eq!(
-        setup.token.balance(&setup.user1_id),
-        BigInt::from_u32(&setup.env, 10)
-    );
-    assert_eq!(
-        setup.token.balance(&setup.crowdfund_id),
-        BigInt::zero(&setup.env)
-    );
+    assert_eq!(setup.token.balance(&setup.user1_id), 10);
+    assert_eq!(setup.token.balance(&setup.crowdfund_id), 0);
 }
 
 #[test]
@@ -151,47 +134,23 @@ fn test_success() {
     let setup = Setup::new();
     setup.token.with_source_account(&setup.user2).approve(
         &Signature::Invoker,
-        &BigInt::zero(&setup.env),
+        &0,
         &setup.crowdfund_id,
-        &BigInt::from_u32(&setup.env, 5),
+        &5,
     );
-    setup
-        .crowdfund
-        .client()
-        .deposit(&setup.user2_id, &BigInt::from_u32(&setup.env, 5));
+    setup.crowdfund.client().deposit(&setup.user2_id, &5);
 
-    assert_eq!(
-        setup.token.balance(&setup.user1_id),
-        BigInt::zero(&setup.env)
-    );
-    assert_eq!(
-        setup.token.balance(&setup.user2_id),
-        BigInt::zero(&setup.env)
-    );
-    assert_eq!(
-        setup.token.balance(&setup.crowdfund_id),
-        BigInt::from_u32(&setup.env, 15)
-    );
+    assert_eq!(setup.token.balance(&setup.user1_id), 0);
+    assert_eq!(setup.token.balance(&setup.user2_id), 0);
+    assert_eq!(setup.token.balance(&setup.crowdfund_id), 15);
 
     advance_ledger(&setup.env, 10);
     setup.crowdfund.client().withdraw(&setup.recipient_id);
 
-    assert_eq!(
-        setup.token.balance(&setup.user1_id),
-        BigInt::zero(&setup.env)
-    );
-    assert_eq!(
-        setup.token.balance(&setup.user2_id),
-        BigInt::zero(&setup.env)
-    );
-    assert_eq!(
-        setup.token.balance(&setup.crowdfund_id),
-        BigInt::zero(&setup.env)
-    );
-    assert_eq!(
-        setup.token.balance(&setup.recipient_id),
-        BigInt::from_u32(&setup.env, 15)
-    );
+    assert_eq!(setup.token.balance(&setup.user1_id), 0);
+    assert_eq!(setup.token.balance(&setup.user2_id), 0);
+    assert_eq!(setup.token.balance(&setup.crowdfund_id), 0);
+    assert_eq!(setup.token.balance(&setup.recipient_id), 15);
 }
 
 #[test]
@@ -207,14 +166,11 @@ fn sale_successful_only_recipient() {
     let setup = Setup::new();
     setup.token.with_source_account(&setup.user2).approve(
         &Signature::Invoker,
-        &BigInt::zero(&setup.env),
+        &0,
         &setup.crowdfund_id,
-        &BigInt::from_u32(&setup.env, 5),
+        &5,
     );
-    setup
-        .crowdfund
-        .client()
-        .deposit(&setup.user2_id, &BigInt::from_u32(&setup.env, 5));
+    setup.crowdfund.client().deposit(&setup.user2_id, &5);
     advance_ledger(&setup.env, 10);
 
     setup.crowdfund.client().withdraw(&setup.user1_id);
@@ -235,8 +191,5 @@ fn sale_not_running() {
     let setup = Setup::new();
     advance_ledger(&setup.env, 10);
 
-    setup
-        .crowdfund
-        .client()
-        .deposit(&setup.user1_id, &BigInt::from_u32(&setup.env, 1));
+    setup.crowdfund.client().deposit(&setup.user1_id, &1);
 }

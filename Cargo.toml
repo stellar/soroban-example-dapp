@@ -15,15 +15,53 @@ panic = "abort"
 codegen-units = 1
 lto = true
 
-[patch.crates-io]
-soroban-sdk = { git = "https://github.com/stellar/rs-soroban-sdk", rev = "3992556b" }
-soroban-spec = { git = "https://github.com/stellar/rs-soroban-sdk", rev = "3992556b" }
-soroban-auth = { git = "https://github.com/stellar/rs-soroban-sdk", rev = "3992556b" }
-soroban-sdk-macros = { git = "https://github.com/stellar/rs-soroban-sdk", rev = "3992556b" }
-soroban-env-common = { git = "https://github.com/stellar/rs-soroban-env", rev = "91cf595" }
-soroban-env-guest = { git = "https://github.com/stellar/rs-soroban-env", rev = "91cf595" }
-soroban-env-host = { git = "https://github.com/stellar/rs-soroban-env", rev = "91cf595" }
-soroban-env-macros = { git = "https://github.com/stellar/rs-soroban-env", rev = "91cf595" }
-soroban-native-sdk-macros = { git = "https://github.com/stellar/rs-soroban-env", rev = "91cf595" }
-stellar-xdr = { git = "https://github.com/stellar/rs-stellar-xdr", rev = "5cca712b" }
-wasmi = { package = "soroban-wasmi", git = "https://github.com/stellar/wasmi", rev = "d1ec0036" }
+[workspace.dependencies.soroban-env-common]
+version = "0.0.11"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "c551daf"
+
+[workspace.dependencies.soroban-env-guest]
+version = "0.0.11"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "c551daf"
+
+[workspace.dependencies.soroban-env-macros]
+version = "0.0.11"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "c551daf"
+
+[workspace.dependencies.soroban-env-host]
+version = "0.0.11"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "c551daf"
+
+[workspace.dependencies.soroban-native-sdk-macros]
+version = "0.0.11"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "c551daf"
+
+
+[workspace.dependencies.soroban-spec]
+version = "0.3.2"
+git = "https://github.com/stellar/rs-soroban-sdk"
+rev = "e2ecbee"
+
+[workspace.dependencies.soroban-sdk]
+version = "0.3.2"
+git = "https://github.com/stellar/rs-soroban-sdk"
+rev = "e2ecbee"
+
+[workspace.dependencies.soroban-sdk-macros]
+version = "0.3.2"
+git = "https://github.com/stellar/rs-soroban-sdk"
+rev = "e2ecbee"
+
+[workspace.dependencies.soroban-auth]
+version = "0.3.2"
+git = "https://github.com/stellar/rs-soroban-sdk"
+rev = "e2ecbee"
+
+[workspace.dependencies.stellar-xdr]
+version = "0.0.11"
+git = "https://github.com/stellar/rs-stellar-xdr"
+rev = "dbf2aba"
