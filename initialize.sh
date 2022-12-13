@@ -37,6 +37,7 @@ futurenet)
   ;;
 esac
 
+echo -e '\n'
 
 echo Deploy the token contract
 TOKEN_ID="$(
@@ -48,19 +49,25 @@ TOKEN_ID="$(
 )"
 mkdir -p .soroban
 echo "$TOKEN_ID" > .soroban/token_id
+echo "Token deployed with TOKEN_ID $TOKEN_ID"
 
+echo -e '\n'
 echo Build the crowdfund contract
 make build
 
+echo -e '\n'
 echo Deploy the crowdfund contract
 CROWDFUND_ID="$(
   soroban deploy \
-    --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
+    --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm \
+    --secret-key $SOROBAN_SECRET_KEY \
+    --rpc-url $SOROBAN_RPC_URL \
+  --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE"
 )"
 echo "$CROWDFUND_ID" > .soroban/crowdfund_id
+echo "Crowdfund contract deployed with CROWDFUND_ID $CROWDFUND_ID"
 
-echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
-
+echo -e '\n'
 echo Initialize the crowdfund contract
 deadline="$(($(date +"%s") + 86400))"
 soroban invoke \
