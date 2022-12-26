@@ -2,10 +2,11 @@ import React, { FunctionComponent, useState } from 'react'
 import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import styles from './style.module.css'
+import { useContractValue } from '@soroban-react/contracts'
+import { useSorobanReact } from '@soroban-react/core'
 import {
-  useContractValue,
-  useNetwork,
   useSendTransaction,
+  useNetwork,
 } from '../../../wallet'
 import * as SorobanClient from 'soroban-client'
 import BigNumber from 'bignumber.js'
@@ -44,12 +45,13 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
   )
   const spender = contractIdentifier(Buffer.from(props.crowdfundId, 'hex'))
-  const allowanceScval = useContractValue(
-    props.tokenId,
-    'allowance',
-    user,
-    spender
-  )
+  const sorobanContext = useSorobanReact()
+  const allowanceScval = useContractValue({
+    contractId: props.tokenId,
+    method: 'allowance',
+    params: [user, spender],
+    sorobanContext: sorobanContext
+})
   const allowance = convert.scvalToBigNumber(allowanceScval.result)
   const parsedAmount = BigNumber(amount || 0)
   const needsApproval = allowance.eq(0) || allowance.lt(parsedAmount)
