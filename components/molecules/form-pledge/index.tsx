@@ -2,10 +2,9 @@ import React, { FunctionComponent, useState } from 'react'
 import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import styles from './style.module.css'
-import { useContractValue } from '@soroban-react/contracts'
+import { useContractValue, useSendTransaction } from '@soroban-react/contracts'
 import { useSorobanReact } from '@soroban-react/core'
 import {
-  useSendTransaction,
   useNetwork,
 } from '../../../wallet'
 import * as SorobanClient from 'soroban-client'
@@ -35,6 +34,7 @@ export interface IResultSubmit {
 }
 
 const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
+  
   const [amount, setAmount] = useState<number>()
   const [resultSubmit, setResultSubmit] = useState<IResultSubmit | undefined>()
   const [input, setInput] = useState('')
@@ -97,7 +97,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           nonce,
           spender,
           amountScVal
-        ))
+        ),  {sorobanContext: sorobanContext})
       }
       // Deposit the tokens
       let result = await sendTransaction(contractTransaction(
@@ -109,7 +109,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
           ),
           amountScVal
-        ))
+        ), {sorobanContext: sorobanContext})
       setResultSubmit({
         status: 'success',
         scVal: result,
@@ -230,7 +230,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
     const { sendTransaction } = useSendTransaction()
-
     const amount = BigNumber(100)
 
     // TODO: Check and handle approval
@@ -264,7 +263,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             recipient,
             amountScVal
           )
-          let result = await sendTransaction(mint, { secretKey: Constants.TokenAdminSecretKey })
+          let result = await sendTransaction(mint,
+                                              { secretKey: Constants.TokenAdminSecretKey,
+                                              sorobanContext: sorobanContext})
           // TODO: Show some user feedback while we are awaiting, and then based on the result
           console.debug(result)
           setSubmitting(false)

@@ -236,10 +236,10 @@
   "resolved" "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.0.8.tgz"
   "version" "1.0.8"
 
-"@soroban-react/contracts@^1.2.1":
-  "integrity" "sha512-vckOkdO0vxvbK7HR88AIPt/do7YXJRZSbP7FKGjY+P8ASm6XGRzoNwGam7CgddFdqU23Coi+WXLQA2lxelzwZQ=="
-  "resolved" "https://registry.npmjs.org/@soroban-react/contracts/-/contracts-1.2.1.tgz"
-  "version" "1.2.1"
+"@soroban-react/contracts@^1.4.2":
+  "integrity" "sha512-VGmWGcRNyjcwNmLsBph0UR5DnQm8l+LFCOEPraglthDmoDzq3UeGIUIPIjMCdp7JN0w9vAai5eppXyE3U97LkQ=="
+  "resolved" "https://registry.npmjs.org/@soroban-react/contracts/-/contracts-1.4.2.tgz"
+  "version" "1.4.2"
   dependencies:
     "@soroban-react/core" "^1.0.4"
     "soroban-client" "^0.2.1"
