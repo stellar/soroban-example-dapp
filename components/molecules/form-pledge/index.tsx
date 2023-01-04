@@ -91,6 +91,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           props.networkPassphrase,
           source,
           props.tokenId,
+          // We shouldn't need to track/get the allowance first, because this should
+          // be unique to the spender.
           'incr_allow',
           invoker,
           nonce,
@@ -255,10 +257,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           // the stored token issuer's secret key.
           //
 
-          let result = await sendTransaction(
+          const txResult1 = await sendTransaction(
             new SorobanClient.TransactionBuilder(walletSource, {
               networkPassphrase,
-              fee: "1000",
+              fee: "1000", // arbitrary
             })
             .setTimeout(10)
             .addOperation(
@@ -267,13 +269,14 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
               })
             )
             .build(), {
-              timeout: 10, 
+              timeout: 10, // arbitrary
               skipAddingFootprint: true,
+              // omit `secretKey` to have Freighter prompt for signing
             }
           )
-          console.debug(result)
+          console.debug(txResult1)
 
-          result = await sendTransaction(
+          const txResult2 = await sendTransaction(
             new SorobanClient.TransactionBuilder(adminSource, {
               networkPassphrase,
               fee: "1000",
@@ -287,18 +290,17 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
               })
             )
             .build(), {
-              timeout: 5,
+              timeout: 10,
               skipAddingFootprint: true,
               secretKey: Constants.TokenAdminSecretKey,
             }
           )
+          console.debug(txResult2)
 
           //
           // TODO: Show some user feedback while we are awaiting, and then based
           // on the result
           //
-
-          console.debug(result)
           setSubmitting(false)
         }}
         disabled={isSubmitting}
