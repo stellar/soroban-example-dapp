@@ -9,9 +9,10 @@ backed by smart contracts on Stellar.
 
 ### Dependencies
 
-1. Install the soroban-cli from https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
-2. Install Docker for Standalone and Futurenet backends.
-3. Node.js v17
+1. `soroban-cli v0.3.3`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
+2. `docker` for Standalone and Futurenet backends.
+3. `Node.js v17`
+4. `Freighter wallet v2.9.1`. Download it from https://github.com/stellar/freighter/releases/tag/2.9.1 and Enable "Experimental Mode" in the settings (gear icon).
 
 ### Backend (Local Sandbox)
 
@@ -19,10 +20,7 @@ backed by smart contracts on Stellar.
 2. Run `./initialize.sh sandbox` to load the contracts and initialize it.
   - Note: this will create a `.soroban` sub-directory, to contain the sandbox
     network data.
-3. Configure Freighter
-  a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
-  b. Enable "Experimental Mode" in the settings (gear icon).
-  c. Add a custom network:
+3. Add the Sandbox custom network in Freighter
     |   |   |
     |---|---|
     | Name | Sandbox |
@@ -36,10 +34,7 @@ backed by smart contracts on Stellar.
 1. Run the backend docker container with `./quickstart.sh standalone`, and wait for it to start.
 2. Run `./initialize.sh standalone` to load the contracts and initialize it.
   - Note: this state will be lost if the quickstart docker container is removed.
-3. Configure Freighter
-  a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
-  b. Enable "Experimental Mode" in the settings (gear icon).
-  c. Add a custom network:
+3. Add the Standalone custom network in Freighter
     |   |   |
     |---|---|
     | Name | Standalone |
@@ -59,15 +54,13 @@ backed by smart contracts on Stellar.
     `ingest_latest_ledger`, field. If it is `0`, the quickstart image is not
     ready yet.
 2. Run `./initialize.sh futurenet` to load the contracts and initialize it.
-3. Configure Freighter
-  a. Install the custom Freighter Soroban release from https://github.com/stellar/freighter/releases/tag/v2.6.0-beta.2
-  b. Enable "Experimental Mode" in the settings (gear icon).
-  c. Add a custom network (Note, the out-of-the-box "Future Net" network in
+3. Add the Futurenet custom network in Freighter
+  (Note, the out-of-the-box "Future Net" network in
   Freighter will not work with a local quickstart container, so we need to add
   our own):
     |   |   |
     |---|---|
-    | Name | Futurenet |
+    | Name | Futurenet Local RPC|
     | URL | http://localhost:8000/soroban/rpc |
     | Passphrase | Test SDF Future Network ; October 2022 |
     | Allow HTTP connection | Enabled |
