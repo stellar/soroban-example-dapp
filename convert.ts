@@ -86,8 +86,8 @@ export function bigNumberToI128(value: BigNumber): SorobanClient.xdr.ScVal {
     padded[0] |= 0x80;
   }
 
-  const hi = new xdr.Uint64(padded[0], padded[1]);
-  const lo = new xdr.Uint64(padded[2], padded[3]);
+  const hi = new xdr.Uint64(padded[1], padded[0]);
+  const lo = new xdr.Uint64(padded[3], padded[2]);
   return xdr.ScVal.scvObject(xdr.ScObject.scoI128(new xdr.Int128Parts({lo, hi})));
 }
 
