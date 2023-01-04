@@ -38,15 +38,9 @@ futurenet)
 esac
 
 
-echo Deploy the token contract
-TOKEN_ID="$(
-  soroban token create \
-    --admin "$TOKEN_ADMIN" \
-    --name "Example Token" \
-    --symbol "EXT" \
-    --decimal 2
-)"
+echo Wrap the Stellar asset
 mkdir -p .soroban
+TOKEN_ID=$(soroban token wrap --asset "EXT:$TOKEN_ADMIN")
 echo "$TOKEN_ID" > .soroban/token_id
 
 echo Build the crowdfund contract

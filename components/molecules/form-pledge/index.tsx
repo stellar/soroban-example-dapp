@@ -2,6 +2,7 @@ import React, { FunctionComponent, useState } from 'react'
 import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import styles from './style.module.css'
+import { getPublicKey, signTransaction } from "@stellar/freighter-api"
 import {
   useContractValue,
   useNetwork,
@@ -80,7 +81,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     )
     let nonce = convert.bigNumberToI128(BigNumber(0))
     const amountScVal = convert.bigNumberToI128(
-      parsedAmount.shiftedBy(props.decimals).decimalPlaces(0)
+      parsedAmount.shiftedBy(7).decimalPlaces(0)
     )
 
     try {
@@ -90,7 +91,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           props.networkPassphrase,
           source,
           props.tokenId,
-          'approve',
+          'incr_allow',
           invoker,
           nonce,
           spender,
@@ -231,39 +232,72 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
     const amount = BigNumber(100)
 
-    // TODO: Check and handle approval
     return (
       <Button
-        title={`Mint ${amount.decimalPlaces(decimals).toString()} ${symbol}`}
+        title={`Mint ${amount.decimalPlaces(7).toString()} ${symbol}`}
         onClick={async () => {
           setSubmitting(true)
 
           if (!server) throw new Error("Not connected to server")
 
           let { sequence } = await server.getAccount(Constants.TokenAdmin)
-          let source = new SorobanClient.Account(Constants.TokenAdmin, sequence)
-          let invoker = xdr.ScVal.scvObject(
-            xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
+          let adminSource = new SorobanClient.Account(Constants.TokenAdmin, sequence)
+
+          let wallet = await getPublicKey().then(server.getAccount)
+          let walletSource = new SorobanClient.Account(wallet.id, wallet.sequence)
+
+          //
+          // 1. Establish a trustline to the admin
+          // 2. The admin sends us money (mint)
+          //
+          // We have to do this in two separate transactions because one
+          // requires approval from Freighter while the other can be done with
+          // the stored token issuer's secret key.
+          //
+
+          let result = await sendTransaction(
+            new SorobanClient.TransactionBuilder(walletSource, {
+              networkPassphrase,
+              fee: "1000",
+            })
+            .setTimeout(10)
+            .addOperation(
+              SorobanClient.Operation.changeTrust({
+                asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+              })
+            )
+            .build(), {
+              timeout: 10, 
+              skipAddingFootprint: true,
+            }
           )
-          let nonce = convert.bigNumberToI128(BigNumber(0))
-          const recipient = accountIdentifier(
-            SorobanClient.StrKey.decodeEd25519PublicKey(account)
+          console.debug(result)
+
+          result = await sendTransaction(
+            new SorobanClient.TransactionBuilder(adminSource, {
+              networkPassphrase,
+              fee: "1000",
+            })
+            .setTimeout(10)
+            .addOperation(
+              SorobanClient.Operation.payment({
+                destination: wallet.id,
+                asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+                amount: amount.shiftedBy(7).toString(),
+              })
+            )
+            .build(), {
+              timeout: 5,
+              skipAddingFootprint: true,
+              secretKey: Constants.TokenAdminSecretKey,
+            }
           )
-          const amountScVal = convert.bigNumberToI128(
-            amount.shiftedBy(decimals).decimalPlaces(0)
-          )
-          let mint = contractTransaction(
-            networkPassphrase,
-            source,
-            props.tokenId,
-            'mint',
-            invoker,
-            nonce,
-            recipient,
-            amountScVal
-          )
-          let result = await sendTransaction(mint, { secretKey: Constants.TokenAdminSecretKey })
-          // TODO: Show some user feedback while we are awaiting, and then based on the result
+
+          //
+          // TODO: Show some user feedback while we are awaiting, and then based
+          // on the result
+          //
+
           console.debug(result)
           setSubmitting(false)
         }}
