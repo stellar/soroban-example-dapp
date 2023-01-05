@@ -35,7 +35,7 @@ const Pledge: FunctionComponent = () => {
       ),
       decimals: useContractValue(Constants.TokenId, 'decimals'),
       name: useContractValue(Constants.TokenId, 'name'),
-      symbol: useContractValue(Constants.TokenId, 'symbol'),
+      symbol: useContractValue(Constants.TokenId, 'symbol')
     }
   }
 
@@ -51,7 +51,7 @@ const Pledge: FunctionComponent = () => {
   const tokenName =
     token.name.result && convert.scvalToString(token.name.result)
   const tokenSymbol =
-    token.symbol.result && convert.scvalToString(token.symbol.result)
+    token.symbol.result && convert.scvalToString(token.symbol.result)?.replace("\u0000", "")
   const deadlineDate =
     deadline.result &&
     new Date(

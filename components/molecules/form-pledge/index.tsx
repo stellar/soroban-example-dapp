@@ -44,8 +44,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
   )
 
-  console.log("props:", props)
-
   const spender = contractIdentifier(Buffer.from(props.crowdfundId, 'hex'))
   const allowanceScval = useContractValue(
     props.tokenId,
@@ -82,9 +80,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
     )
     let nonce = convert.bigNumberToI128(BigNumber(0))
-    const amountScVal = convert.bigNumberToI128(
-      parsedAmount.decimalPlaces(0)
-    )
+    const amountScVal = convert.bigNumberToI128(parsedAmount)
 
     try {
       if (needsApproval) {
@@ -93,16 +89,16 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           props.networkPassphrase,
           source,
           props.tokenId,
-          // We shouldn't need to track/get the allowance first, because this
-          // should be unique to the spender.
+          // We shouldn't need to track the allowance first, because this should
+          // be unique to the spender and will naturally decr appropriately when
+          // we call deposit later.
           'incr_allow',
-          invoker,
+          invoker, // isn't this supposed to be a Signature, but it's Obj(Vec(["Invoker"]))???
           nonce,
           spender,
           amountScVal
         ))
       }
-      console.log("3")
       // Deposit the tokens
       let result = await sendTransaction(contractTransaction(
           props.networkPassphrase,
@@ -247,41 +243,50 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
           if (!server) throw new Error("Not connected to server")
 
-          let { sequence } = await server.getAccount(Constants.TokenAdmin)
+          let { sequence, balances } = await server.getAccount(Constants.TokenAdmin)
           let adminSource = new SorobanClient.Account(Constants.TokenAdmin, sequence)
 
           let wallet = await getPublicKey().then((pk) => server.getAccount(pk))
           let walletSource = new SorobanClient.Account(wallet.id, wallet.sequence)
 
           //
-          // 1. Establish a trustline to the admin
+          // 1. Establish a trustline to the admin (if necessary)
           // 2. The admin sends us money (mint)
           //
           // We have to do this in two separate transactions because one
           // requires approval from Freighter while the other can be done with
           // the stored token issuer's secret key.
           //
-          const txResult1 = await sendTransaction(
-            new SorobanClient.TransactionBuilder(walletSource, {
-              networkPassphrase,
-              fee: "1000", // arbitrary
-            })
-            .setTimeout(60)
-            .addOperation(
-              SorobanClient.Operation.changeTrust({
-                asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+          // FIXME: The `getAccount()` RPC endpoint doesn't return balance
+          //        information, so we never know whether or not the user needs
+          //        a trustline to receive the minted asset.
+          //
+          // if (!balances || balances.filter(b => (
+          if (balances?.filter(b => (
+            b.asset_code == symbol && b.asset_issuer == Constants.TokenAdmin
+          )).length === 0) {
+            const txResult1 = await sendTransaction(
+              new SorobanClient.TransactionBuilder(walletSource, {
+                networkPassphrase,
+                fee: "1000", // arbitrary
               })
-            )
-            .build(), {
-              timeout: 60 * 1000, // should be enough time to approve the tx
-              skipAddingFootprint: true,
-              // omit `secretKey` to have Freighter prompt for signing
-            }
-          ).catch((err) => {
-            console.error(err)
-            setSubmitting(false)
-          })
-          console.debug(txResult1)
+              .setTimeout(60)
+              .addOperation(
+                SorobanClient.Operation.changeTrust({
+                  asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+                })
+              )
+              .build(), {
+                timeout: 60 * 1000, // should be enough time to approve the tx
+                skipAddingFootprint: true,
+                // omit `secretKey` to have Freighter prompt for signing
+              }
+            ).catch((err) => {
+              console.error(err)
+              setSubmitting(false)
+            })
+            console.debug(txResult1)
+          }
 
           const txResult2 = await sendTransaction(
             new SorobanClient.TransactionBuilder(adminSource, {
