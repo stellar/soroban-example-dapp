@@ -75,16 +75,31 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     if (!server) throw new Error("Not connected to server")
 
     let { sequence } = await server.getAccount(props.account)
-    let source = new SorobanClient.Account(props.account, sequence)
-    let invoker = xdr.ScVal.scvObject(
+    const source = new SorobanClient.Account(props.account, sequence)
+    const invoker = xdr.ScVal.scvObject(
       xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
     )
-    let nonce = convert.bigNumberToI128(BigNumber(0))
+    const nonce = convert.bigNumberToI128(BigNumber(0))
     const amountScVal = convert.bigNumberToI128(parsedAmount)
 
     try {
       if (needsApproval) {
         // Approve the transfer first
+        //
+        // FIXME: The `contractTransaction` call throws an error:
+        //
+        //    Trying to access beyond buffer length
+        //
+        // that I can't resolve T_T. I duplicated the same code (i.e. printed
+        // out the values and recreated them in the same way) in a separate
+        // project with
+        //
+        //    yarn add typescript tslib soroban-client bignumber.js
+        //
+        // and it gave me a transaction. That means it isn't a versioning or
+        // compatibility issue. So what could it be???
+        console.debug(`approving Signature::Invoker to spend ${amount} of ` +
+          `${props.account}'s tokens in ${props.crowdfundId}`)
         await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
@@ -93,7 +108,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           // be unique to the spender and will naturally decr appropriately when
           // we call deposit later.
           'incr_allow',
-          invoker, // isn't this supposed to be a Signature, but it's Obj(Vec(["Invoker"]))???
+          invoker,
           nonce,
           spender,
           amountScVal
@@ -140,14 +155,12 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     method: string,
     ...params: SorobanClient.xdr.ScVal[]
   ): SorobanClient.Transaction {
-    console.log("1")
     const contract = new SorobanClient.Contract(contractId)
-    console.log("2:", arguments)
     return new SorobanClient.TransactionBuilder(source, {
-      // TODO: Figure out the fee
-      fee: '100',
-      networkPassphrase,
-    })
+        // TODO: Figure out the fee
+        fee: '100',
+        networkPassphrase,
+      })
       .addOperation(contract.call(method, ...params))
       .setTimeout(SorobanClient.TimeoutInfinite)
       .build()
@@ -237,7 +250,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
     return (
       <Button
-        title={`Mint ${amount.decimalPlaces(7).toString()} ${symbol}`}
+        title={`Mint ${amount.toString()} ${symbol}`}
         onClick={async () => {
           setSubmitting(true)
 
