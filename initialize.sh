@@ -41,7 +41,7 @@ esac
 echo Wrap the Stellar asset
 mkdir -p .soroban
 TOKEN_ID=$(soroban token wrap --asset "EXT:$TOKEN_ADMIN")
-echo "$TOKEN_ID" > .soroban/token_id
+echo -n "$TOKEN_ID" > .soroban/token_id
 
 echo Build the crowdfund contract
 make build
@@ -55,7 +55,7 @@ echo "$CROWDFUND_ID" > .soroban/crowdfund_id
 
 echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
 
-echo Initialize the crowdfund contract
+echo "Initialize the crowdfund contract"
 deadline="$(($(date +"%s") + 86400))"
 soroban invoke \
   --id "$CROWDFUND_ID" \
@@ -65,3 +65,5 @@ soroban invoke \
   --arg "1000000000" \
   --arg "$TOKEN_ID" \
   --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
+
+echo "Done"
