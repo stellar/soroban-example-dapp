@@ -30,7 +30,7 @@ export function Deposits(props: IDepositsProps) {
         SorobanClient.StrKey.decodeEd25519PublicKey(props.address)
       )],
       sorobanContext: useSorobanReact()
-      })
+    })
   }
 
   let yourDepositsXdr = useLoadDeposits()

@@ -33,23 +33,26 @@ const Pledge: FunctionComponent = () => {
         contractId: Constants.TokenId,
         method: 'balance',
         params: [contractIdentifier(Buffer.from(Constants.CrowdfundId, 'hex'))],
-        sorobanContext: sorobanContext
-    }),
+        sorobanContext
+      }),
 
       decimals: useContractValue({ 
         contractId: Constants.TokenId,
         method: 'decimals',
-        sorobanContext: sorobanContext}),
+        sorobanContext
+      }),
 
       name: useContractValue({ 
         contractId: Constants.TokenId,
         method: 'name',
-        sorobanContext: sorobanContext}),
+        sorobanContext
+      }),
 
       symbol: useContractValue({ 
         contractId: Constants.TokenId,
         method: 'symbol',
-        sorobanContext: sorobanContext}),
+        sorobanContext
+      }),
     }
   }
 
@@ -57,17 +60,20 @@ const Pledge: FunctionComponent = () => {
   let deadline = useContractValue({ 
     contractId: Constants.CrowdfundId,
     method: 'deadline',
-    sorobanContext: sorobanContext})
+    sorobanContext
+  })
 
   let started = useContractValue({ 
     contractId: Constants.CrowdfundId,
     method: 'started',
-    sorobanContext: sorobanContext})
+    sorobanContext
+  })
     
   let targetAmountXdr = useContractValue({ 
     contractId: Constants.CrowdfundId,
     method: 'target',
-    sorobanContext: sorobanContext})
+    sorobanContext
+  })
 
   // Convert the result ScVals to js types
   const tokenBalance = convert.scvalToBigNumber(token.balance.result)

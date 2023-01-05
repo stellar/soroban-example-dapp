@@ -50,8 +50,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     contractId: props.tokenId,
     method: 'allowance',
     params: [user, spender],
-    sorobanContext: sorobanContext
-})
+    sorobanContext
+  })
   const allowance = convert.scvalToBigNumber(allowanceScval.result)
   const parsedAmount = BigNumber(amount || 0)
   const needsApproval = allowance.eq(0) || allowance.lt(parsedAmount)
@@ -97,10 +97,11 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           nonce,
           spender,
           amountScVal
-        ),  {sorobanContext: sorobanContext})
+        ), {sorobanContext})
       }
       // Deposit the tokens
-      let result = await sendTransaction(contractTransaction(
+      let result = await sendTransaction(
+        contractTransaction(
           props.networkPassphrase,
           source,
           props.crowdfundId,
@@ -109,7 +110,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
           ),
           amountScVal
-        ), {sorobanContext: sorobanContext})
+        ),
+        {sorobanContext}
+      )
       setResultSubmit({
         status: 'success',
         scVal: result,
@@ -263,10 +266,15 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             recipient,
             amountScVal
           )
-          let result = await sendTransaction(mint,
-                                              { secretKey: Constants.TokenAdminSecretKey,
-                                              sorobanContext: sorobanContext})
-          // TODO: Show some user feedback while we are awaiting, and then based on the result
+          let result = await sendTransaction(
+            mint,
+            {
+              secretKey: Constants.TokenAdminSecretKey,
+              sorobanContext
+            }
+          )
+          // TODO: Show some user feedback while we are awaiting, and then
+          // based on the result
           console.debug(result)
           setSubmitting(false)
         }}
