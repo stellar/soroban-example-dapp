@@ -91,9 +91,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       // of `addFootprint()`, but couldn't digest it further.
 
       if (needsApproval) {
-        // Approve the transfer first
         console.debug(`approving Signature::Invoker to spend ${amount} of ` +
-          `${props.account}'s tokens in ${props.crowdfundId}`)
+                      `${props.account}'s tokens in ${props.crowdfundId}`)
+
+        // Approve the transfer first
         await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
@@ -274,53 +275,54 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           if (!balances || balances.filter(b => (
             b.asset_code == symbol && b.asset_issuer == Constants.TokenAdmin
           )).length === 0) {
-            const txResult1 = await sendTransaction(
-              new SorobanClient.TransactionBuilder(walletSource, {
+            try {
+              const trustlineResult = await sendTransaction(
+                new SorobanClient.TransactionBuilder(walletSource, {
+                  networkPassphrase,
+                  fee: "1000", // arbitrary
+                })
+                .setTimeout(60)
+                .addOperation(
+                  SorobanClient.Operation.changeTrust({
+                    asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+                  })
+                )
+                .build(), {
+                  timeout: 60 * 1000, // should be enough time to approve the tx
+                  skipAddingFootprint: true, // classic = no footprint
+                  // omit `secretKey` to have Freighter prompt for signing
+                }
+              )
+              console.debug(trustlineResult)
+            } catch (err) {
+              console.error(err)
+            }
+          }
+
+          try {
+            const paymentResult = await sendTransaction(
+              new SorobanClient.TransactionBuilder(adminSource, {
                 networkPassphrase,
-                fee: "1000", // arbitrary
+                fee: "1000",
               })
-              .setTimeout(60)
+              .setTimeout(10)
               .addOperation(
-                SorobanClient.Operation.changeTrust({
+                SorobanClient.Operation.payment({
+                  destination: wallet.id,
                   asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+                  amount: amount.toString(),
                 })
               )
               .build(), {
-                timeout: 60 * 1000, // should be enough time to approve the tx
-                skipAddingFootprint: true, // classic = no footprint
-                // omit `secretKey` to have Freighter prompt for signing
+                timeout: 10 * 1000,
+                skipAddingFootprint: true,
+                secretKey: Constants.TokenAdminSecretKey,
               }
-            ).catch((err) => {
-              console.error(err)
-              setSubmitting(false)
-            })
-            console.debug(txResult1)
-          }
-
-          const txResult2 = await sendTransaction(
-            new SorobanClient.TransactionBuilder(adminSource, {
-              networkPassphrase,
-              fee: "1000",
-            })
-            .setTimeout(10)
-            .addOperation(
-              SorobanClient.Operation.payment({
-                destination: wallet.id,
-                asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
-                amount: amount.toString(),
-              })
             )
-            .build(), {
-              timeout: 10 * 1000,
-              skipAddingFootprint: true,
-              secretKey: Constants.TokenAdminSecretKey,
-            }
-          ).catch((err) => {
+            console.debug(paymentResult)
+          } catch (err) {
             console.error(err)
-            setSubmitting(false)
-          })
-          console.debug(txResult2)
-
+          }
           //
           // TODO: Show some user feedback while we are awaiting, and then based
           // on the result
