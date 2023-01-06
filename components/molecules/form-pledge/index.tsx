@@ -84,30 +84,21 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     console.log(props.account, sequence, invoker, nonce, amountScVal)
 
     try {
+      // FIXME: The `sendTransaction` calls throw an error:
+      //
+      //    Trying to access beyond buffer length
+      //
+      // that I can't resolve T_T. I dug as deep as the operation cloning loop
+      // of `addFootprint()`, but couldn't digest it further.
+
       if (needsApproval) {
         // Approve the transfer first
-        //
-        // FIXME: The `contractTransaction` call throws an error:
-        //
-        //    Trying to access beyond buffer length
-        //
-        // that I can't resolve T_T. I duplicated the same code (i.e. printed
-        // out the values and recreated them in the same way) in a separate
-        // project with
-        //
-        //    yarn add typescript tslib soroban-client bignumber.js
-        //
-        // and it gave me a transaction. That means it isn't a versioning or
-        // compatibility issue. So what could it be???
         console.debug(`approving Signature::Invoker to spend ${amount} of ` +
           `${props.account}'s tokens in ${props.crowdfundId}`)
         await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
           props.tokenId,
-          // We shouldn't need to track the allowance first, because this should
-          // be unique to the spender and will naturally decr appropriately when
-          // we call deposit later.
           'incr_allow',
           invoker,
           nonce,
@@ -115,6 +106,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           amountScVal
         ))
       }
+
       // Deposit the tokens
       let result = await sendTransaction(contractTransaction(
           props.networkPassphrase,
@@ -126,6 +118,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           ),
           amountScVal
         ))
+
+      // Do we need to decr_allow after deposit, or does that happen
+      // automatically when the contract does xfer_from internally?
+
       setResultSubmit({
         status: 'success',
         scVal: result,
@@ -271,12 +267,11 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           // requires approval from Freighter while the other can be done with
           // the stored token issuer's secret key.
           //
-          // FIXME: The `getAccount()` RPC endpoint doesn't return balance
-          //        information, so we never know whether or not the user needs
-          //        a trustline to receive the minted asset.
+          // FIXME: The `getAccount()` RPC endpoint doesn't return `balances`,
+          //        so we never know whether or not the user needs a trustline
+          //        to receive the minted asset. We just do it unconditionally.
           //
           if (!balances || balances.filter(b => (
-          // if (balances?.filter(b => (
             b.asset_code == symbol && b.asset_issuer == Constants.TokenAdmin
           )).length === 0) {
             const txResult1 = await sendTransaction(
@@ -292,7 +287,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
               )
               .build(), {
                 timeout: 60 * 1000, // should be enough time to approve the tx
-                skipAddingFootprint: true,
+                skipAddingFootprint: true, // classic = no footprint
                 // omit `secretKey` to have Freighter prompt for signing
               }
             ).catch((err) => {
