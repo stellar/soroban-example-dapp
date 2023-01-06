@@ -2,7 +2,6 @@ import React, { FunctionComponent, useState } from 'react'
 import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import styles from './style.module.css'
-import { getPublicKey } from "@stellar/freighter-api"
 import {
   useContractValue,
   useNetwork,
@@ -81,6 +80,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     )
     const nonce = convert.bigNumberToI128(BigNumber(0))
     const amountScVal = convert.bigNumberToI128(parsedAmount)
+
+    console.log(props.account, sequence, invoker, nonce, amountScVal)
 
     try {
       if (needsApproval) {
@@ -259,7 +260,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           let { sequence, balances } = await server.getAccount(Constants.TokenAdmin)
           let adminSource = new SorobanClient.Account(Constants.TokenAdmin, sequence)
 
-          let wallet = await getPublicKey().then((pk) => server.getAccount(pk))
+          let wallet = await server.getAccount(props.account)
           let walletSource = new SorobanClient.Account(wallet.id, wallet.sequence)
 
           //
@@ -274,8 +275,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           //        information, so we never know whether or not the user needs
           //        a trustline to receive the minted asset.
           //
-          // if (!balances || balances.filter(b => (
-          if (balances?.filter(b => (
+          if (!balances || balances.filter(b => (
+          // if (balances?.filter(b => (
             b.asset_code == symbol && b.asset_issuer == Constants.TokenAdmin
           )).length === 0) {
             const txResult1 = await sendTransaction(
