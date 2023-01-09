@@ -53,6 +53,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   )
   const allowance = convert.scvalToBigNumber(allowanceScval.result)
   const parsedAmount = BigNumber(amount || 0)
+
+  // FIXME: This is probably always going to be true, since the allowance
+  // increases by the deposit amount, then decreases after the deposit
+  // completes, meaning it's always zero.
   const needsApproval = allowance.eq(0) || allowance.lt(parsedAmount)
 
   const { sendTransaction } = useSendTransaction()
@@ -80,17 +84,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
     )
     const nonce = convert.bigNumberToI128(BigNumber(0))
-    const amountStroops = parsedAmount.shiftedBy(7)
-    const amountScVal = convert.bigNumberToI128(amountStroops)
+    const amountScVal = convert.bigNumberToI128(parsedAmount.shiftedBy(7))
 
     try {
-      // FIXME: The `sendTransaction` calls throw an error:
-      //
-      //    Trying to access beyond buffer length
-      //
-      // that I can't resolve T_T. I dug as deep as the operation cloning loop
-      // of `addFootprint()`, but couldn't digest it further.
-
       if (needsApproval) {
         console.debug(`approving Signature::Invoker to spend ${amount} of ` +
                       `${props.account}'s tokens in ${props.crowdfundId}`)
@@ -270,7 +266,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           //
           // FIXME: The `getAccount()` RPC endpoint doesn't return `balances`,
           //        so we never know whether or not the user needs a trustline
-          //        to receive the minted asset. We just do it unconditionally.
+          //        to receive the minted asset.
+          //
+          // Today, we establish the trustline unconditionally.
           //
           // if (balances?.filter(b => (
           if (!balances || balances.filter(b => (
