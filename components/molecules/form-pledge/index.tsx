@@ -80,7 +80,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
     )
     const nonce = convert.bigNumberToI128(BigNumber(0))
-    const amountScVal = convert.bigNumberToI128(parsedAmount)
+    const amountStroops = parsedAmount.shiftedBy(7)
+    const amountScVal = convert.bigNumberToI128(amountStroops)
 
     try {
       // FIXME: The `sendTransaction` calls throw an error:
@@ -227,7 +228,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     </div>
   )
 
-  // MintButton mints 100.00 tokens to the user's wallet for testing
+  // MintButton mints 100.0000000 tokens to the user's wallet for testing
   function MintButton({
     account,
     decimals,
