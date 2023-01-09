@@ -1,12 +1,12 @@
 #![cfg(test)]
 
 use super::testutils::{register_test_contract as register_crowdfund, Crowdfund};
-use super::token::{Client as Token, TokenMetadata};
+use super::token::Client as Token;
 use rand::{thread_rng, RngCore};
 use soroban_auth::{Identifier, Signature};
 use soroban_sdk::{
     testutils::{Accounts, Ledger},
-    AccountId, BytesN, Env, IntoVal,
+    xdr, AccountId, BytesN, Env,
 };
 
 fn generate_contract_id() -> [u8; 32] {
@@ -16,19 +16,14 @@ fn generate_contract_id() -> [u8; 32] {
 }
 
 fn create_token_contract(e: &Env, admin: &AccountId) -> (BytesN<32>, Token) {
-    let id = generate_contract_id();
-    e.register_contract_token(&BytesN::from_array(e, &id));
-    let token = Token::new(e, id);
-    // decimals, name, symbol don't matter in tests
-    token.init(
-        &Identifier::Account(admin.clone()),
-        &TokenMetadata {
-            name: "name".into_val(e),
-            symbol: "symbol".into_val(e),
-            decimals: 7,
-        },
-    );
-    (BytesN::from_array(e, &id), token)
+    let asset = xdr::Asset::CreditAlphanum4(xdr::AlphaNum4 {
+        asset_code: xdr::AssetCode4([0x41; 4]),
+        issuer: admin.try_into().unwrap(),
+    });
+    let id = e.register_stellar_asset_contract(asset);
+    let id_copy: BytesN<32> = id.clone(); // can't do this inline???
+
+    (id, Token::new(e, id_copy))
 }
 
 fn create_crowdfund_contract(
@@ -102,7 +97,7 @@ impl Setup {
 
         token
             .with_source_account(&user1)
-            .approve(&Signature::Invoker, &0, &crowdfund_id, &10);
+            .incr_allow(&Signature::Invoker, &0, &crowdfund_id, &10);
         crowdfund.client().deposit(&user1_id, &10);
 
         Self {
@@ -132,7 +127,7 @@ fn test_expired() {
 #[test]
 fn test_success() {
     let setup = Setup::new();
-    setup.token.with_source_account(&setup.user2).approve(
+    setup.token.with_source_account(&setup.user2).incr_allow(
         &Signature::Invoker,
         &0,
         &setup.crowdfund_id,
@@ -164,7 +159,7 @@ fn sale_still_running() {
 #[should_panic(expected = "sale was successful, only the recipient may withdraw")]
 fn sale_successful_only_recipient() {
     let setup = Setup::new();
-    setup.token.with_source_account(&setup.user2).approve(
+    setup.token.with_source_account(&setup.user2).incr_allow(
         &Signature::Invoker,
         &0,
         &setup.crowdfund_id,
