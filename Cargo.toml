@@ -42,24 +42,24 @@ rev = "65498c8"
 
 
 [workspace.dependencies.soroban-spec]
-version = "0.4.1"
+version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "980778e"
+rev = "51e5e6d"
 
 [workspace.dependencies.soroban-sdk]
-version = "0.4.1"
+version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "980778e"
+rev = "51e5e6d"
 
 [workspace.dependencies.soroban-sdk-macros]
-version = "0.4.1"
+version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "980778e"
+rev = "51e5e6d"
 
 [workspace.dependencies.soroban-auth]
-version = "0.4.1"
+version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "980778e"
+rev = "51e5e6d"
 
 [workspace.dependencies.stellar-xdr]
 version = "0.0.12"
