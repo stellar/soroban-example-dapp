@@ -29,7 +29,6 @@ const Pledge: FunctionComponent = () => {
   // Call the contract rpcs to fetch values
   const useLoadToken = (): any => {
     return {
-<<<<<<< HEAD
       balance: useContractValue({ 
         contractId: Constants.TokenId,
         method: 'balance',
@@ -54,16 +53,6 @@ const Pledge: FunctionComponent = () => {
         method: 'symbol',
         sorobanContext
       }),
-=======
-      balance: useContractValue(
-        Constants.TokenId,
-        'balance',
-        contractIdentifier(Buffer.from(Constants.CrowdfundId, 'hex'))
-      ),
-      decimals: useContractValue(Constants.TokenId, 'decimals'),
-      name: useContractValue(Constants.TokenId, 'name'),
-      symbol: useContractValue(Constants.TokenId, 'symbol')
->>>>>>> 0bb2580b7cf15df434fae7a30bfd1186f73695d5
     }
   }
 
