@@ -274,6 +274,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             b.asset_code == symbol && b.asset_issuer == Constants.TokenAdmin
           )).length === 0) {
             try {
+              console.log("sorobanContext: ", sorobanContext)
               const trustlineResult = await sendTransaction(
                 new SorobanClient.TransactionBuilder(walletSource, {
                   networkPassphrase,
@@ -289,7 +290,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
                   timeout: 60 * 1000, // should be enough time to approve the tx
                   skipAddingFootprint: true, // classic = no footprint
                   // omit `secretKey` to have Freighter prompt for signing
-                }
+                  // hence, we need to explicit the sorobanContext
+                  sorobanContext
+                },
               )
               console.debug(trustlineResult)
             } catch (err) {
@@ -315,6 +318,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
                 timeout: 10 * 1000,
                 skipAddingFootprint: true,
                 secretKey: Constants.TokenAdminSecretKey,
+                sorobanContext
               }
             )
             console.debug(paymentResult)
