@@ -2,7 +2,6 @@ import React, { FunctionComponent, useState } from 'react'
 import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import styles from './style.module.css'
-import { getPublicKey } from "@stellar/freighter-api"
 import {
   useContractValue,
   useNetwork,
@@ -250,7 +249,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           let { sequence, balances } = await server.getAccount(Constants.TokenAdmin)
           let adminSource = new SorobanClient.Account(Constants.TokenAdmin, sequence)
 
-          let wallet = await getPublicKey().then((pk) => server.getAccount(pk))
+          let wallet = await server.getAccount(account)
           let walletSource = new SorobanClient.Account(wallet.id, wallet.sequence)
 
           //
