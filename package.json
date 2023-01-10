@@ -12,9 +12,10 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
-    "@soroban-react/core": "^1.0.4",
-    "@soroban-react/freighter": "^1.0.0",
-    "@soroban-react/types": "^1.0.0",
+    "@soroban-react/contracts": "^3.4.0",
+    "@soroban-react/core": "^3.2.1",
+    "@soroban-react/freighter": "^3.2.1",
+    "@soroban-react/types": "^3.2.1",
     "@stellar/freighter-api": "^1.3.1",
     "axios": "^0.27.2",
     "bignumber.js": "^9.1.0",

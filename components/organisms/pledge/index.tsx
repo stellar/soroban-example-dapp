@@ -4,11 +4,10 @@ import styles from './style.module.css'
 import { Spacer } from '../../atoms/spacer'
 import { Utils } from '../../../shared/utils'
 import {
-  ContractValue,
   useAccount,
-  useContractValue,
   useNetwork,
 } from '../../../wallet'
+import { ContractValueType, useContractValue } from '@soroban-react/contracts'
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
 import * as convert from '../../../convert'
@@ -17,6 +16,7 @@ import {
   accountIdentifier,
   contractIdentifier,
 } from '../../../shared/identifiers'
+import { useSorobanReact } from '@soroban-react/core'
 let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
@@ -25,24 +25,55 @@ const Pledge: FunctionComponent = () => {
 
   const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
+  const sorobanContext = useSorobanReact()
   // Call the contract rpcs to fetch values
   const useLoadToken = (): any => {
     return {
-      balance: useContractValue(
-        Constants.TokenId,
-        'balance',
-        contractIdentifier(Buffer.from(Constants.CrowdfundId, 'hex'))
-      ),
-      decimals: useContractValue(Constants.TokenId, 'decimals'),
-      name: useContractValue(Constants.TokenId, 'name'),
-      symbol: useContractValue(Constants.TokenId, 'symbol')
+      balance: useContractValue({ 
+        contractId: Constants.TokenId,
+        method: 'balance',
+        params: [contractIdentifier(Buffer.from(Constants.CrowdfundId, 'hex'))],
+        sorobanContext
+      }),
+
+      decimals: useContractValue({ 
+        contractId: Constants.TokenId,
+        method: 'decimals',
+        sorobanContext
+      }),
+
+      name: useContractValue({ 
+        contractId: Constants.TokenId,
+        method: 'name',
+        sorobanContext
+      }),
+
+      symbol: useContractValue({ 
+        contractId: Constants.TokenId,
+        method: 'symbol',
+        sorobanContext
+      }),
     }
   }
 
   let token = useLoadToken()
-  let deadline = useContractValue(Constants.CrowdfundId, 'deadline')
-  let started = useContractValue(Constants.CrowdfundId, 'started')
-  let targetAmountXdr = useContractValue(Constants.CrowdfundId, 'target')
+  let deadline = useContractValue({ 
+    contractId: Constants.CrowdfundId,
+    method: 'deadline',
+    sorobanContext
+  })
+
+  let started = useContractValue({ 
+    contractId: Constants.CrowdfundId,
+    method: 'started',
+    sorobanContext
+  })
+    
+  let targetAmountXdr = useContractValue({ 
+    contractId: Constants.CrowdfundId,
+    method: 'target',
+    sorobanContext
+  })
 
   // Convert the result ScVals to js types
   const tokenBalance = convert.scvalToBigNumber(token.balance.result)

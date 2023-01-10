@@ -8,9 +8,10 @@ import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
 import { accountIdentifier } from '../../../shared/identifiers'
 import {
-  ContractValue,
+  ContractValueType,
   useContractValue,
-} from '../../../wallet'
+} from '@soroban-react/contracts'
+import { useSorobanReact } from '@soroban-react/core'
 
 export interface IDepositsProps {
   address: string
@@ -21,14 +22,15 @@ export interface IDepositsProps {
 }
 
 export function Deposits(props: IDepositsProps) {
-  const useLoadDeposits = (): ContractValue => {
-    return useContractValue(
-      Constants.CrowdfundId,
-      'balance',
-      accountIdentifier(
+  const useLoadDeposits = (): ContractValueType => {
+    return useContractValue({
+      contractId: Constants.CrowdfundId,
+      method: 'balance',
+      params: [accountIdentifier(
         SorobanClient.StrKey.decodeEd25519PublicKey(props.address)
-      )
-    )
+      )],
+      sorobanContext: useSorobanReact()
+    })
   }
 
   let yourDepositsXdr = useLoadDeposits()

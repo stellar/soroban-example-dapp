@@ -2,10 +2,10 @@ import React, { FunctionComponent, useState } from 'react'
 import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import styles from './style.module.css'
+import { useContractValue, useSendTransaction } from '@soroban-react/contracts'
+import { useSorobanReact } from '@soroban-react/core'
 import {
-  useContractValue,
   useNetwork,
-  useSendTransaction,
 } from '../../../wallet'
 import * as SorobanClient from 'soroban-client'
 import BigNumber from 'bignumber.js'
@@ -33,6 +33,7 @@ export interface IResultSubmit {
 }
 
 const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
+  
   const [amount, setAmount] = useState<number>()
   const [resultSubmit, setResultSubmit] = useState<IResultSubmit | undefined>()
   const [input, setInput] = useState('')
@@ -44,12 +45,13 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   )
 
   const spender = contractIdentifier(Buffer.from(props.crowdfundId, 'hex'))
-  const allowanceScval = useContractValue(
-    props.tokenId,
-    'allowance',
-    user,
-    spender
-  )
+  const sorobanContext = useSorobanReact()
+  const allowanceScval = useContractValue({
+    contractId: props.tokenId,
+    method: 'allowance',
+    params: [user, spender],
+    sorobanContext
+  })
   const allowance = convert.scvalToBigNumber(allowanceScval.result)
   const parsedAmount = BigNumber(amount || 0)
 
@@ -100,11 +102,12 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           nonce,
           spender,
           amountScVal
-        ))
+        ), {sorobanContext})
       }
 
       // Deposit the tokens
-      let result = await sendTransaction(contractTransaction(
+      let result = await sendTransaction(
+        contractTransaction(
           props.networkPassphrase,
           source,
           props.crowdfundId,
@@ -113,8 +116,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
           ),
           amountScVal
-        ))
-
+        ),
+        {sorobanContext}
+      )
       setResultSubmit({
         status: 'success',
         scVal: result,
@@ -235,7 +239,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
     const { sendTransaction } = useSendTransaction()
-
     const amount = BigNumber(100)
 
     return (
@@ -271,6 +274,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             b.asset_code == symbol && b.asset_issuer == Constants.TokenAdmin
           )).length === 0) {
             try {
+              console.log("sorobanContext: ", sorobanContext)
               const trustlineResult = await sendTransaction(
                 new SorobanClient.TransactionBuilder(walletSource, {
                   networkPassphrase,
@@ -286,7 +290,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
                   timeout: 60 * 1000, // should be enough time to approve the tx
                   skipAddingFootprint: true, // classic = no footprint
                   // omit `secretKey` to have Freighter prompt for signing
-                }
+                  // hence, we need to explicit the sorobanContext
+                  sorobanContext
+                },
               )
               console.debug(trustlineResult)
             } catch (err) {
@@ -312,6 +318,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
                 timeout: 10 * 1000,
                 skipAddingFootprint: true,
                 secretKey: Constants.TokenAdminSecretKey,
+                sorobanContext
               }
             )
             console.debug(paymentResult)
