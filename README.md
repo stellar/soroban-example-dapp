@@ -9,25 +9,10 @@ backed by smart contracts on Stellar.
 
 ### Dependencies
 
-1. `soroban-cli v0.3.3`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
-2. `docker` for Standalone and Futurenet backends.
+1. `soroban-cli v0.4.0`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
+2. `docker` (both Standalone and Futurenet backends require it).
 3. `Node.js v17`
 4. `Freighter wallet v2.9.1`. Download it from https://github.com/stellar/freighter/releases/tag/2.9.1 and Enable "Experimental Mode" in the settings (gear icon).
-
-### Backend (Local Sandbox)
-
-1. Run the backend with `soroban serve`
-2. Run `./initialize.sh sandbox` to load the contracts and initialize it.
-  - Note: this will create a `.soroban` sub-directory, to contain the sandbox
-    network data.
-3. Add the Sandbox custom network in Freighter
-    |   |   |
-    |---|---|
-    | Name | Sandbox |
-    | URL | http://localhost:8000/soroban/rpc |
-    | Passphrase | Local Sandbox Stellar Network ; September 2022 |
-    | Allow HTTP connection | Enabled |
-    | Switch to this network | Enabled |
 
 ### Backend (Local Standalone Network)
 

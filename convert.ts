@@ -68,7 +68,7 @@ function bigNumberFromBytes(signed: boolean, ...bytes: (string | number | bigint
 export function bigNumberToI128(value: BigNumber): SorobanClient.xdr.ScVal {
   const b: bigint = BigInt(value.toFixed(0));
   const buf = bigintToBuf(b);
-  if (buf.length > 4) {
+  if (buf.length > 16) {
     throw new Error("BigNumber overflows i128");
   }
 
@@ -77,17 +77,25 @@ export function bigNumberToI128(value: BigNumber): SorobanClient.xdr.ScVal {
     buf[0] &= 0x7f;
   }
 
-  // left-pad with zeros up to 4 bytes
-  let padded = Buffer.alloc(4);
+  // left-pad with zeros up to 16 bytes
+  let padded = Buffer.alloc(16);
   buf.copy(padded, padded.length-buf.length);
+  console.debug({value: value.toString(), padded});
 
   if (value.isNegative()) {
     // Set the top bit
     padded[0] |= 0x80;
   }
 
-  const hi = new xdr.Uint64(padded[1], padded[0]);
-  const lo = new xdr.Uint64(padded[3], padded[2]);
+  const hi = new xdr.Uint64(
+    bigNumberFromBytes(false, ...padded.slice(4, 8)).toNumber(),
+    bigNumberFromBytes(false, ...padded.slice(0, 4)).toNumber()
+  );
+  const lo = new xdr.Uint64(
+    bigNumberFromBytes(false, ...padded.slice(12, 16)).toNumber(),
+    bigNumberFromBytes(false, ...padded.slice(8, 12)).toNumber()
+  );
+
   return xdr.ScVal.scvObject(xdr.ScObject.scoI128(new xdr.Int128Parts({lo, hi})));
 }
 

@@ -38,16 +38,10 @@ futurenet)
 esac
 
 
-echo Deploy the token contract
-TOKEN_ID="$(
-  soroban token create \
-    --admin "$TOKEN_ADMIN" \
-    --name "Example Token" \
-    --symbol "EXT" \
-    --decimal 2
-)"
+echo Wrap the Stellar asset
 mkdir -p .soroban
-echo "$TOKEN_ID" > .soroban/token_id
+TOKEN_ID=$(soroban token wrap --asset "EXT:$TOKEN_ADMIN")
+echo -n "$TOKEN_ID" > .soroban/token_id
 
 echo Build the crowdfund contract
 make build
@@ -61,7 +55,7 @@ echo "$CROWDFUND_ID" > .soroban/crowdfund_id
 
 echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
 
-echo Initialize the crowdfund contract
+echo "Initialize the crowdfund contract"
 deadline="$(($(date +"%s") + 86400))"
 soroban invoke \
   --id "$CROWDFUND_ID" \
@@ -71,3 +65,5 @@ soroban invoke \
   --arg "1000000000" \
   --arg "$TOKEN_ID" \
   --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
+
+echo "Done"

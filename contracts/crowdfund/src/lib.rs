@@ -181,7 +181,8 @@ impl Crowdfund {
     }
 
     pub fn deposit(e: Env, user: Identifier, amount: i128) {
-        assert!(!(get_state(&e) != State::Running), "sale is not running");
+        assert!(amount > 0, "amount must be positive");
+        assert!(get_state(&e) == State::Running, "sale is not running");
 
         let recipient = get_recipient(&e);
         assert!(user != recipient, "recipient may not deposit");
