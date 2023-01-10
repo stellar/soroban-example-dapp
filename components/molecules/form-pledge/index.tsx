@@ -10,7 +10,6 @@ import {
 import * as SorobanClient from 'soroban-client'
 import BigNumber from 'bignumber.js'
 import * as convert from '../../../convert'
-import { Account } from 'soroban-client'
 import { Constants } from '../../../shared/constants'
 import { accountIdentifier, contractIdentifier } from '../../../shared/identifiers'
 import { Spacer } from '../../atoms/spacer'
@@ -43,6 +42,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const user = accountIdentifier(
     SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
   )
+
   const spender = contractIdentifier(Buffer.from(props.crowdfundId, 'hex'))
   const allowanceScval = useContractValue(
     props.tokenId,
@@ -52,6 +52,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   )
   const allowance = convert.scvalToBigNumber(allowanceScval.result)
   const parsedAmount = BigNumber(amount || 0)
+
+  // FIXME: This is probably always going to be true, since the allowance
+  // increases by the deposit amount, then decreases after the deposit
+  // completes, meaning it's always zero.
   const needsApproval = allowance.eq(0) || allowance.lt(parsedAmount)
 
   const { sendTransaction } = useSendTransaction()
@@ -74,29 +78,31 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     if (!server) throw new Error("Not connected to server")
 
     let { sequence } = await server.getAccount(props.account)
-    let source = new SorobanClient.Account(props.account, sequence)
-    let invoker = xdr.ScVal.scvObject(
+    const source = new SorobanClient.Account(props.account, sequence)
+    const invoker = xdr.ScVal.scvObject(
       xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
     )
-    let nonce = convert.bigNumberToI128(BigNumber(0))
-    const amountScVal = convert.bigNumberToI128(
-      parsedAmount.shiftedBy(props.decimals).decimalPlaces(0)
-    )
+    const nonce = convert.bigNumberToI128(BigNumber(0))
+    const amountScVal = convert.bigNumberToI128(parsedAmount.shiftedBy(7))
 
     try {
       if (needsApproval) {
+        console.debug(`approving Signature::Invoker to spend ${amount} of ` +
+                      `${props.account}'s tokens in ${props.crowdfundId}`)
+
         // Approve the transfer first
         await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
           props.tokenId,
-          'approve',
+          'incr_allow',
           invoker,
           nonce,
           spender,
           amountScVal
         ))
       }
+
       // Deposit the tokens
       let result = await sendTransaction(contractTransaction(
           props.networkPassphrase,
@@ -108,6 +114,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           ),
           amountScVal
         ))
+
       setResultSubmit({
         status: 'success',
         scVal: result,
@@ -140,10 +147,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   ): SorobanClient.Transaction {
     const contract = new SorobanClient.Contract(contractId)
     return new SorobanClient.TransactionBuilder(source, {
-      // TODO: Figure out the fee
-      fee: '100',
-      networkPassphrase,
-    })
+        // TODO: Figure out the fee
+        fee: '100',
+        networkPassphrase,
+      })
       .addOperation(contract.call(method, ...params))
       .setTimeout(SorobanClient.TimeoutInfinite)
       .build()
@@ -213,7 +220,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     </div>
   )
 
-  // MintButton mints 100.00 tokens to the user's wallet for testing
+  // MintButton mints 100.0000000 tokens to the user's wallet for testing
   function MintButton({
     account,
     decimals,
@@ -231,40 +238,90 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
     const amount = BigNumber(100)
 
-    // TODO: Check and handle approval
     return (
       <Button
-        title={`Mint ${amount.decimalPlaces(decimals).toString()} ${symbol}`}
+        title={`Mint ${amount.toString()} ${symbol}`}
         onClick={async () => {
           setSubmitting(true)
 
           if (!server) throw new Error("Not connected to server")
 
-          let { sequence } = await server.getAccount(Constants.TokenAdmin)
-          let source = new SorobanClient.Account(Constants.TokenAdmin, sequence)
-          let invoker = xdr.ScVal.scvObject(
-            xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
-          )
-          let nonce = convert.bigNumberToI128(BigNumber(0))
-          const recipient = accountIdentifier(
-            SorobanClient.StrKey.decodeEd25519PublicKey(account)
-          )
-          const amountScVal = convert.bigNumberToI128(
-            amount.shiftedBy(decimals).decimalPlaces(0)
-          )
-          let mint = contractTransaction(
-            networkPassphrase,
-            source,
-            props.tokenId,
-            'mint',
-            invoker,
-            nonce,
-            recipient,
-            amountScVal
-          )
-          let result = await sendTransaction(mint, { secretKey: Constants.TokenAdminSecretKey })
-          // TODO: Show some user feedback while we are awaiting, and then based on the result
-          console.debug(result)
+          let { sequence, balances } = await server.getAccount(Constants.TokenAdmin)
+          let adminSource = new SorobanClient.Account(Constants.TokenAdmin, sequence)
+
+          let wallet = await server.getAccount(account)
+          let walletSource = new SorobanClient.Account(wallet.id, wallet.sequence)
+
+          //
+          // 1. Establish a trustline to the admin (if necessary)
+          // 2. The admin sends us money (mint)
+          //
+          // We have to do this in two separate transactions because one
+          // requires approval from Freighter while the other can be done with
+          // the stored token issuer's secret key.
+          //
+          // FIXME: The `getAccount()` RPC endpoint doesn't return `balances`,
+          //        so we never know whether or not the user needs a trustline
+          //        to receive the minted asset.
+          //
+          // Today, we establish the trustline unconditionally.
+          //
+          // if (balances?.filter(b => (
+          if (!balances || balances.filter(b => (
+            b.asset_code == symbol && b.asset_issuer == Constants.TokenAdmin
+          )).length === 0) {
+            try {
+              const trustlineResult = await sendTransaction(
+                new SorobanClient.TransactionBuilder(walletSource, {
+                  networkPassphrase,
+                  fee: "1000", // arbitrary
+                })
+                .setTimeout(60)
+                .addOperation(
+                  SorobanClient.Operation.changeTrust({
+                    asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+                  })
+                )
+                .build(), {
+                  timeout: 60 * 1000, // should be enough time to approve the tx
+                  skipAddingFootprint: true, // classic = no footprint
+                  // omit `secretKey` to have Freighter prompt for signing
+                }
+              )
+              console.debug(trustlineResult)
+            } catch (err) {
+              console.error(err)
+            }
+          }
+
+          try {
+            const paymentResult = await sendTransaction(
+              new SorobanClient.TransactionBuilder(adminSource, {
+                networkPassphrase,
+                fee: "1000",
+              })
+              .setTimeout(10)
+              .addOperation(
+                SorobanClient.Operation.payment({
+                  destination: wallet.id,
+                  asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+                  amount: amount.toString(),
+                })
+              )
+              .build(), {
+                timeout: 10 * 1000,
+                skipAddingFootprint: true,
+                secretKey: Constants.TokenAdminSecretKey,
+              }
+            )
+            console.debug(paymentResult)
+          } catch (err) {
+            console.error(err)
+          }
+          //
+          // TODO: Show some user feedback while we are awaiting, and then based
+          // on the result
+          //
           setSubmitting(false)
         }}
         disabled={isSubmitting}

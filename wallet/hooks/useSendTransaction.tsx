@@ -71,17 +71,26 @@ export function useSendTransaction<E = Error>(defaultTxn?: Transaction, defaultO
     for (let i = 0; i <= timeout; i+= sleepTime) {
       await sleep(sleepTime);
       try {
+        console.debug("tx id:", id)
         const response = await server.getTransactionStatus(id);
+        console.debug(response)
+
         switch (response.status) {
         case "pending": {
             continue;
           }
         case "success": {
-            if (response.results?.length != 1) {
-              throw new Error("Expected exactly one result");
-            }
             setState('success');
-            return SorobanClient.xdr.ScVal.fromXDR(Buffer.from(response.results[0].xdr, 'base64'));
+            let results = response.results
+            if (!results) {
+              // FIXME: Return a more sensible value for classic transactions.
+              return SorobanClient.xdr.ScVal.scvI32(-1)
+            }
+            if (results.length > 1) {
+              throw new Error(`Expected exactly one result, got ${response.results}.`);
+            }
+
+            return SorobanClient.xdr.ScVal.fromXDR(Buffer.from(results[0].xdr, 'base64'));
           }
         case "error": {
             setState('error');

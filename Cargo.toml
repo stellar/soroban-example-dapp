@@ -16,52 +16,52 @@ codegen-units = 1
 lto = true
 
 [workspace.dependencies.soroban-env-common]
-version = "0.0.11"
+version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "c551daf"
+rev = "65498c8"
 
 [workspace.dependencies.soroban-env-guest]
-version = "0.0.11"
+version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "c551daf"
+rev = "65498c8"
 
 [workspace.dependencies.soroban-env-macros]
-version = "0.0.11"
+version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "c551daf"
+rev = "65498c8"
 
 [workspace.dependencies.soroban-env-host]
-version = "0.0.11"
+version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "c551daf"
+rev = "65498c8"
 
 [workspace.dependencies.soroban-native-sdk-macros]
-version = "0.0.11"
+version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "c551daf"
+rev = "65498c8"
 
 
 [workspace.dependencies.soroban-spec]
-version = "0.3.2"
+version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "e2ecbee"
+rev = "51e5e6d"
 
 [workspace.dependencies.soroban-sdk]
-version = "0.3.2"
+version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "e2ecbee"
+rev = "51e5e6d"
 
 [workspace.dependencies.soroban-sdk-macros]
-version = "0.3.2"
+version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "e2ecbee"
+rev = "51e5e6d"
 
 [workspace.dependencies.soroban-auth]
-version = "0.3.2"
+version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "e2ecbee"
+rev = "51e5e6d"
 
 [workspace.dependencies.stellar-xdr]
-version = "0.0.11"
+version = "0.0.12"
 git = "https://github.com/stellar/rs-stellar-xdr"
-rev = "dbf2aba"
+rev = "154e07e"
