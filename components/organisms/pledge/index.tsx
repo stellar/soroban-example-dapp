@@ -50,6 +50,7 @@ const Pledge: FunctionComponent = () => {
     token.decimals.result && (token.decimals.result?.u32() ?? 7)
   const tokenName =
     token.name.result && convert.scvalToString(token.name.result)
+  // asset4 codes seem right-padded with null bytes, so strip those off
   const tokenSymbol =
     token.symbol.result && convert.scvalToString(token.symbol.result)?.replace("\u0000", "")
   const deadlineDate =

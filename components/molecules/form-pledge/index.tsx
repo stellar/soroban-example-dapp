@@ -116,9 +116,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           amountScVal
         ))
 
-      // Do we need to decr_allow after deposit, or does that happen
-      // automatically when the contract does xfer_from internally?
-
       setResultSubmit({
         status: 'success',
         scVal: result,
