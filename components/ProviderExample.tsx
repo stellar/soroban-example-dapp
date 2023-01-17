@@ -7,7 +7,7 @@ import {chain} from '../wallet/provideWalletChains'
       
   const chains: ChainMetadata[] = [chain.sandbox, chain.standalone, chain.futurenet];
   const {connectors} = getDefaultConnectors({
-                            appName: "Exanple Stellar App",
+                            appName: "Example Stellar App",
                             chains})
                             
   export default function ProviderExample({children}:{children: React.ReactNode}) {
