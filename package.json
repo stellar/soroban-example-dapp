@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
-    "@soroban-react/contracts": "^3.4.0",
+    "@soroban-react/contracts": "^3.5.0",
     "@soroban-react/core": "^3.2.1",
     "@soroban-react/freighter": "^3.2.1",
     "@soroban-react/types": "^3.2.1",
