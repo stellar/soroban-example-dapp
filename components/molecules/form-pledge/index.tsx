@@ -13,6 +13,15 @@ import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
 import { accountIdentifier, contractIdentifier } from '../../../shared/identifiers'
 import { Spacer } from '../../atoms/spacer'
+import { Contract as TokenContract } from './token'
+import { Contract as CrowdfundContract } from './crowdfund'
+// @ts-expect-error the 'soroban-cli' library doesn't exist yet;
+// it would export 'encoder' which contains `encode` and `decode` functions.
+import { encoder } from 'soroban-cli'
+
+const tokenContract = new TokenContract(encoder)
+const crowdFundContract = new CrowdfundContract(encoder)
+
 let xdr = SorobanClient.xdr
 
 export interface IFormPledgeProps {
@@ -81,11 +90,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
     let { sequence } = await server.getAccount(props.account)
     const source = new SorobanClient.Account(props.account, sequence)
-    const invoker = xdr.ScVal.scvObject(
-      xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
-    )
-    const nonce = convert.bigNumberToI128(BigNumber(0))
-    const amountScVal = convert.bigNumberToI128(parsedAmount.shiftedBy(7))
 
     try {
       if (needsApproval) {
@@ -96,12 +100,12 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
-          props.tokenId,
-          'incr_allow',
-          invoker,
-          nonce,
-          spender,
-          amountScVal
+          tokenContract.incrAllow({
+            invoker: 'Invoker',
+            nonce: 0,
+            spender: props.crowdfundId,
+            amount: parsedAmount.toString()
+          })
         ), {sorobanContext})
       }
 
@@ -110,12 +114,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         contractTransaction(
           props.networkPassphrase,
           source,
-          props.crowdfundId,
-          'deposit',
-          accountIdentifier(
-            SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
-          ),
-          amountScVal
+          crowdFundContract.deposit({
+            user: props.account,
+            amount: parsedAmount.toString(),
+          })
         ),
         {sorobanContext}
       )
@@ -145,17 +147,18 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   function contractTransaction(
     networkPassphrase: string,
     source: SorobanClient.Account,
-    contractId: string,
-    method: string,
-    ...params: SorobanClient.xdr.ScVal[]
+    args: Uint8Array,
   ): SorobanClient.Transaction {
-    const contract = new SorobanClient.Contract(contractId)
     return new SorobanClient.TransactionBuilder(source, {
         // TODO: Figure out the fee
         fee: '100',
         networkPassphrase,
       })
-      .addOperation(contract.call(method, ...params))
+      .addOperation(
+        xdr.Operation.fromXDR(
+          Buffer.from(args)
+        )
+      )
       .setTimeout(SorobanClient.TimeoutInfinite)
       .build()
   }
