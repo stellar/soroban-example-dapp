@@ -13,21 +13,16 @@ import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
 import { accountIdentifier, contractIdentifier } from '../../../shared/identifiers'
 import { Spacer } from '../../atoms/spacer'
-// @ts-expect-error the 'soroban-cli' library doesn't exist yet;
-// it would export 'encoder' which contains `encode` and `decode` functions.
-import { encoder } from 'soroban-cli'
+
+import { encoder, $init as encoderInit } from 'soroban-cli/dist/encoder/web'
 
 const tokenContractWasmPath = '../../../contracts/token/soroban_token_spec.wasm'
 const crowdfundContractWasmPath = '../../../target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm'
 
-const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
-let _fs: typeof import('fs/promises');
-async function fetchWasm (url: string) {
-  if (isNode) {
-    _fs = _fs || await import('fs/promises');
-    return WebAssembly.compile(await _fs.readFile(url));
-  }
-  return fetch(url).then(WebAssembly.compileStreaming);
+
+async function fetchWasm (url: string): Promise<ArrayBuffer> {
+  let res = await fetch(url);
+  return await res.arrayBuffer();
 }
 
 let xdr = SorobanClient.xdr
@@ -93,6 +88,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
   const handleSubmit = async (): Promise<void> => {
     setSubmitting(true)
+    await encoderInit;
 
     if (!server) throw new Error("Not connected to server")
 
@@ -108,7 +104,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         await sendTransaction(contractTransaction(
           props.networkPassphrase,
           source,
-          encoder.encode(
+          encoder.createOp(
             await fetchWasm(tokenContractWasmPath),
             props.tokenId,
             'incr_allow',
@@ -127,7 +123,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         contractTransaction(
           props.networkPassphrase,
           source,
-          encoder.encode(
+          encoder.createOp(
             await fetchWasm(crowdfundContractWasmPath),
             props.crowdfundId,
             'deposit',
