@@ -16,11 +16,11 @@ import { Spacer } from '../../atoms/spacer'
 
 import { encoder, $init as encoderInit } from 'soroban-cli/dist/encoder/web'
 
-const tokenContractWasmPath = '../../../contracts/token/soroban_token_spec.wasm'
-const crowdfundContractWasmPath = '../../../target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm'
+const tokenContractWasmPath = 'wasm/soroban_token_spec.wasm'
+const crowdfundContractWasmPath = 'wasm/soroban_crowdfund_contract.wasm'
 
 
-async function fetchWasm (url: string): Promise<ArrayBuffer> {
+async function fetchWasm(url: string): Promise<ArrayBuffer> {
   let res = await fetch(url);
   return await res.arrayBuffer();
 }
@@ -109,13 +109,13 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             props.tokenId,
             'incr_allow',
             JSON.stringify({
-              invoker: 'Invoker',
+              from: 'Invoker',
               nonce: 0,
-              spender: props.crowdfundId,
+              spender: { Contract: props.crowdfundId },
               amount: parsedAmount.toString()
             })
           )
-        ), {sorobanContext})
+        ), { sorobanContext })
       }
 
       // Deposit the tokens
@@ -128,12 +128,12 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             props.crowdfundId,
             'deposit',
             JSON.stringify({
-              user: props.account,
+              user: { "Ed25519": props.account },
               amount: parsedAmount.toString(),
             })
           )
         ),
-        {sorobanContext}
+        { sorobanContext }
       )
       setResultSubmit({
         status: 'success',

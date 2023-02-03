@@ -9,7 +9,7 @@ build: fmt
 	cargo build --target wasm32-unknown-unknown --release
 	cd target/wasm32-unknown-unknown/release/ && \
 		for i in *.wasm ; do \
-			ls -l "$$i"; \
+			cp "$$i" ../../../public/wasm/; \
 		done
 
 build-optimized: fmt
@@ -19,7 +19,7 @@ build-optimized: fmt
 	cd target-tiny/wasm32-unknown-unknown/release/ && \
 		for i in *.wasm ; do \
 			wasm-opt -Oz "$$i" -o "$$i.tmp" && mv "$$i.tmp" "$$i"; \
-			ls -l "$$i"; \
+			cp "$$i" ../../../public/wasm/; \
 		done
 
 check: fmt
