@@ -18,50 +18,45 @@ lto = true
 [workspace.dependencies.soroban-env-common]
 version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "65498c8"
+rev = "2431bd416010215cc9759b435662a7274206a4c0"
 
 [workspace.dependencies.soroban-env-guest]
 version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "65498c8"
+rev = "2431bd416010215cc9759b435662a7274206a4c0"
 
 [workspace.dependencies.soroban-env-macros]
 version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "65498c8"
+rev = "2431bd416010215cc9759b435662a7274206a4c0"
 
 [workspace.dependencies.soroban-env-host]
 version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "65498c8"
+rev = "2431bd416010215cc9759b435662a7274206a4c0"
 
 [workspace.dependencies.soroban-native-sdk-macros]
 version = "0.0.12"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "65498c8"
+rev = "2431bd416010215cc9759b435662a7274206a4c0"
 
 
 [workspace.dependencies.soroban-spec]
 version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "51e5e6d"
+rev = "128f185e3f4d480e5fbe43ea964c5f504d827aef"
 
 [workspace.dependencies.soroban-sdk]
 version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "51e5e6d"
+rev = "128f185e3f4d480e5fbe43ea964c5f504d827aef"
 
 [workspace.dependencies.soroban-sdk-macros]
 version = "0.4.3"
 git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "51e5e6d"
-
-[workspace.dependencies.soroban-auth]
-version = "0.4.3"
-git = "https://github.com/stellar/rs-soroban-sdk"
-rev = "51e5e6d"
+rev = "128f185e3f4d480e5fbe43ea964c5f504d827aef"
 
 [workspace.dependencies.stellar-xdr]
 version = "0.0.12"
 git = "https://github.com/stellar/rs-stellar-xdr"
-rev = "154e07e"
+rev = "ea8a54526fe896412b106c67c0ba35181ae12ee4"
