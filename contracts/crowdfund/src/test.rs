@@ -31,7 +31,7 @@ fn create_crowdfund_contract(
     let crowdfund = Crowdfund::new(e, &id);
     crowdfund
         .client()
-        .initialize(&recipient, &deadline, target_amount, token);
+        .initialize(recipient, &deadline, target_amount, token);
     (BytesN::from_array(e, &id), crowdfund)
 }
 
