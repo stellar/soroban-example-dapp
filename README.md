@@ -64,9 +64,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Note: Before you can "Approve transfer & Back this project", you'll need to have
-some EXT (example token) in your freighter wallet. There is a "Mint 100 EXT"
-button, which will gift you 100 EXT tokens for that purpose.
+Note: Before you can "Back this project", you'll need to have some EXT (example
+token) in your freighter wallet. There is a "Mint 100 EXT" button, which will
+gift you 100 EXT tokens for that purpose.
 
 ## User Workflows
 

@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js'
 import { Spacer } from '../../atoms/spacer'
 import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
-import { accountIdentifier } from '../../../shared/identifiers'
+import { accountAddress } from '../../../shared/identifiers'
 import {
   ContractValueType,
   useContractValue,
@@ -26,9 +26,7 @@ export function Deposits(props: IDepositsProps) {
     return useContractValue({
       contractId: Constants.CrowdfundId,
       method: 'balance',
-      params: [accountIdentifier(
-        SorobanClient.StrKey.decodeEd25519PublicKey(props.address)
-      )],
+      params: [accountAddress(props.address)],
       sorobanContext: useSorobanReact()
     })
   }

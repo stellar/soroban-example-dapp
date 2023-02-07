@@ -1,23 +1,24 @@
 import * as SorobanClient from 'soroban-client'
 let xdr = SorobanClient.xdr
 
-export function accountIdentifier(account: Buffer): SorobanClient.xdr.ScVal {
+export function accountAddress(account: string | Buffer): SorobanClient.xdr.ScVal {
+  account = typeof account === 'string' ? SorobanClient.StrKey.decodeEd25519PublicKey(account) : account
   return xdr.ScVal.scvObject(
-    xdr.ScObject.scoVec([
-      xdr.ScVal.scvSymbol('Account'),
-      xdr.ScVal.scvObject(
-        xdr.ScObject.scoAccountId(xdr.PublicKey.publicKeyTypeEd25519(account))
-      ),
-    ])
+    xdr.ScObject.scoAddress(
+      xdr.ScAddress.scAddressTypeAccount(
+        xdr.PublicKey.publicKeyTypeEd25519(account)
+      )
+    )
   )
 }
 
-export function contractIdentifier(contract: Buffer): SorobanClient.xdr.ScVal {
+export function contractAddress(contract: string | Buffer): SorobanClient.xdr.ScVal {
+  contract = typeof contract === 'string' ? Buffer.from(contract, 'hex') : contract
   return xdr.ScVal.scvObject(
-    xdr.ScObject.scoVec([
-      xdr.ScVal.scvSymbol('Contract'),
-      xdr.ScVal.scvObject(xdr.ScObject.scoBytes(contract)),
-    ])
+    xdr.ScObject.scoAddress(
+      xdr.ScAddress.scAddressTypeContract(
+        contract
+      )
+    )
   )
-  
 }

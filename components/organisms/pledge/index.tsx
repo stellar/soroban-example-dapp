@@ -13,8 +13,7 @@ import { Deposits, FormPledge } from '../../molecules'
 import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
 import {
-  accountIdentifier,
-  contractIdentifier,
+  contractAddress,
 } from '../../../shared/identifiers'
 import { useSorobanReact } from '@soroban-react/core'
 let xdr = SorobanClient.xdr
@@ -32,7 +31,7 @@ const Pledge: FunctionComponent = () => {
       balance: useContractValue({ 
         contractId: Constants.TokenId,
         method: 'balance',
-        params: [contractIdentifier(Buffer.from(Constants.CrowdfundId, 'hex'))],
+        params: [contractAddress(Buffer.from(Constants.CrowdfundId, 'hex'))],
         sorobanContext
       }),
 
