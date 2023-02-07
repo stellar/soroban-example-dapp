@@ -106,7 +106,7 @@ fn set_user_deposited(e: &Env, user: &Address, amount: &i128) {
 
 // Transfer tokens from the contract to the recipient
 fn transfer(e: &Env, to: &Address, amount: &i128) {
-    let token_contract_id = &get_token(&e);
+    let token_contract_id = &get_token(e);
     let client = token::Client::new(e, token_contract_id);
     client.xfer(&e.current_contract_address(), to, amount);
 }
