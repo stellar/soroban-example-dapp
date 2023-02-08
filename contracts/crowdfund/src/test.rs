@@ -2,22 +2,10 @@
 
 use super::testutils::{register_test_contract as register_crowdfund, Crowdfund};
 use super::token::Client as Token;
-use rand::{thread_rng, RngCore};
 use soroban_sdk::{
     testutils::{Address as AddressTestTrait, Ledger},
     Address, BytesN, Env,
 };
-
-fn generate_contract_id() -> [u8; 32] {
-    let mut id: [u8; 32] = Default::default();
-    thread_rng().fill_bytes(&mut id);
-    id
-}
-
-fn create_token_contract(e: &Env, admin: &Address) -> (BytesN<32>, Token) {
-    let id = e.register_stellar_asset_contract(admin.clone());
-    (id.clone(), Token::new(e, &id))
-}
 
 fn create_crowdfund_contract(
     e: &Env,
@@ -26,13 +14,12 @@ fn create_crowdfund_contract(
     target_amount: &i128,
     token: &BytesN<32>,
 ) -> (BytesN<32>, Crowdfund) {
-    let id = generate_contract_id();
-    register_crowdfund(e, &id);
-    let crowdfund = Crowdfund::new(e, &id);
+    let id = register_crowdfund(e);
+    let crowdfund = Crowdfund::new(e, &id.clone().into());
     crowdfund
         .client()
         .initialize(recipient, &deadline, target_amount, token);
-    (BytesN::from_array(e, &id), crowdfund)
+    (id, crowdfund)
 }
 
 fn advance_ledger(e: &Env, delta: u64) {
@@ -67,13 +54,17 @@ impl Setup {
         let deadline = e.ledger().timestamp() + 10;
         let target_amount: i128 = 15;
 
+        // Create the token contract
         let token_admin = Address::random(&e);
-        let (contract_token, token) = create_token_contract(&e, &token_admin);
+        let contract_token = e.register_stellar_asset_contract(token_admin.clone());
+        let token = Token::new(&e, &contract_token);
 
+        // Create the crowdfunding contract
         let (contract_crowdfund, crowdfund) =
             create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &contract_token);
         let crowdfund_id = Address::from_contract_id(&e, &contract_crowdfund);
 
+        // Mint some tokens to work with
         token.mint(&token_admin, &user1, &10);
         token.mint(&token_admin, &user2, &5);
 
