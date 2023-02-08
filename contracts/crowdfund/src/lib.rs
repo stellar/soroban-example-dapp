@@ -178,8 +178,7 @@ impl Crowdfund {
     }
 
     pub fn deposit(e: Env, user: Address, amount: i128) {
-        // We don't need to check the user signature here, because the token.xfer below will check
-        // that the user has authorized the transfer.
+        user.require_auth();
         assert!(amount > 0, "amount must be positive");
         assert!(get_state(&e) == State::Running, "sale is not running");
 
