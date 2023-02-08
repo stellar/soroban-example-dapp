@@ -11,7 +11,6 @@ import * as SorobanClient from 'soroban-client'
 import BigNumber from 'bignumber.js'
 import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
-import { accountAddress } from '../../../shared/identifiers'
 import { Spacer } from '../../atoms/spacer'
 let xdr = SorobanClient.xdr
 
@@ -73,7 +72,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           source,
           props.crowdfundId,
           'deposit',
-          accountAddress(props.account),
+          new SorobanClient.Address(props.account).toScVal(),
           amountScVal
         ),
         {sorobanContext}
