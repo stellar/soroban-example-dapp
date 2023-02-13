@@ -67,6 +67,11 @@ echo "$CROWDFUND_ID" > .soroban/crowdfund_id
 
 echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
 
+echo "Wait 5s for a ledger to close"
+# TODO: Figure out why we need this. Without it, soroban-rpc
+# simulateTransaction says AccessToUnknownLedgerEntry...
+sleep 5
+
 echo "Initialize the crowdfund contract"
 deadline="$(($(date +"%s") + 86400))"
 soroban contract invoke \
