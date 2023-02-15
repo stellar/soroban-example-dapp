@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "setup": "./initialize.sh",
+    "setup": "./initialize.sh standalone",
     "reset": "rm -rf .soroban ; npm run setup",
     "dev": "next dev",
     "build": "next build",
