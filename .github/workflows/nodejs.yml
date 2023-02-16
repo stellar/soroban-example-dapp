@@ -29,5 +29,4 @@ jobs:
         node-version: 17.x
         cache: 'npm'
     - run: npm ci
-    - run: npm run-script setup
     - run: npm run-script build
