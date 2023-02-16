@@ -5,7 +5,7 @@ set -e
 case "$1" in
 standalone)
     echo "Using standalone network"
-    ARGS="--standalone"
+    ARGS="--standalone --enable-core-artificially-accelerate-time-for-testing"
     ;;
 futurenet)
     echo "Using Futurenet network"
