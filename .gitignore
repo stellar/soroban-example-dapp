@@ -19,6 +19,7 @@
 # misc
 .DS_Store
 *.pem
+.envrc
 
 # debug
 npm-debug.log*

@@ -2,45 +2,60 @@
 
 set -e
 
-# TODO: Set the recipient to something reasonable here. Probably whatever account
-# soroban is running stuff as?
-# TODO: Have a nicer way to build Identifiers on the CLI
-TOKEN_ADMIN="GDT2NORMZF6S2T4PT4OBJJ43OPD3GPRNTJG3WVVFB356TUHWZQMU6C3U"
-TOKEN_ADMIN_IDENTIFIER="AAAABAAAAAEAAAAAAAAAAgAAAAUAAAAHQWNjb3VudAAAAAAEAAAAAQAAAAgAAAAA56a6LMl9LU+PnxwUp5tzx7M+LZpNu1alDvvp0PbMGU8="
+NETWORK="$1"
 
 case "$1" in
 standalone)
   echo "Using standalone network"
-  export SOROBAN_RPC_HOST="http://localhost:8000"
-  export SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
-  export SOROBAN_NETWORK_PASSPHRASE="Standalone Network ; February 2017"
-  export SOROBAN_SECRET_KEY="SAKCFFFNCE7XAWYMYVRZQYKUK6KMUCDIINLWISJYTMYJLNR2QLCDLFVT"
-
-  echo Fund token admin account from friendbot
-  curl "$SOROBAN_RPC_HOST/friendbot?addr=$TOKEN_ADMIN"
+  SOROBAN_RPC_HOST="http://localhost:8000"
+  SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
+  SOROBAN_NETWORK_PASSPHRASE="Standalone Network ; February 2017"
+  FRIENDBOT_URL="$SOROBAN_RPC_HOST/friendbot"
   ;;
 futurenet)
   echo "Using Futurenet network"
-  export SOROBAN_RPC_HOST="http://localhost:8000"
-  export SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
-  export SOROBAN_NETWORK_PASSPHRASE="Test SDF Future Network ; October 2022"
-  export SOROBAN_SECRET_KEY="SAKCFFFNCE7XAWYMYVRZQYKUK6KMUCDIINLWISJYTMYJLNR2QLCDLFVT"
-  # TODO: Use friendbot to fund the token admin, or figure our token admin here...
-  curl "https://friendbot-futurenet.stellar.org/?addr=$TOKEN_ADMIN"
-  ;;
-""|sandbox)
-  # no-op
+  SOROBAN_RPC_HOST="http://localhost:8000"
+  SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
+  SOROBAN_NETWORK_PASSPHRASE="Test SDF Future Network ; October 2022"
+  FRIENDBOT_URL="https://friendbot-futurenet.stellar.org/"
   ;;
 *)
-  echo "Usage: $0 sandbox|standalone|futurenet"
+  echo "Usage: $0 standalone|futurenet"
   exit 1
   ;;
 esac
 
+if !(soroban config network ls | grep "$NETWORK" 2>&1 >/dev/null); then
+  echo Add the $NETWORK network to cli client
+  soroban config network add "$NETWORK" \
+    --rpc-url "$SOROBAN_RPC_URL" \
+    --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE"
+fi
+
+TOKEN_ADMIN_SECRET="SAKCFFFNCE7XAWYMYVRZQYKUK6KMUCDIINLWISJYTMYJLNR2QLCDLFVT"
+if !(soroban config identity ls | grep token-admin 2>&1 >/dev/null); then
+  echo Create the token-admin identity
+  # TODO: Use `soroban config identity generate` once that supports secret key
+  # output.
+  # See: https://github.com/stellar/soroban-example-dapp/issues/88
+  mkdir -p ".soroban/identities"
+  echo "secret_key = \"$TOKEN_ADMIN_SECRET\"" > ".soroban/identities/token-admin.toml"
+fi
+TOKEN_ADMIN_ADDRESS="$(soroban config identity address token-admin)"
+
+# TODO: Remove this once we can use `soroban config identity` from webpack.
+echo "$TOKEN_ADMIN_SECRET" > .soroban/token_admin_secret
+echo "$TOKEN_ADMIN_ADDRESS" > .soroban/token_admin_address
+
+# This will fail if the account already exists, but it'll still be fine.
+echo Fund token-admin account from friendbot
+curl --silent -X POST "$FRIENDBOT_URL?addr=$TOKEN_ADMIN_ADDRESS" >/dev/null
+
+ARGS="--network $NETWORK --identity token-admin"
 
 echo Wrap the Stellar asset
 mkdir -p .soroban
-TOKEN_ID=$(soroban token wrap --asset "EXT:$TOKEN_ADMIN")
+TOKEN_ID=$(soroban lab token wrap $ARGS --asset "EXT:$TOKEN_ADMIN_ADDRESS")
 echo -n "$TOKEN_ID" > .soroban/token_id
 
 echo Build the crowdfund contract
@@ -48,7 +63,7 @@ make build
 
 echo Deploy the crowdfund contract
 CROWDFUND_ID="$(
-  soroban deploy \
+  soroban contract deploy $ARGS \
     --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
 )"
 echo "$CROWDFUND_ID" > .soroban/crowdfund_id
@@ -57,13 +72,14 @@ echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
 
 echo "Initialize the crowdfund contract"
 deadline="$(($(date +"%s") + 86400))"
-soroban invoke \
+soroban contract invoke \
+  $ARGS \
+  --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm \
   --id "$CROWDFUND_ID" \
-  --fn initialize \
-  --arg-xdr "$TOKEN_ADMIN_IDENTIFIER" \
-  --arg "$deadline" \
-  --arg "1000000000" \
-  --arg "$TOKEN_ID" \
-  --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
+  --fn initialize -- \
+  --recipient "$TOKEN_ADMIN_ADDRESS" \
+  --deadline "$deadline" \
+  --target_amount "1000000000" \
+  --token "$TOKEN_ID"
 
 echo "Done"

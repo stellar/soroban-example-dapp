@@ -2,7 +2,7 @@ import React, { FunctionComponent, useState } from 'react'
 import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import styles from './style.module.css'
-import { useContractValue, useSendTransaction } from '@soroban-react/contracts'
+import { useSendTransaction } from '@soroban-react/contracts'
 import { useSorobanReact } from '@soroban-react/core'
 import {
   useNetwork,
@@ -11,7 +11,6 @@ import * as SorobanClient from 'soroban-client'
 import BigNumber from 'bignumber.js'
 import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
-import { accountIdentifier, contractIdentifier } from '../../../shared/identifiers'
 import { Spacer } from '../../atoms/spacer'
 let xdr = SorobanClient.xdr
 
@@ -40,25 +39,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const [isSubmitting, setSubmitting] = useState(false)
   const { server } = useNetwork()
 
-  const user = accountIdentifier(
-    SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
-  )
-
-  const spender = contractIdentifier(Buffer.from(props.crowdfundId, 'hex'))
   const sorobanContext = useSorobanReact()
-  const allowanceScval = useContractValue({
-    contractId: props.tokenId,
-    method: 'allowance',
-    params: [user, spender],
-    sorobanContext
-  })
-  const allowance = convert.scvalToBigNumber(allowanceScval.result)
   const parsedAmount = BigNumber(amount || 0)
-
-  // FIXME: This is probably always going to be true, since the allowance
-  // increases by the deposit amount, then decreases after the deposit
-  // completes, meaning it's always zero.
-  const needsApproval = allowance.eq(0) || allowance.lt(parsedAmount)
 
   const { sendTransaction } = useSendTransaction()
 
@@ -79,32 +61,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
     if (!server) throw new Error("Not connected to server")
 
-    let { sequence } = await server.getAccount(props.account)
-    const source = new SorobanClient.Account(props.account, sequence)
-    const invoker = xdr.ScVal.scvObject(
-      xdr.ScObject.scoVec([xdr.ScVal.scvSymbol('Invoker')])
-    )
-    const nonce = convert.bigNumberToI128(BigNumber(0))
+    const source = await server.getAccount(props.account)
     const amountScVal = convert.bigNumberToI128(parsedAmount.shiftedBy(7))
 
     try {
-      if (needsApproval) {
-        console.debug(`approving Signature::Invoker to spend ${amount} of ` +
-                      `${props.account}'s tokens in ${props.crowdfundId}`)
-
-        // Approve the transfer first
-        await sendTransaction(contractTransaction(
-          props.networkPassphrase,
-          source,
-          props.tokenId,
-          'incr_allow',
-          invoker,
-          nonce,
-          spender,
-          amountScVal
-        ), {sorobanContext})
-      }
-
       // Deposit the tokens
       let result = await sendTransaction(
         contractTransaction(
@@ -112,9 +72,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           source,
           props.crowdfundId,
           'deposit',
-          accountIdentifier(
-            SorobanClient.StrKey.decodeEd25519PublicKey(props.account)
-          ),
+          new SorobanClient.Address(props.account).toScVal(),
           amountScVal
         ),
         {sorobanContext}
@@ -203,7 +161,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         setInput={setInput}
       />
       <Button
-        title={needsApproval ? 'Approve transfer & Back this project' : 'Back this project'}
+        title={'Back this project'}
         onClick={handleSubmit}
         disabled={!amount || isSubmitting}
         isLoading={isSubmitting}
@@ -249,11 +207,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
           if (!server) throw new Error("Not connected to server")
 
-          let { sequence, balances } = await server.getAccount(Constants.TokenAdmin)
-          let adminSource = new SorobanClient.Account(Constants.TokenAdmin, sequence)
+          const adminSource = await server.getAccount(Constants.TokenAdmin)
 
-          let wallet = await server.getAccount(account)
-          let walletSource = new SorobanClient.Account(wallet.id, wallet.sequence)
+          const walletSource = await server.getAccount(account)
 
           //
           // 1. Establish a trustline to the admin (if necessary)
@@ -268,36 +224,30 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           //        to receive the minted asset.
           //
           // Today, we establish the trustline unconditionally.
-          //
-          // if (balances?.filter(b => (
-          if (!balances || balances.filter(b => (
-            b.asset_code == symbol && b.asset_issuer == Constants.TokenAdmin
-          )).length === 0) {
-            try {
-              console.log("sorobanContext: ", sorobanContext)
-              const trustlineResult = await sendTransaction(
-                new SorobanClient.TransactionBuilder(walletSource, {
-                  networkPassphrase,
-                  fee: "1000", // arbitrary
+          try {
+            console.log("sorobanContext: ", sorobanContext)
+            const trustlineResult = await sendTransaction(
+              new SorobanClient.TransactionBuilder(walletSource, {
+                networkPassphrase,
+                fee: "1000", // arbitrary
+              })
+              .setTimeout(60)
+              .addOperation(
+                SorobanClient.Operation.changeTrust({
+                  asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
                 })
-                .setTimeout(60)
-                .addOperation(
-                  SorobanClient.Operation.changeTrust({
-                    asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
-                  })
-                )
-                .build(), {
-                  timeout: 60 * 1000, // should be enough time to approve the tx
-                  skipAddingFootprint: true, // classic = no footprint
-                  // omit `secretKey` to have Freighter prompt for signing
-                  // hence, we need to explicit the sorobanContext
-                  sorobanContext
-                },
               )
-              console.debug(trustlineResult)
-            } catch (err) {
-              console.error(err)
-            }
+              .build(), {
+                timeout: 60 * 1000, // should be enough time to approve the tx
+                skipAddingFootprint: true, // classic = no footprint
+                // omit `secretKey` to have Freighter prompt for signing
+                // hence, we need to explicit the sorobanContext
+                sorobanContext
+              },
+            )
+            console.debug(trustlineResult)
+          } catch (err) {
+            console.error(err)
           }
 
           try {
@@ -309,7 +259,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
               .setTimeout(10)
               .addOperation(
                 SorobanClient.Operation.payment({
-                  destination: wallet.id,
+                  destination: walletSource.accountId(),
                   asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
                   amount: amount.toString(),
                 })

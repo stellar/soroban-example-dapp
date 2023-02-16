@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "setup": "./initialize.sh",
+    "setup": "./initialize.sh standalone",
     "reset": "rm -rf .soroban ; npm run setup",
     "dev": "next dev",
     "build": "next build",
@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
-    "@soroban-react/contracts": "^3.5.0",
-    "@soroban-react/core": "^3.2.1",
+    "@soroban-react/contracts": "^3.7.1",
+    "@soroban-react/core": "^3.7.1",
     "@soroban-react/freighter": "^3.2.1",
     "@soroban-react/types": "^3.2.1",
     "@stellar/freighter-api": "^1.3.1",
@@ -24,7 +24,7 @@
     "next": "12.1.5",
     "react": "18.1.0",
     "react-dom": "18.1.0",
-    "soroban-client": "^0.2.1"
+    "soroban-client": "^0.4.0"
   },
   "devDependencies": {
     "@types/humanize-duration": "^3.27.1",

@@ -22,12 +22,17 @@ jobs:
     - uses: stellar/actions/rust-cache@main
     - run: rustup update
     - run: rustup target add wasm32-unknown-unknown
-    - run: cargo install --target-dir ~/.cargo/target --locked --version 0.1.2 soroban-cli
+    - run: cargo install --target-dir ~/.cargo/target --locked --version 0.6.0 soroban-cli
     - name: Use Node.js 17.x
       uses: actions/setup-node@v3
       with:
         node-version: 17.x
         cache: 'npm'
     - run: npm ci
-    - run: npm run-script setup
+    - run: |
+        mkdir -p .soroban
+        echo 'a9ab643486dc0dbcdc1485e6589e8bb3bcbbd8e69ad66c703556b4d6645a6dc8' > .soroban/token_id
+        echo '42798d5db884626e57f96630e7d02ba8210b4629d2959ef79ebb9e6538676ef9' > .soroban/crowdfund_id
+        echo 'GDT2NORMZF6S2T4PT4OBJJ43OPD3GPRNTJG3WVVFB356TUHWZQMU6C3U' > .soroban/token_admin_address
+        echo 'SAKCFFFNCE7XAWYMYVRZQYKUK6KMUCDIINLWISJYTMYJLNR2QLCDLFVT' > .soroban/token_admin_secret
     - run: npm run-script build

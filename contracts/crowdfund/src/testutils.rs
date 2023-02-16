@@ -4,9 +4,8 @@ use crate::CrowdfundClient;
 
 use soroban_sdk::{BytesN, Env};
 
-pub fn register_test_contract(e: &Env, contract_id: &[u8; 32]) {
-    let contract_id = BytesN::from_array(e, contract_id);
-    e.register_contract(&contract_id, crate::Crowdfund {});
+pub fn register_test_contract(e: &Env) -> BytesN<32> {
+    e.register_contract(None, crate::Crowdfund {})
 }
 
 pub struct Crowdfund {
