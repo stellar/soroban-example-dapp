@@ -2,12 +2,6 @@
 
 set -e
 
-# TODO: Set the recipient to something reasonable here. Probably whatever account
-# soroban is running stuff as?
-# TODO: Have a nicer way to build Identifiers on the CLI
-TOKEN_ADMIN_ADDRESS="GDT2NORMZF6S2T4PT4OBJJ43OPD3GPRNTJG3WVVFB356TUHWZQMU6C3U"
-TOKEN_ADMIN_SECRET="SAKCFFFNCE7XAWYMYVRZQYKUK6KMUCDIINLWISJYTMYJLNR2QLCDLFVT"
-
 NETWORK="$1"
 
 case "$1" in
@@ -38,11 +32,20 @@ if !(soroban config network ls | grep "$NETWORK" 2>&1 >/dev/null); then
     --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE"
 fi
 
-if [ ! -f ".soroban/identities/token-admin.toml" ]; then
+TOKEN_ADMIN_SECRET="SAKCFFFNCE7XAWYMYVRZQYKUK6KMUCDIINLWISJYTMYJLNR2QLCDLFVT"
+if !(soroban config identity ls | grep token-admin 2>&1 >/dev/null); then
   echo Create the token-admin identity
+  # TODO: Use `soroban config identity generate` once that supports secret key
+  # output.
+  # See: https://github.com/stellar/soroban-example-dapp/issues/88
   mkdir -p ".soroban/identities"
   echo "secret_key = \"$TOKEN_ADMIN_SECRET\"" > ".soroban/identities/token-admin.toml"
 fi
+TOKEN_ADMIN_ADDRESS="$(soroban config identity address token-admin)"
+
+# TODO: Remove this once we can use `soroban config identity` from webpack.
+echo "$TOKEN_ADMIN_SECRET" > .soroban/token_admin_secret
+echo "$TOKEN_ADMIN_ADDRESS" > .soroban/token_admin_address
 
 # This will fail if the account already exists, but it'll still be fine.
 echo Fund token-admin account from friendbot
