@@ -13,6 +13,11 @@ backed by smart contracts on Stellar.
 2. `docker` (both Standalone and Futurenet backends require it).
 3. `Node.js v17`
 4. `Freighter wallet v2.9.1`. Download it from https://github.com/stellar/freighter/releases/tag/2.9.1 and Enable "Experimental Mode" in the settings (gear icon).
+5. Build the `soroban-preview` docker image:
+```
+cd docker
+bash build.sh
+```
 
 ### Backend (Local Standalone Network)
 
