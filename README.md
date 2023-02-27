@@ -17,7 +17,7 @@ backed by smart contracts on Stellar.
 ### Backend (Local Standalone Network)
 
 1. Run the backend docker container with `./quickstart.sh standalone`, and wait for it to start.
-2. Run `./initialize.sh standalone` to load the contracts and initialize it.
+2. Run `docker soroban-preview exec./initialize.sh standalone` to load the contracts and initialize it.
   - Note: this state will be lost if the quickstart docker container is removed.
 3. Add the Standalone custom network in Freighter
     |   |   |

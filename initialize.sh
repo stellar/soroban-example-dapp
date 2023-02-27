@@ -7,14 +7,14 @@ NETWORK="$1"
 case "$1" in
 standalone)
   echo "Using standalone network"
-  SOROBAN_RPC_HOST="http://localhost:8000"
+  SOROBAN_RPC_HOST="stellar:8000"
   SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
   SOROBAN_NETWORK_PASSPHRASE="Standalone Network ; February 2017"
   FRIENDBOT_URL="$SOROBAN_RPC_HOST/friendbot"
   ;;
 futurenet)
   echo "Using Futurenet network"
-  SOROBAN_RPC_HOST="http://localhost:8000"
+  SOROBAN_RPC_HOST="stellar:8000"
   SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
   SOROBAN_NETWORK_PASSPHRASE="Test SDF Future Network ; October 2022"
   FRIENDBOT_URL="https://friendbot-futurenet.stellar.org/"
@@ -49,7 +49,7 @@ echo "$TOKEN_ADMIN_ADDRESS" > .soroban/token_admin_address
 
 # This will fail if the account already exists, but it'll still be fine.
 echo Fund token-admin account from friendbot
-curl --silent -X POST "$FRIENDBOT_URL?addr=$TOKEN_ADMIN_ADDRESS" >/dev/null
+curl -X POST "$FRIENDBOT_URL?addr=$TOKEN_ADMIN_ADDRESS" >/dev/null
 
 ARGS="--network $NETWORK --identity token-admin"
 
