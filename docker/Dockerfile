@@ -13,6 +13,7 @@ RUN echo $PATH
 ENV PATH="$PATH:/root/.cargo/bin"
 RUN rustup target add wasm32-unknown-unknown
 
+RUN apt install -y build-essential
 RUN cargo install --locked --version 0.6.0 soroban-cli
 # WORKDIR /
 RUN mkdir /workspace
