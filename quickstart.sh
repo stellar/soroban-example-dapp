@@ -22,18 +22,18 @@ esac
 # cd docker
 # bash build.sh
 
-echo "Searching for a previous docker container"
+echo "Searching for a previous soroban-preview docker container"
 containerID=$(docker ps --filter="name=soroban-preview" --all --quiet)
 if [[ ${containerID} ]]; then
-    echo "Start removing container."
+    echo "Start removing soroban-preview  container."
     docker rm --force soroban-preview
-    echo "Finished removing container."
+    echo "Finished removing soroban-preview container."
 else
-    echo "No previous container was found"
+    echo "No previous soroban-preview container was found"
 fi
 
 currentDir=$(pwd)
-docker run --volume  ${currentDir}/..:/workspace \
+docker run --volume  ${currentDir}:/workspace \
            --name soroban-preview \
            --interactive \
            --tty \
