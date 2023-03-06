@@ -6,18 +6,39 @@ This is a [Next.js](https://nextjs.org/) project, demoing how to build a dapp fr
 backed by smart contracts on Stellar.
 
 ## Getting Started
+___
 
 ### Dependencies
 
-1. `soroban-cli v0.4.0`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
+1. `soroban-cli v0.6.0`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
 2. `docker` (both Standalone and Futurenet backends require it).
 3. `Node.js v17`
 4. `Freighter wallet v2.9.1`. Download it from https://github.com/stellar/freighter/releases/tag/2.9.1 and Enable "Experimental Mode" in the settings (gear icon).
+5. Build the `soroban-preview` docker image:
+```
+make build-docker
+```
+Building the docker image lets you avoid installing the specific version of soroban-cli in step (1), if desired.
+___
 
 ### Backend (Local Standalone Network)
 
-1. Run the backend docker container with `./quickstart.sh standalone`, and wait for it to start.
-2. Run `./initialize.sh standalone` to load the contracts and initialize it.
+1. Run the backend docker containers and wait for them to start:
+
+```
+./quickstart.sh standalone
+```
+
+2. Load the contracts and initialize them:
+
+You can use your own local soroban-cli:
+```
+./initialize.sh standalone
+```
+Or run it inside the soroban-preview docker container:
+```
+docker exec soroban-preview ./initialize.sh standalone
+```
   - Note: this state will be lost if the quickstart docker container is removed.
 3. Add the Standalone custom network in Freighter
     |   |   |
@@ -38,7 +59,15 @@ backed by smart contracts on Stellar.
     working by visiting http://localhost:8000/, and look at the
     `ingest_latest_ledger`, field. If it is `0`, the quickstart image is not
     ready yet.
-2. Run `./initialize.sh futurenet` to load the contracts and initialize it.
+2. Load the contracts and initialize it:
+You can use your own local soroban-cli:
+```
+./initialize.sh futurenet
+```
+Or run it inside the soroban-preview docker container:
+```
+docker exec soroban-preview ./initialize.sh futurenet
+```
 3. Add the Futurenet custom network in Freighter
   (Note, the out-of-the-box "Future Net" network in
   Freighter will not work with a local quickstart container, so we need to add
