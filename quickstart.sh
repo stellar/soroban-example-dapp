@@ -18,14 +18,17 @@ futurenet)
 esac
 
 # Run the soroban-preview container
-# Remember to do 
-# cd docker
-# bash build.sh
+# Remember to do:
+# make build-docker
+
+echo "Creating docker soroban network"
+(docker network inspect soroban-network -f '{{.Id}}' 2>/dev/null) \
+  || docker network create soroban-network
 
 echo "Searching for a previous soroban-preview docker container"
 containerID=$(docker ps --filter="name=soroban-preview" --all --quiet)
 if [[ ${containerID} ]]; then
-    echo "Start removing soroban-preview  container."
+    echo "Start removing soroban-preview container."
     docker rm --force soroban-preview
     echo "Finished removing soroban-preview container."
 else
@@ -33,15 +36,13 @@ else
 fi
 
 currentDir=$(pwd)
-docker run --volume  ${currentDir}:/workspace \
-           --name soroban-preview \
-           --interactive \
-           --tty \
-           -p 8001:8000 \
-           --detach \
-           --ipc=host \
-           --network soroban-network \
-           soroban-preview:7
+docker run -dti \
+  --volume ${currentDir}:/workspace \
+  --name soroban-preview \
+  -p 8001:8000 \
+  --ipc=host \
+  --network soroban-network \
+  soroban-preview:7
 
 # Run the stellar quickstart image
 docker run --rm -ti \

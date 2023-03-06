@@ -3,19 +3,14 @@
 set -e
 
 NETWORK="$1"
-IS_USING_DOCKER="$2"
 
 # If soroban-cli is called inside the soroban-preview docker containter,
 # it can call the stellar standalone container just using its name "stellar"
-
-case "$2" in
-using_docker)
+if [[ "$IS_USING_DOCKER" == "true" ]]; then
   SOROBAN_RPC_HOST="http://stellar:8000"
-  ;;
-*)
+else
   SOROBAN_RPC_HOST="http://localhost:8000"
-  ;;
-esac
+fi
 
 SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
 

@@ -16,10 +16,9 @@ ___
 4. `Freighter wallet v2.9.1`. Download it from https://github.com/stellar/freighter/releases/tag/2.9.1 and Enable "Experimental Mode" in the settings (gear icon).
 5. Build the `soroban-preview` docker image:
 ```
-cd docker
-bash build.sh
+make build-docker
 ```
-This is to avoid to install the specific version of soroban-cli of step (1)
+Building the docker image lets you avoid installing the specific version of soroban-cli in step (1), if desired.
 ___
 
 ### Backend (Local Standalone Network)
@@ -38,7 +37,7 @@ You can use your own local soroban-cli:
 ```
 Or run it inside the soroban-preview docker container:
 ```
-docker exec soroban-preview ./initialize.sh standalone using_docker
+docker exec soroban-preview ./initialize.sh standalone
 ```
   - Note: this state will be lost if the quickstart docker container is removed.
 3. Add the Standalone custom network in Freighter
@@ -67,7 +66,7 @@ You can use your own local soroban-cli:
 ```
 Or run it inside the soroban-preview docker container:
 ```
-docker exec soroban-preview ./initialize.sh futurenet using_docker
+docker exec soroban-preview ./initialize.sh futurenet
 ```
 3. Add the Futurenet custom network in Freighter
   (Note, the out-of-the-box "Future Net" network in
