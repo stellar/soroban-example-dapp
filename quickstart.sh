@@ -17,6 +17,8 @@ futurenet)
     ;;
 esac
 
+shift
+
 # Run the soroban-preview container
 # Remember to do:
 # make build-docker
@@ -53,4 +55,5 @@ docker run --rm -ti \
   stellar/quickstart:soroban-dev@sha256:81c23da078c90d0ba220f8fc93414d0ea44608adc616988930529c58df278739 \
   $ARGS \
   --enable-soroban-rpc \
-  --protocol-version 20 
+  --protocol-version 20 \
+  "$@" # Pass through args from the CLI
