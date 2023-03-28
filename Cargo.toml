@@ -16,28 +16,28 @@ codegen-units = 1
 lto = true
 
 [workspace.dependencies.soroban-env-common]
-version = "0.0.14"
+version = "0.0.15"
 
 [workspace.dependencies.soroban-env-guest]
-version = "0.0.14"
+version = "0.0.15"
 
 [workspace.dependencies.soroban-env-macros]
-version = "0.0.14"
+version = "0.0.15"
 
 [workspace.dependencies.soroban-env-host]
-version = "0.0.14"
+version = "0.0.15"
 
 [workspace.dependencies.soroban-native-sdk-macros]
-version = "0.0.14"
+version = "0.0.15"
 
 [workspace.dependencies.soroban-spec]
-version = "0.6.0"
+version = "0.7.0"
 
 [workspace.dependencies.soroban-sdk]
-version = "0.6.0"
+version = "0.7.0"
 
 [workspace.dependencies.soroban-sdk-macros]
-version = "0.6.0"
+version = "0.7.0"
 
 [workspace.dependencies.stellar-xdr]
-version = "0.0.14"
+version = "0.0.15"
