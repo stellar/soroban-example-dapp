@@ -58,7 +58,7 @@ echo "$TOKEN_ADMIN_ADDRESS" > .soroban/token_admin_address
 echo Fund token-admin account from friendbot
 curl --silent -X POST "$FRIENDBOT_URL?addr=$TOKEN_ADMIN_ADDRESS" >/dev/null
 
-ARGS="--network $NETWORK --identity token-admin"
+ARGS="--network $NETWORK --source token-admin"
 
 echo Wrap the Stellar asset
 mkdir -p .soroban
@@ -85,7 +85,8 @@ soroban contract invoke \
   $ARGS \
   --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm \
   --id "$CROWDFUND_ID" \
-  --fn initialize -- \
+  -- \
+  initialize \
   --recipient "$TOKEN_ADMIN_ADDRESS" \
   --deadline "$deadline" \
   --target_amount "1000000000" \
