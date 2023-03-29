@@ -34,10 +34,10 @@ export function scvalToBigNumber(scval: SorobanClient.xdr.ScVal | undefined): Bi
     return bigNumberFromBytes(true, a.high, a.low, b.high, b.low);
   }
   case xdr.ScValType.scvU256(): {
-    return bigNumberFromBytes(false, ...[...scval.u256()]);
+    return bigNumberFromBytes(false, ...scval.u256());
   }
   case xdr.ScValType.scoI256(): {
-    return bigNumberFromBytes(true, ...[...scval.i256()]);
+    return bigNumberFromBytes(true, ...scval.i256());
   }
   default: {
     throw new Error(`Invalid type for scvalToBigNumber: ${scval?.switch().name}`);
