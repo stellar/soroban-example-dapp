@@ -204,82 +204,94 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         title={`Mint ${amount.toString()} ${symbol}`}
         onClick={async () => {
           setSubmitting(true)
-
           if (!server) throw new Error("Not connected to server")
 
-          const adminSource = await server.getAccount(Constants.TokenAdmin)
-
-          const walletSource = await server.getAccount(account)
-
-          //
-          // 1. Establish a trustline to the admin (if necessary)
-          // 2. The admin sends us money (mint)
-          //
-          // We have to do this in two separate transactions because one
-          // requires approval from Freighter while the other can be done with
-          // the stored token issuer's secret key.
-          //
-          // FIXME: The `getAccount()` RPC endpoint doesn't return `balances`,
-          //        so we never know whether or not the user needs a trustline
-          //        to receive the minted asset.
-          //
-          // Today, we establish the trustline unconditionally.
-          try {
-            console.log("sorobanContext: ", sorobanContext)
-            const trustlineResult = await sendTransaction(
-              new SorobanClient.TransactionBuilder(walletSource, {
-                networkPassphrase,
-                fee: "1000", // arbitrary
-              })
-              .setTimeout(60)
-              .addOperation(
-                SorobanClient.Operation.changeTrust({
-                  asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
-                })
-              )
-              .build(), {
-                timeout: 60 * 1000, // should be enough time to approve the tx
-                skipAddingFootprint: true, // classic = no footprint
-                // omit `secretKey` to have Freighter prompt for signing
-                // hence, we need to explicit the sorobanContext
-                sorobanContext
-              },
-            )
-            console.debug(trustlineResult)
-          } catch (err) {
-            console.error(err)
+          let adminSource, walletSource, fundedError
+          try{
+            adminSource = await server.getAccount(Constants.TokenAdmin)
+            walletSource = await server.getAccount(account)
+          }
+          catch(error){
+            alert("Your wallet or the token admin wallet might not be funded")
+            setSubmitting(false)  
+            fundedError=true
           }
 
-          try {
-            const paymentResult = await sendTransaction(
-              new SorobanClient.TransactionBuilder(adminSource, {
-                networkPassphrase,
-                fee: "1000",
-              })
-              .setTimeout(10)
-              .addOperation(
-                SorobanClient.Operation.payment({
-                  destination: walletSource.accountId(),
-                  asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
-                  amount: amount.toString(),
+          if(!fundedError){
+            //
+            // 1. Establish a trustline to the admin (if necessary)
+            // 2. The admin sends us money (mint)
+            //
+            // We have to do this in two separate transactions because one
+            // requires approval from Freighter while the other can be done with
+            // the stored token issuer's secret key.
+            //
+            // FIXME: The `getAccount()` RPC endpoint doesn't return `balances`,
+            //        so we never know whether or not the user needs a trustline
+            //        to receive the minted asset.
+            //
+            // Today, we establish the trustline unconditionally.
+            try {
+              console.log("Establishing the trustline...")
+              console.log("sorobanContext: ", sorobanContext)
+              const trustlineResult = await sendTransaction(
+                new SorobanClient.TransactionBuilder(walletSource, {
+                  networkPassphrase,
+                  fee: "1000", // arbitrary
                 })
+                .setTimeout(60)
+                .addOperation(
+                  SorobanClient.Operation.changeTrust({
+                    asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+                  })
+                )
+                .build(), {
+                  timeout: 60 * 1000, // should be enough time to approve the tx
+                  skipAddingFootprint: true, // classic = no footprint
+                  // omit `secretKey` to have Freighter prompt for signing
+                  // hence, we need to explicit the sorobanContext
+                  sorobanContext
+                },
               )
-              .build(), {
-                timeout: 10 * 1000,
-                skipAddingFootprint: true,
-                secretKey: Constants.TokenAdminSecretKey,
-                sorobanContext
-              }
-            )
-            console.debug(paymentResult)
-          } catch (err) {
-            console.error(err)
+              console.debug(trustlineResult)
+            } catch (err) {
+              console.log("Error while establishing the trustline: ", err)
+              console.error(err)
+            }
+
+            try {
+              console.log("Minting the token...")
+              const paymentResult = await sendTransaction(
+                new SorobanClient.TransactionBuilder(adminSource, {
+                  networkPassphrase,
+                  fee: "1000",
+                })
+                .setTimeout(10)
+                .addOperation(
+                  SorobanClient.Operation.payment({
+                    destination: walletSource.accountId(),
+                    asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+                    amount: amount.toString(),
+                  })
+                )
+                .build(), {
+                  timeout: 10 * 1000,
+                  skipAddingFootprint: true,
+                  secretKey: Constants.TokenAdminSecretKey,
+                  sorobanContext
+                }
+              )
+              console.debug(paymentResult)
+            } catch (err) {
+              console.log("Error while minting the token: ", err)
+              console.error(err)
+            }
+            //
+            // TODO: Show some user feedback while we are awaiting, and then based
+            // on the result
+            //
+            setSubmitting(false)
           }
-          //
-          // TODO: Show some user feedback while we are awaiting, and then based
-          // on the result
-          //
-          setSubmitting(false)
         }}
         disabled={isSubmitting}
         isLoading={isSubmitting}
