@@ -321,6 +321,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
                 }
               )
               console.debug(paymentResult)
+              sorobanContext.connect()
             } catch (err) {
               console.log("Error while minting the token: ", err)
               console.error(err)
