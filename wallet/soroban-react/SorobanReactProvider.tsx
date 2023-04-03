@@ -1,7 +1,7 @@
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import * as SorobanClient from 'soroban-client';
 import { SorobanContext, SorobanContextType, defaultSorobanContext } from '.';
-import { ConnectorList } from "../types";
+import { ConnectorList, NetworkDetails } from "../types";
 import { WalletChain, } from '../WalletChainContext';
  
 /**
@@ -16,7 +16,7 @@ export interface SorobanReactProviderProps {
   connectors: ConnectorList;
 }
 
-function networkToActiveChain(networkDetails: any, chains:any){
+function networkToActiveChain(networkDetails: NetworkDetails | undefined, chains: WalletChain[]) {
   const supported = networkDetails && chains.find(c => c.networkPassphrase === networkDetails?.networkPassphrase)
   const activeChain = networkDetails && {
       id: supported?.id ?? networkDetails.networkPassphrase,
@@ -40,7 +40,7 @@ export function SorobanReactProvider({
 
   const flatWallets = connectors.flatMap(w => w.connectors);
   const activeWallet = flatWallets.length == 1 ? flatWallets[0] : undefined;
-  const isConnectedRef = useRef(false);
+  const isConnectedRef = React.useRef(false);
 
   const [mySorobanContext, setSorobanContext] = React.useState<SorobanContextType>({
     ...defaultSorobanContext,
@@ -89,6 +89,9 @@ export function SorobanReactProvider({
       try {
         let chain = networkToActiveChain(await mySorobanContext.activeWallet?.getNetworkDetails(), chains)
         let address = await mySorobanContext.activeWallet?.getPublicKey();
+
+        // No active chain
+        if (!chain || !mySorobanContext.activeChain) return;
 
         if (mySorobanContext.address !== address) {
           console.log("SorobanReactProvider: address changed from:", mySorobanContext.address," to: ", address);

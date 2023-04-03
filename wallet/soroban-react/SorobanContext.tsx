@@ -1,7 +1,7 @@
 import React, {createContext} from "react";
 import * as SorobanClient from "soroban-client";
-import { ChainMetadata } from "./provideWalletChains";
-import { Connector, ConnectorList } from "./Wallet";
+import { ChainMetadata } from "@soroban-react/types";
+import { Connector, ConnectorList } from "../types";
 
 export const defaultSorobanContext: SorobanContextType = {
   appName: undefined,
@@ -9,6 +9,7 @@ export const defaultSorobanContext: SorobanContextType = {
   connectors: [],
   server: new SorobanClient.Server("https://soroban-rpc.stellar.org"),
   async connect() {},
+  async disconnect() {},
 };
 
 export interface SorobanContextType {
