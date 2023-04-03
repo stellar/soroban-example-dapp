@@ -1,15 +1,13 @@
-import React, {useState, useEffect} from 'react'
-import {SorobanReactProvider,
-        getDefaultConnectors} from '@soroban-react/core';
-import {ChainMetadata} from "@soroban-react/types";
-
-import {chain} from '../wallet/provideWalletChains'
+import React from 'react'
+import {SorobanReactProvider} from '@soroban-react/core';
+import {futurenet, sandbox, standalone} from '@soroban-react/chains';
+import {freighter} from '@soroban-react/freighter';
+import {ChainMetadata, Connector} from "@soroban-react/types";
       
-  const chains: ChainMetadata[] = [chain.sandbox, chain.standalone, chain.futurenet];
-  const {connectors} = getDefaultConnectors({
-                            appName: "Example Stellar App",
-                            chains})
-                            
+const chains: ChainMetadata[] = [sandbox, standalone, futurenet];
+const connectors: Connector[] = [freighter()]
+                          
+                          
   export default function ProviderExample({children}:{children: React.ReactNode}) {
     return (
       <SorobanReactProvider
