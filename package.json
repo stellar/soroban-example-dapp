@@ -12,11 +12,11 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
-    "@soroban-react/contracts": "4.0.0",
-    "@soroban-react/core": "4.0.0",
+    "@soroban-react/chains": "4.1.0",
+    "@soroban-react/contracts": "4.1.0",
+    "@soroban-react/core": "4.1.0",
     "@soroban-react/freighter": "4.0.0",
     "@soroban-react/types": "4.0.0",
-    "@soroban-react/chains": "4.0.0",
     "@stellar/freighter-api": "^1.3.1",
     "axios": "^0.27.2",
     "bignumber.js": "^9.1.0",
@@ -25,15 +25,15 @@
     "next": "12.1.5",
     "react": "18.1.0",
     "react-dom": "18.1.0",
-    "soroban-client": "^0.4.0"
+    "soroban-client": "^0.5.0"
   },
   "devDependencies": {
     "@types/humanize-duration": "^3.27.1",
     "@types/node": "17.0.30",
     "@types/react": "18.0.8",
     "@types/react-dom": "18.0.3",
-    "eslint": "8.14.0",
-    "eslint-config-next": "12.1.5",
+    "eslint": "^8.14.0",
+    "eslint-config-next": "^12.1.5",
     "typescript": "4.6.4"
   },
   "engines": {

@@ -7,42 +7,37 @@ export function scvalToBigNumber(scval: SorobanClient.xdr.ScVal | undefined): Bi
   case undefined: {
     return BigNumber(0);
   }
-  case xdr.ScValType.scvU63(): {
-    const {high, low} = scval.u63();
-    return bigNumberFromBytes(false, high, low);
-  }
   case xdr.ScValType.scvU32(): {
     return BigNumber(scval.u32());
   }
   case xdr.ScValType.scvI32(): {
     return BigNumber(scval.i32());
   }
-  case xdr.ScValType.scvObject(): {
-    let obj = scval.obj()!;
-    switch (obj.switch()) {
-    case xdr.ScObjectType.scoU64(): {
-      const {high, low} = obj.u64();
-      return bigNumberFromBytes(false, high, low);
-    }
-    case xdr.ScObjectType.scoI64(): {
-      const {high, low} = obj.i64();
-      return bigNumberFromBytes(true, high, low);
-    }
-    case xdr.ScObjectType.scoU128(): {
-      const parts = obj.u128();
-      const a = parts.hi();
-      const b = parts.lo();
-      return bigNumberFromBytes(false, a.high, a.low, b.high, b.low);
-    }
-    case xdr.ScObjectType.scoI128(): {
-      const parts = obj.i128();
-      const a = parts.hi();
-      const b = parts.lo();
-      return bigNumberFromBytes(true, a.high, a.low, b.high, b.low);
-    }
-    default:
-      throw new Error(`Invalid type for scvalToBigNumber: ${obj.switch().name}`);
-    }
+  case xdr.ScValType.scvU64(): {
+    const {high, low} = scval.u64();
+    return bigNumberFromBytes(false, high, low);
+  }
+  case xdr.ScValType.scvI64(): {
+    const {high, low} = scval.i64();
+    return bigNumberFromBytes(true, high, low);
+  }
+  case xdr.ScValType.scvU128(): {
+    const parts = scval.u128();
+    const a = parts.hi();
+    const b = parts.lo();
+    return bigNumberFromBytes(false, a.high, a.low, b.high, b.low);
+  }
+  case xdr.ScValType.scvI128(): {
+    const parts = scval.i128();
+    const a = parts.hi();
+    const b = parts.lo();
+    return bigNumberFromBytes(true, a.high, a.low, b.high, b.low);
+  }
+  case xdr.ScValType.scvU256(): {
+    return bigNumberFromBytes(false, ...scval.u256());
+  }
+  case xdr.ScValType.scvI256(): {
+    return bigNumberFromBytes(true, ...scval.i256());
   }
   default: {
     throw new Error(`Invalid type for scvalToBigNumber: ${scval?.switch().name}`);
@@ -96,7 +91,7 @@ export function bigNumberToI128(value: BigNumber): SorobanClient.xdr.ScVal {
     bigNumberFromBytes(false, ...padded.slice(8, 12)).toNumber()
   );
 
-  return xdr.ScVal.scvObject(xdr.ScObject.scoI128(new xdr.Int128Parts({lo, hi})));
+  return xdr.ScVal.scvI128(new xdr.Int128Parts({lo, hi}));
 }
 
 function bigintToBuf(bn: bigint): Buffer {
@@ -131,6 +126,6 @@ export function xdrUint64ToNumber(value: SorobanClient.xdr.Uint64): number {
 }
 
 export function scvalToString(value: SorobanClient.xdr.ScVal): string | undefined {
-  return value.obj()?.bin().toString();
+  return value.bytes().toString();
 }
 

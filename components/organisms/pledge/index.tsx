@@ -59,12 +59,6 @@ const Pledge: FunctionComponent = () => {
     sorobanContext
   })
 
-  let started = useContractValue({ 
-    contractId: Constants.CrowdfundId,
-    method: 'started',
-    sorobanContext
-  })
-    
   let targetAmountXdr = useContractValue({ 
     contractId: Constants.CrowdfundId,
     method: 'target',
@@ -84,18 +78,10 @@ const Pledge: FunctionComponent = () => {
     deadline.result &&
     new Date(
       convert.xdrUint64ToNumber(
-        deadline.result.obj()?.u64() ?? xdr.Int64.fromString('0')
+        deadline.result.u64() ?? xdr.Int64.fromString('0')
       ) * 1000
     )
   const targetAmount = convert.scvalToBigNumber(targetAmountXdr.result)
-
-  const startedDate =
-    started.result &&
-    new Date(
-      convert.xdrUint64ToNumber(
-        started.result.obj()?.u64() ?? xdr.Int64.fromString('0')
-      ) * 1000
-    )
 
   const isLoading = (): boolean | undefined => {
     return (
