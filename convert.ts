@@ -27,7 +27,7 @@ export function scvalToBigNumber(scval: SorobanClient.xdr.ScVal | undefined): Bi
     const b = parts.lo();
     return bigNumberFromBytes(false, a.high, a.low, b.high, b.low);
   }
-  case xdr.ScValType.scoI128(): {
+  case xdr.ScValType.scvI128(): {
     const parts = scval.i128();
     const a = parts.hi();
     const b = parts.lo();
@@ -36,7 +36,7 @@ export function scvalToBigNumber(scval: SorobanClient.xdr.ScVal | undefined): Bi
   case xdr.ScValType.scvU256(): {
     return bigNumberFromBytes(false, ...scval.u256());
   }
-  case xdr.ScValType.scoI256(): {
+  case xdr.ScValType.scvI256(): {
     return bigNumberFromBytes(true, ...scval.i256());
   }
   default: {
@@ -126,6 +126,6 @@ export function xdrUint64ToNumber(value: SorobanClient.xdr.Uint64): number {
 }
 
 export function scvalToString(value: SorobanClient.xdr.ScVal): string | undefined {
-  return value.bytes().bin().toString();
+  return value.bytes().toString();
 }
 
