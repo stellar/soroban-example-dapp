@@ -1,8 +1,9 @@
 import React, { FunctionComponent, useState } from 'react'
 import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
+import { Utils } from '../../../shared/utils'
 import styles from './style.module.css'
-import { useSendTransaction } from '@soroban-react/contracts'
+import { useSendTransaction, useContractValue } from '@soroban-react/contracts'
 import { useSorobanReact } from '@soroban-react/core'
 import {
   useNetwork,
@@ -28,10 +29,44 @@ export interface IResultSubmit {
   scVal?: SorobanClient.xdr.ScVal
   error?: string
   value?: number
-  symbol?: string
+  symbol?: string 
 }
 
 const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
+  const sorobanContext = useSorobanReact()
+
+
+  // Call the contract to get user's balance of the token
+  const useLoadToken = (): any => {
+    return {
+      userBalance: useContractValue({ 
+        contractId: Constants.TokenId,
+        method: 'balance',
+        params: [new SorobanClient.Address(props.account).toScVal()],
+        sorobanContext
+      }),
+      decimals: useContractValue({ 
+        contractId: Constants.TokenId,
+        method: 'decimals',
+        sorobanContext
+      }),
+      symbol: useContractValue({ 
+        contractId: Constants.TokenId,
+        method: 'symbol',
+        sorobanContext
+      }),
+    }
+  }
+
+  let token = useLoadToken()
+  const userBalance = convert.scvalToBigNumber(token.userBalance.result)
+  const tokenDecimals =
+    token.decimals.result && (token.decimals.result?.u32() ?? 7)
+  const tokenSymbol =
+    token.symbol.result && convert.scvalToString(token.symbol.result)?.replace("\u0000", "")
+
+   
+
   
   const [amount, setAmount] = useState<number>()
   const [resultSubmit, setResultSubmit] = useState<IResultSubmit | undefined>()
@@ -39,7 +74,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const [isSubmitting, setSubmitting] = useState(false)
   const { server } = useNetwork()
 
-  const sorobanContext = useSorobanReact()
   const parsedAmount = BigNumber(amount || 0)
 
   const { sendTransaction } = useSendTransaction()
@@ -174,6 +208,11 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             decimals={props.decimals}
             symbol={props.symbol}
           />
+          <div className={styles.wrapper}>
+            <div>
+              <h6>Your balance:  {Utils.formatAmount(userBalance, tokenDecimals)} {tokenSymbol}</h6>
+          </div>
+        </div>
         </div>
       ) : null}
       {resultSubmit && (
@@ -204,12 +243,18 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         title={`Mint ${amount.toString()} ${symbol}`}
         onClick={async () => {
           setSubmitting(true)
-
           if (!server) throw new Error("Not connected to server")
 
-          const adminSource = await server.getAccount(Constants.TokenAdmin)
-
-          const walletSource = await server.getAccount(account)
+          let adminSource, walletSource
+          try{
+            adminSource = await server.getAccount(Constants.TokenAdmin)
+            walletSource = await server.getAccount(account)
+          }
+          catch(error){
+            alert("Your wallet or the token admin wallet might not be funded")
+            setSubmitting(false)  
+            return
+          }
 
           //
           // 1. Establish a trustline to the admin (if necessary)
@@ -225,6 +270,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           //
           // Today, we establish the trustline unconditionally.
           try {
+            console.log("Establishing the trustline...")
             console.log("sorobanContext: ", sorobanContext)
             const trustlineResult = await sendTransaction(
               new SorobanClient.TransactionBuilder(walletSource, {
@@ -247,10 +293,12 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             )
             console.debug(trustlineResult)
           } catch (err) {
+            console.log("Error while establishing the trustline: ", err)
             console.error(err)
           }
 
           try {
+            console.log("Minting the token...")
             const paymentResult = await sendTransaction(
               new SorobanClient.TransactionBuilder(adminSource, {
                 networkPassphrase,
@@ -272,7 +320,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
               }
             )
             console.debug(paymentResult)
+            sorobanContext.connect()
           } catch (err) {
+            console.log("Error while minting the token: ", err)
             console.error(err)
           }
           //
@@ -280,6 +330,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           // on the result
           //
           setSubmitting(false)
+        
         }}
         disabled={isSubmitting}
         isLoading={isSubmitting}
