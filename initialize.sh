@@ -39,15 +39,11 @@ esac
     --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE"
 #fi
 
-TOKEN_ADMIN_SECRET="SAKCFFFNCE7XAWYMYVRZQYKUK6KMUCDIINLWISJYTMYJLNR2QLCDLFVT"
 if !(soroban config identity ls | grep token-admin 2>&1 >/dev/null); then
   echo Create the token-admin identity
-  # TODO: Use `soroban config identity generate` once that supports secret key
-  # output.
-  # See: https://github.com/stellar/soroban-example-dapp/issues/88
-  mkdir -p ".soroban/identities"
-  echo "secret_key = \"$TOKEN_ADMIN_SECRET\"" > ".soroban/identities/token-admin.toml"
+  soroban config identity generate token-admin
 fi
+TOKEN_ADMIN_SECRET="$(soroban config identity show token-admin)"
 TOKEN_ADMIN_ADDRESS="$(soroban config identity address token-admin)"
 
 # TODO: Remove this once we can use `soroban config identity` from webpack.
