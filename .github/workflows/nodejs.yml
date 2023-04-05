@@ -22,7 +22,7 @@ jobs:
     - uses: stellar/actions/rust-cache@main
     - run: rustup update
     - run: rustup target add wasm32-unknown-unknown
-    - run: cargo install --target-dir ~/.cargo/target --locked --version 0.6.0 soroban-cli
+    - run: cargo install --target-dir ~/.cargo/target --locked --version 0.7.1 soroban-cli
     - name: Use Node.js 17.x
       uses: actions/setup-node@v3
       with:
