@@ -44,7 +44,7 @@ docker run -dti \
   -p 8001:8000 \
   --ipc=host \
   --network soroban-network \
-  soroban-preview:7
+  soroban-preview:8
 
 # Run the stellar quickstart image
 docker run --rm -ti \

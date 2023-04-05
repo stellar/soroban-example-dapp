@@ -23,7 +23,7 @@ build-optimized: fmt
 		done
 
 build-docker:
-	docker build . --tag soroban-preview:7
+	docker build . --tag soroban-preview:8
 
 check: fmt
 	cargo clippy --all-targets
