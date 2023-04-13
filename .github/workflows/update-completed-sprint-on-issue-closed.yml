@@ -1,0 +1,18 @@
+name: Update CompletedSprint on Issue Closed
+
+on:
+  issues:
+    types: [closed]
+  pull_request:
+    types: [closed]
+
+jobs:
+  update-completed-sprint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: paulbellamy/stellar-actions/update-completed-sprint-on-issue-closed@update-completed-sprint-on-issue-closed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          project_name: "Platform Scrum"
+          field_name: "CompletedSprint"
