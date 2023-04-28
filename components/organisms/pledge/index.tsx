@@ -95,7 +95,7 @@ const Pledge: FunctionComponent = () => {
     const tokenBalance = convert.scvalToBigNumber(token.balance.result)
     const targetAmount = convert.scvalToBigNumber(targetAmountXdr.result)
     setTokenBalance(tokenBalance)
-    setTargetReached(tokenBalance.gte(targetAmount))
+    setTargetReached(targetAmount.gt(0) && tokenBalance.gte(targetAmount))
   }, [token.balance, targetAmountXdr]);
   
   const isLoading = (): boolean | undefined => {
@@ -126,8 +126,8 @@ const Pledge: FunctionComponent = () => {
       id: Math.random()});
   
   React.useEffect(() => {
-    const pledgedSubId = sorobanEventsContext.subscribe(crowdfundPledgedEventSubscription)
-    const reachedSubId = sorobanEventsContext.subscribe(crowdfundTargetReachedSubscription)
+    const pledgedSubId = sorobanEventsContext.subscribe(crowdfundPledgedEventSubscription.current)
+    const reachedSubId = sorobanEventsContext.subscribe(crowdfundTargetReachedSubscription.current)
 
     return () => {
       sorobanEventsContext.unsubscribe(pledgedSubId);

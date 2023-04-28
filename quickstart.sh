@@ -54,5 +54,4 @@ docker run --rm -ti \
   stellar/quickstart:soroban-dev@sha256:a057ec6f06c6702c005693f8265ed1261e901b153a754e97cf18b0962257e872 \
   $ARGS \
   --enable-soroban-rpc \
-  --protocol-version 20 \
   "$@" # Pass through args from the CLI
