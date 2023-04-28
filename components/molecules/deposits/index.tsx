@@ -22,7 +22,7 @@ export interface IDepositsProps {
 export function Deposits(props: IDepositsProps) {
   const useLoadDeposits = (): ContractValueType => {
     return useContractValue({
-      contractId: Constants.CrowdfundId,
+      contractId: props.idCrowdfund,
       method: 'balance',
       params: [new SorobanClient.Address(props.address).toScVal()],
       sorobanContext: useSorobanReact()

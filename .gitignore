@@ -39,3 +39,6 @@ yarn-error.log*
 # Rust contract build
 /target
 /target-tiny
+
+*.sublime-project
+*.sublime-workspace

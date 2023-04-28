@@ -124,6 +124,5 @@ the user's freighter wallet, as well as some React hooks to talk to a
 soroban-rpc server (e.g. `soroban-cli serve`), to fetch data and send
 transactions.
 
-Data from contracts is fetched using the `useContractValue` hook in
-`./wallet/hooks/useContractValue.tsx`. Transactions are submitted to the network
-using the `useSendTransactions` hook in `./wallet/hooks/useSendTransaction.tsx`.
+Data from contracts is fetched using the `useContractValue` hook from @soroban-react/contracts. Transactions are submitted to the network
+using the `useSendTransaction` from @soroban-react/contracts.
