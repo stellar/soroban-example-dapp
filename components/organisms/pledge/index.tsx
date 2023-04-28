@@ -108,22 +108,22 @@ const Pledge: FunctionComponent = () => {
     )
   }
 
-  const crowdfundPledgedEventSubscription: EventSubscription = useRef({
+  const crowdfundPledgedEventSubscription = useRef({
       contractId: Constants.CrowdfundId, 
       topics: ['pledged_amount_changed'], 
       cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
         let eventTokenBalance = xdr.ScVal.fromXDR(Buffer.from(event.value.xdr, 'base64'))
         setTokenBalance(convert.scvalToBigNumber(eventTokenBalance))
       }, 
-      id: Math.random()});
+      id: Math.random()} as EventSubscription);
 
-  const crowdfundTargetReachedSubscription: EventSubscription = useRef({
+  const crowdfundTargetReachedSubscription = useRef({
       contractId: Constants.CrowdfundId, 
       topics: ['target_reached'], 
       cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
         setTargetReached(true)
       }, 
-      id: Math.random()});
+      id: Math.random()} as EventSubscription);
   
   React.useEffect(() => {
     const pledgedSubId = sorobanEventsContext.subscribe(crowdfundPledgedEventSubscription.current)
