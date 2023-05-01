@@ -823,6 +823,7 @@ version = "0.0.0"
 dependencies = [
  "rand 0.7.3",
  "soroban-sdk",
+ "soroban-token-sdk",
  "stellar-xdr",
 ]
 
@@ -959,6 +960,14 @@ dependencies = [
  "syn",
  "thiserror",
  "wasmparser",
+]
+
+[[package]]
+name = "soroban-token-sdk"
+version = "0.7.0"
+source = "git+https://github.com/stellar/rs-soroban-sdk?rev=9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9#9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
+dependencies = [
+ "soroban-sdk",
 ]
 
 [[package]]

@@ -1,5 +1,6 @@
 #![no_std]
-use soroban_sdk::{contractimpl, contracttype, Address, BytesN, Env, IntoVal, RawVal};
+use soroban_sdk::{contractimpl, contracttype, Address, Bytes, BytesN, Env, IntoVal, RawVal};
+use soroban_token_sdk::{TokenMetadata, TokenUtils};
 
 mod token {
     soroban_sdk::contractimport!(file = "../token/soroban_token_spec.wasm");
@@ -111,6 +112,11 @@ fn transfer(e: &Env, to: &Address, amount: &i128) {
     client.transfer(&e.current_contract_address(), to, amount);
 }
 
+pub fn write_metadata(e: &Env, metadata: TokenMetadata) {
+    let util = TokenUtils::new(e);
+    util.set_metadata(&metadata);
+}
+
 struct Crowdfund;
 
 /*
@@ -139,6 +145,22 @@ impl Crowdfund {
         e.storage().set(&DataKey::Deadline, &deadline);
         e.storage().set(&DataKey::Target, &target_amount);
         e.storage().set(&DataKey::Token, &token);
+
+        let decimal = 0;
+        //let mut name: soroban_sdk::Bytes;
+        let mut name = [0u8; 4];
+        token.copy_into_slice(&mut name);
+        //token.try_from_val(e, &name);
+        let symbol = "crowdfund";
+
+        write_metadata(
+            &e,
+            TokenMetadata {
+                decimal,
+                Bytes::from_slice(&env, name),
+                symbol,
+            },
+        )
     }
 
     pub fn recipient(e: Env) -> Address {

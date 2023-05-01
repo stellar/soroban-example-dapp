@@ -50,6 +50,11 @@ version = "0.7.0"
 git = "https://github.com/stellar/rs-soroban-sdk"
 rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
 
+[workspace.dependencies.soroban-token-sdk]
+version = "0.7.0"
+git = "https://github.com/stellar/rs-soroban-sdk"
+rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
+
 [workspace.dependencies.soroban-sdk-macros]
 version = "0.7.0"
 git = "https://github.com/stellar/rs-soroban-sdk"
