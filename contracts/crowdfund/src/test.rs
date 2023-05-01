@@ -7,6 +7,10 @@ use soroban_sdk::{
     Address, BytesN, Env,
 };
 
+mod token {
+    soroban_sdk::contractimport!(file = "../token/soroban_token_spec.wasm");
+}
+
 fn create_crowdfund_contract(
     e: &Env,
     recipient: &Address,
@@ -56,17 +60,17 @@ impl Setup {
 
         // Create the token contract
         let token_admin = Address::random(&e);
-        let contract_token = e.register_stellar_asset_contract(token_admin.clone());
+        let contract_token = e.register_stellar_asset_contract(token_admin);
         let token = Token::new(&e, &contract_token);
 
         // Create the crowdfunding contract
         let (contract_crowdfund, crowdfund) =
             create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &contract_token);
-        let crowdfund_id = Address::from_contract_id(&e, &contract_crowdfund);
+        let crowdfund_id = Address::from_contract_id(&contract_crowdfund);
 
         // Mint some tokens to work with
-        token.mint(&token_admin, &user1, &10);
-        token.mint(&token_admin, &user2, &5);
+        token.mint(&user1, &10);
+        token.mint(&user2, &5);
 
         crowdfund.client().deposit(&user1, &10);
 

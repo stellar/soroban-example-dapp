@@ -108,7 +108,7 @@ fn set_user_deposited(e: &Env, user: &Address, amount: &i128) {
 fn transfer(e: &Env, to: &Address, amount: &i128) {
     let token_contract_id = &get_token(e);
     let client = token::Client::new(e, token_contract_id);
-    client.xfer(&e.current_contract_address(), to, amount);
+    client.transfer(&e.current_contract_address(), to, amount);
 }
 
 struct Crowdfund;
@@ -189,7 +189,7 @@ impl Crowdfund {
         set_user_deposited(&e, &user, &(balance + amount));
 
         let client = token::Client::new(&e, &get_token(&e));
-        client.xfer(&user, &e.current_contract_address(), &amount);
+        client.transfer(&user, &e.current_contract_address(), &amount);
     }
 
     pub fn withdraw(e: Env, to: Address) {

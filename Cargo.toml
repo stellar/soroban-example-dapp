@@ -17,27 +17,45 @@ lto = true
 
 [workspace.dependencies.soroban-env-common]
 version = "0.0.15"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
 
 [workspace.dependencies.soroban-env-guest]
 version = "0.0.15"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
 
 [workspace.dependencies.soroban-env-macros]
 version = "0.0.15"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
 
 [workspace.dependencies.soroban-env-host]
 version = "0.0.15"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
 
 [workspace.dependencies.soroban-native-sdk-macros]
 version = "0.0.15"
+git = "https://github.com/stellar/rs-soroban-env"
+rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
 
 [workspace.dependencies.soroban-spec]
 version = "0.7.0"
+git = "https://github.com/stellar/rs-soroban-sdk"
+rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
 
 [workspace.dependencies.soroban-sdk]
 version = "0.7.0"
+git = "https://github.com/stellar/rs-soroban-sdk"
+rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
 
 [workspace.dependencies.soroban-sdk-macros]
 version = "0.7.0"
+git = "https://github.com/stellar/rs-soroban-sdk"
+rev = "9b7a8da3c7f9df96c2213c3d687e79cc910e9fd9"
 
 [workspace.dependencies.stellar-xdr]
 version = "0.0.15"
+git = "https://github.com/stellar/rs-stellar-xdr"
+rev = "76a4fa1ada4d3e175c627b7d023ceca06f757289"
