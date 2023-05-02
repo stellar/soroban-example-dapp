@@ -7,10 +7,6 @@ use soroban_sdk::{
     Address, BytesN, Env,
 };
 
-mod token {
-    soroban_sdk::contractimport!(file = "../token/soroban_token_spec.wasm");
-}
-
 fn create_crowdfund_contract(
     e: &Env,
     recipient: &Address,
