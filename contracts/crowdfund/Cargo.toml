@@ -9,7 +9,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 soroban-sdk = { workspace = true }
-stellar-xdr = { workspace = true, features = ["next", "std"], optional = true }
 
 [dev_dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }

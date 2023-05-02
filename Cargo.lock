@@ -823,7 +823,6 @@ version = "0.0.0"
 dependencies = [
  "rand 0.7.3",
  "soroban-sdk",
- "stellar-xdr",
 ]
 
 [[package]]
