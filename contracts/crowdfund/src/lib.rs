@@ -218,7 +218,7 @@ impl Crowdfund {
         let contract_balance = get_balance(&e, &token_id);
 
         // emit events
-        events::pledged_changed(&e, contract_balance);
+        events::pledged_amount_changed(&e, contract_balance);
         if !current_target_met && target_reached(&e, &token_id) {
             // only emit the target reached event once on the pledge that triggers target to be met
             events::target_reached(&e, contract_balance, get_target_amount(&e));
@@ -261,7 +261,7 @@ impl Crowdfund {
                 // emit events
                 let token_id = get_token(&e);
                 let contract_balance = get_balance(&e, &token_id);
-                events::pledged_changed(&e, contract_balance);
+                events::pledged_amount_changed(&e, contract_balance);
             }
         };
     }

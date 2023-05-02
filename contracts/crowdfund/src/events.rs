@@ -1,8 +1,8 @@
 use soroban_sdk::{vec, Env, Symbol};
 
-pub(crate) fn pledged_changed(e: &Env, amount: i128) {
+pub(crate) fn pledged_amount_changed(e: &Env, total_amount: i128) {
     let topics = (Symbol::new(e, "pledged_amount_changed"),);
-    e.events().publish(topics, amount);
+    e.events().publish(topics, total_amount);
 }
 
 pub(crate) fn target_reached(e: &Env, pledged: i128, target: i128) {
