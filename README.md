@@ -1,103 +1,123 @@
-# Soroban Crowdfunding Dapp Example
+Soroban Crowdfunding Dapp Example
+=================================
 
 ![Screenshot of the Example Dapp](screenshot.png)
 
 This is a [Next.js](https://nextjs.org/) project, demoing how to build a dapp frontend
 backed by smart contracts on Stellar.
 
-## Getting Started
-___
+Getting Started
+===============
 
-### Dependencies
+Install Dependencies
+--------------------
 
 1. `soroban-cli v0.7.1`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
 2. `docker` (both Standalone and Futurenet backends require it).
 3. `Node.js v17`
 4. `Freighter wallet v2.9.1`. Download it from https://github.com/stellar/freighter/releases/tag/2.9.1 and Enable "Experimental Mode" in the settings (gear icon).
 5. Build the `soroban-preview` docker image:
-```
-make build-docker
-```
-Building the docker image lets you avoid installing the specific version of soroban-cli in step (1), if desired.
-___
 
-### Backend (Local Standalone Network)
+       make build-docker
 
-1. Run the backend docker containers and wait for them to start:
+   Building the docker image lets you avoid installing the specific version of soroban-cli in step (1), if desired.
 
-```
-./quickstart.sh standalone
-```
+Run Backend
+-----------
 
-2. Load the contracts and initialize them:
+You have two options: 1. run in [localnet/standalone](https://soroban.stellar.org/docs/getting-started/deploy-to-a-local-network) mode, or 2. run on [Futurenet](https://soroban.stellar.org/docs/getting-started/deploy-to-futurenet)
 
-You can use your own local soroban-cli:
-```
-./initialize.sh standalone
-```
-Or run it inside the soroban-preview docker container:
-```
-docker exec soroban-preview ./initialize.sh standalone
-```
-  - Note: this state will be lost if the quickstart docker container is removed.
+### Option 1: Localnet/Standalone
+
+0. If you didn't yet, build the `soroban-preview` docker image, as described above:
+
+       make build-docker
+
+1. In one terminal, run the backend docker containers and wait for them to start:
+
+       ./quickstart.sh standalone
+
+   You know that it fully started if it goes into a loop publishing & syncing checkpoints.
+
+   You can stop this process with <kbd>ctrl</kbd><kbd>c</kbd>
+
+2. Keep that running, then deploy the contracts and initialize them:
+
+   You can use your own local soroban-cli:
+
+       ./initialize.sh standalone
+
+   Or run it inside the soroban-preview docker container:
+
+       docker exec soroban-preview ./initialize.sh standalone
+
+   **Note:** this state will be lost if the quickstart docker container is removed, which will happen if you stop the `quickstart.sh` process. You will need to re-run `./initialize.sh` every time you restart the container.
+
 3. Add the Standalone custom network in Freighter
-    |   |   |
-    |---|---|
-    | Name | Standalone |
-    | URL | http://localhost:8000/soroban/rpc |
-    | Passphrase | Standalone Network ; February 2017 |
-    | Allow HTTP connection | Enabled |
-    | Switch to this network | Enabled |
-4. Add some Standalone network lumens to your Freighter wallet.
-  a. Copy the address for your freighter wallet.
-  b. Visit `http://localhost:8000/friendbot?addr=<your address>`
 
-### Backend (Futurenet)
+   |   |   |
+   |---|---|
+   | Name | Standalone |
+   | URL | http://localhost:8000/soroban/rpc |
+   | Passphrase | Standalone Network ; February 2017 |
+   | Allow HTTP connection | Enabled |
+   | Switch to this network | Enabled |
+
+4. Add some Standalone network lumens to your Freighter wallet.
+
+   1. Copy the address for your freighter wallet.
+   2. Visit `http://localhost:8000/friendbot?addr=<your address>`
+
+### Option 2: Futurenet
 
 1. Run the backend docker container with `./quickstart.sh futurenet`, and wait for it to start.
-  - Note: This can take up to 5 minutes to start syncing. You can tell it is
-    working by visiting http://localhost:8000/, and look at the
-    `ingest_latest_ledger`, field. If it is `0`, the quickstart image is not
-    ready yet.
-2. Load the contracts and initialize it:
-You can use your own local soroban-cli:
-```
-./initialize.sh futurenet
-```
-Or run it inside the soroban-preview docker container:
-```
-docker exec soroban-preview ./initialize.sh futurenet
-```
-3. Add the Futurenet custom network in Freighter
-  (Note, the out-of-the-box "Future Net" network in
-  Freighter will not work with a local quickstart container, so we need to add
-  our own):
-    |   |   |
-    |---|---|
-    | Name | Futurenet Local RPC|
-    | URL | http://localhost:8000/soroban/rpc |
-    | Passphrase | Test SDF Future Network ; October 2022 |
-    | Allow HTTP connection | Enabled |
-    | Switch to this network | Enabled |
+
+   **Note:** This can take up to 5 minutes to start syncing. You can tell it is
+   working by visiting http://localhost:8000/, and look at the
+   `ingest_latest_ledger`, field. If it is `0`, the quickstart image is not
+   ready yet.
+
+2. Load the contracts and initialize them
+
+   Use your own local soroban-cli:
+
+       ./initialize.sh futurenet
+
+   Or run it inside the soroban-preview docker container:
+
+       docker exec soroban-preview ./initialize.sh futurenet
+
+3. Add the Futurenet custom network in Freighter (Note, the out-of-the-box
+   "Future Net" network in Freighter will not work with a local quickstart
+   container, so we need to add our own):
+
+   |   |   |
+   |---|---|
+   | Name | Futurenet Local RPC|
+   | URL | http://localhost:8000/soroban/rpc |
+   | Passphrase | Test SDF Future Network ; October 2022 |
+   | Allow HTTP connection | Enabled |
+   | Switch to this network | Enabled |
+
 4. Add some Futurenet network lumens to your Freighter wallet.
-  - Visit https://laboratory.stellar.org/#create-account, and follow
-    the instructions to create your freighter account on Futurenet.
 
-### Frontend
+   Visit https://laboratory.stellar.org/#create-account, and follow the instructions to create your freighter account on Futurenet.
 
-Then, run the development server:
+Frontend
+--------
 
-```bash
-npm run dev
-```
+Now that you're running the backend, you can run the development server:
+
+    npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Note: Before you can "Back this project", you'll need to have some EXT (example
+**Note:** Before you can "Back this project", you'll need to have some EXT (example
 token) in your freighter wallet. There is a "Mint 100 EXT" button, which will
 gift you 100 EXT tokens for that purpose.
 
-## User Workflows
+User Workflows
+==============
 
 The contract dev should be able to:
 
@@ -117,7 +137,8 @@ Then via the web UI, users should be able to:
 - See their deposit(s) appear on the page as the transactions are confirmed.
 - "Live"-Update the page with the total amount with the new amount
 
-## Wallet Integration & Data Fetching
+Wallet Integration & Data Fetching
+==================================
 
 There is a `./wallet` directory, which contains a small library to connect to
 the user's freighter wallet, as well as some React hooks to talk to a
