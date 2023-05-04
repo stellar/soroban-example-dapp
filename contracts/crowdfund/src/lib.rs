@@ -1,5 +1,7 @@
 #![no_std]
-use soroban_sdk::{contractimpl, contracttype, Address, BytesN, Env, IntoVal, RawVal};
+use soroban_sdk::{
+    contractimpl, contractmeta, contracttype, Address, BytesN, Env, IntoVal, RawVal,
+};
 
 mod token {
     soroban_sdk::contractimport!(file = "../token/soroban_token_spec.wasm");
@@ -110,6 +112,12 @@ fn transfer(e: &Env, to: &Address, amount: &i128) {
     let client = token::Client::new(e, token_contract_id);
     client.xfer(&e.current_contract_address(), to, amount);
 }
+
+// Metadata that is added on to the WASM custom section
+contractmeta!(
+    key = "Description",
+    val = "Crowdfunding contract that allows users to deposit tokens and withdraw them if the target is not met"
+);
 
 struct Crowdfund;
 
