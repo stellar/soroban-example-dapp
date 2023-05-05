@@ -34,9 +34,9 @@ esac
 #if !(soroban config network ls | grep "$NETWORK" 2>&1 >/dev/null); then
 # Always set a net configuration 
   echo Add the $NETWORK network to cli client
-  soroban config network add "$NETWORK" \
+  soroban config network add \
     --rpc-url "$SOROBAN_RPC_URL" \
-    --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE"
+    --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE" "$NETWORK"
 #fi
 
 if !(soroban config identity ls | grep token-admin 2>&1 >/dev/null); then
@@ -47,6 +47,7 @@ TOKEN_ADMIN_SECRET="$(soroban config identity show token-admin)"
 TOKEN_ADMIN_ADDRESS="$(soroban config identity address token-admin)"
 
 # TODO: Remove this once we can use `soroban config identity` from webpack.
+mkdir -p .soroban
 echo "$TOKEN_ADMIN_SECRET" > .soroban/token_admin_secret
 echo "$TOKEN_ADMIN_ADDRESS" > .soroban/token_admin_address
 
@@ -57,7 +58,6 @@ curl --silent -X POST "$FRIENDBOT_URL?addr=$TOKEN_ADMIN_ADDRESS" >/dev/null
 ARGS="--network $NETWORK --source token-admin"
 
 echo Wrap the Stellar asset
-mkdir -p .soroban
 TOKEN_ID=$(soroban lab token wrap $ARGS --asset "EXT:$TOKEN_ADMIN_ADDRESS")
 echo "Token wrapped succesfully with TOKEN_ID: $TOKEN_ID"
 

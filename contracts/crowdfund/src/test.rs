@@ -1,9 +1,9 @@
 #![cfg(test)]
 
 use super::testutils::{register_test_contract as register_crowdfund, Crowdfund};
-use super::token::Client as Token;
 use soroban_sdk::{
     testutils::{Address as AddressTestTrait, Events, Ledger},
+    token::Client as Token,
     vec, Address, BytesN, Env, IntoVal, RawVal, Symbol, Vec,
 };
 
@@ -28,12 +28,12 @@ fn advance_ledger(e: &Env, delta: u64) {
     });
 }
 
-struct Setup {
+struct Setup<'a> {
     env: Env,
     recipient: Address,
     user1: Address,
     user2: Address,
-    token: Token,
+    token: Token<'a>,
     crowdfund: Crowdfund,
     crowdfund_id: Address,
 }
@@ -43,7 +43,7 @@ struct Setup {
 /// 2. Target amount of 15.
 /// 3. One deposit of 10 from user1.
 ///
-impl Setup {
+impl Setup<'_> {
     fn new() -> Self {
         let e: Env = soroban_sdk::Env::default();
         let recipient = Address::random(&e);
@@ -62,13 +62,13 @@ impl Setup {
         // Create the crowdfunding contract
         let (contract_crowdfund, crowdfund) =
             create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &contract_token);
-        let crowdfund_id = Address::from_contract_id(&e, &contract_crowdfund);
+        let crowdfund_id = Address::from_contract_id(&contract_crowdfund);
 
         // Mint some tokens to work with
-        token.mint(&user1, &10);
-        token.mint(&user2, &8);
+        token.mock_all_auths().mint(&user1, &10);
+        token.mock_all_auths().mint(&user2, &8);
 
-        crowdfund.client().deposit(&user1, &10);
+        crowdfund.client().mock_all_auths().deposit(&user1, &10);
 
         Self {
             env: e,
@@ -87,7 +87,11 @@ fn test_expired() {
     let setup = Setup::new();
     advance_ledger(&setup.env, 11);
 
-    setup.crowdfund.client().withdraw(&setup.user1);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.user1);
 
     assert_eq!(setup.token.balance(&setup.user1), 10);
     assert_eq!(setup.token.balance(&setup.crowdfund_id), 0);
@@ -96,8 +100,16 @@ fn test_expired() {
 #[test]
 fn test_events() {
     let setup = Setup::new();
-    setup.crowdfund.client().deposit(&setup.user2, &5);
-    setup.crowdfund.client().deposit(&setup.user2, &3);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .deposit(&setup.user2, &5);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .deposit(&setup.user2, &3);
 
     let crowd_fund_contract_id = setup.crowdfund_id.contract_id().unwrap();
     let mut crowd_fund_events: Vec<(BytesN<32>, soroban_sdk::Vec<RawVal>, RawVal)> =
@@ -146,47 +158,82 @@ fn test_events() {
 #[test]
 fn test_success() {
     let setup = Setup::new();
-    setup.crowdfund.client().deposit(&setup.user2, &5);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .deposit(&setup.user2, &5);
 
-    assert_eq!(setup.token.balance(&setup.user1), 0);
-    assert_eq!(setup.token.balance(&setup.user2), 3);
-    assert_eq!(setup.token.balance(&setup.crowdfund_id), 15);
+    assert_eq!(setup.token.mock_all_auths().balance(&setup.user1), 0);
+    assert_eq!(setup.token.mock_all_auths().balance(&setup.user2), 3);
+    assert_eq!(
+        setup.token.mock_all_auths().balance(&setup.crowdfund_id),
+        15
+    );
 
     advance_ledger(&setup.env, 10);
-    setup.crowdfund.client().withdraw(&setup.recipient);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.recipient);
 
-    assert_eq!(setup.token.balance(&setup.user1), 0);
-    assert_eq!(setup.token.balance(&setup.user2), 3);
-    assert_eq!(setup.token.balance(&setup.crowdfund_id), 0);
-    assert_eq!(setup.token.balance(&setup.recipient), 15);
+    assert_eq!(setup.token.mock_all_auths().balance(&setup.user1), 0);
+    assert_eq!(setup.token.mock_all_auths().balance(&setup.user2), 3);
+    assert_eq!(setup.token.mock_all_auths().balance(&setup.crowdfund_id), 0);
+    assert_eq!(setup.token.mock_all_auths().balance(&setup.recipient), 15);
 }
 
 #[test]
 #[should_panic(expected = "sale is still running")]
 fn sale_still_running() {
     let setup = Setup::new();
-    setup.crowdfund.client().withdraw(&setup.recipient);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.recipient);
 }
 
 #[test]
 #[should_panic(expected = "sale was successful, only the recipient may withdraw")]
 fn sale_successful_only_recipient() {
     let setup = Setup::new();
-    setup.crowdfund.client().deposit(&setup.user2, &5);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .deposit(&setup.user2, &5);
     advance_ledger(&setup.env, 10);
 
-    setup.crowdfund.client().withdraw(&setup.user1);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.user1);
 }
 
 #[test]
 #[should_panic(expected = "sale was successful, only the recipient may withdraw")]
 fn sale_successful_non_recipient_still_denied_after_withdrawal() {
     let setup = Setup::new();
-    setup.crowdfund.client().deposit(&setup.user2, &5);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .deposit(&setup.user2, &5);
     advance_ledger(&setup.env, 10);
 
-    setup.crowdfund.client().withdraw(&setup.recipient);
-    setup.crowdfund.client().withdraw(&setup.user1);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.recipient);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.user1);
 }
 
 #[test]
@@ -196,8 +243,16 @@ fn sale_successful_recipient_withdraws_only_once() {
     setup.crowdfund.client().deposit(&setup.user2, &5);
     advance_ledger(&setup.env, 10);
 
-    setup.crowdfund.client().withdraw(&setup.recipient);
-    setup.crowdfund.client().withdraw(&setup.recipient);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.recipient);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.recipient);
 }
 
 #[test]
@@ -206,8 +261,16 @@ fn sale_expired_recipient_not_allowed() {
     let setup = Setup::new();
     advance_ledger(&setup.env, 10);
 
-    setup.crowdfund.client().withdraw(&setup.user1);
-    setup.crowdfund.client().withdraw(&setup.recipient);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.user1);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .withdraw(&setup.recipient);
 }
 
 #[test]
@@ -216,5 +279,9 @@ fn sale_not_running() {
     let setup = Setup::new();
     advance_ledger(&setup.env, 10);
 
-    setup.crowdfund.client().deposit(&setup.user1, &1);
+    setup
+        .crowdfund
+        .client()
+        .mock_all_auths()
+        .deposit(&setup.user1, &1);
 }
