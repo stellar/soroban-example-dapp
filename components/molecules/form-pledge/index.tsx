@@ -5,9 +5,6 @@ import { Utils } from '../../../shared/utils'
 import styles from './style.module.css'
 import { useSendTransaction, useContractValue, contractTransaction } from '@soroban-react/contracts'
 import { useSorobanReact } from '@soroban-react/core'
-import {
-  useNetwork,
-} from '../../../wallet'
 import * as SorobanClient from 'soroban-client'
 import BigNumber from 'bignumber.js'
 import * as convert from '../../../convert'
@@ -72,7 +69,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const [resultSubmit, setResultSubmit] = useState<IResultSubmit | undefined>()
   const [input, setInput] = useState('')
   const [isSubmitting, setSubmitting] = useState(false)
-  const { server } = useNetwork()
+  const { server } = sorobanContext
 
   const parsedAmount = BigNumber(amount || 0)
 
