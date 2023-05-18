@@ -5,7 +5,7 @@ import { Spacer } from '../../atoms/spacer'
 import { Utils } from '../../../shared/utils'
 import {
   useAccount
-} from '../../../wallet'
+} from '../../../hooks'
 import { useContractValue } from '@soroban-react/contracts'
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
