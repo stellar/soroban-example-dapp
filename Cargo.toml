@@ -16,7 +16,7 @@ codegen-units = 1
 lto = true
 
 [workspace.dependencies.soroban-sdk]
-version = "0.8.0"
+version = "0.8.2"
 
 
 
