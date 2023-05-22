@@ -1,6 +1,6 @@
 import React from 'react'
-import { DropdownSvg } from '../../../assets/icons'
-import { useAccount, useIsMounted, useNetwork } from '../../../wallet'
+import { useSorobanReact } from '@soroban-react/core'
+import { useAccount, useIsMounted} from '../../../hooks'
 import { ConnectButton } from '../../atoms'
 import styles from './style.module.css'
 import Image from 'next/image'
@@ -11,7 +11,8 @@ export function WalletData() {
 
   const { data: account } = useAccount()
 
-  const { activeChain: chain, chains } = useNetwork()
+  const { activeChain: chain, chains } = useSorobanReact()
+
 
   const unsupportedChain = chain?.unsupported
 
