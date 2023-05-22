@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contractimpl, contracttype, token, Address, BytesN, Env, IntoVal, RawVal};
+use soroban_sdk::{contractimpl, contracttype, token, Address, Env, IntoVal, RawVal};
 
 mod events;
 mod test;
@@ -70,7 +70,7 @@ fn get_target_amount(e: &Env) -> i128 {
         .unwrap()
 }
 
-fn get_token(e: &Env) -> BytesN<32> {
+fn get_token(e: &Env) -> Address {
     e.storage()
         .get(&DataKey::Token)
         .expect("not initialized")
@@ -84,12 +84,12 @@ fn get_user_deposited(e: &Env, user: &Address) -> i128 {
         .unwrap()
 }
 
-fn get_balance(e: &Env, contract_id: &BytesN<32>) -> i128 {
+fn get_balance(e: &Env, contract_id: &Address) -> i128 {
     let client = token::Client::new(e, contract_id);
     client.balance(&e.current_contract_address())
 }
 
-fn target_reached(e: &Env, token_id: &BytesN<32>) -> bool {
+fn target_reached(e: &Env, token_id: &Address) -> bool {
     let target_amount = get_target_amount(e);
     let token_balance = get_balance(e, token_id);
 
@@ -146,7 +146,7 @@ impl Crowdfund {
         recipient: Address,
         deadline: u64,
         target_amount: i128,
-        token: BytesN<32>,
+        token: Address,
     ) {
         assert!(!e.storage().has(&DataKey::Recipient), "already initialized");
 
@@ -179,7 +179,7 @@ impl Crowdfund {
         get_target_amount(&e)
     }
 
-    pub fn token(e: Env) -> BytesN<32> {
+    pub fn token(e: Env) -> Address {
         get_token(&e)
     }
 

@@ -817,9 +817,9 @@ dependencies = [
 
 [[package]]
 name = "soroban-ledger-snapshot"
-version = "0.8.0"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7690b8fc0c5a63fd11cf0c2fed746f259335ec89dcb33f0e302d1e6c7781279b"
+checksum = "78951e3924b3207227dbe9a303d2a7a2b96caa99a359d845dc8aaf9814c4addf"
 dependencies = [
  "serde",
  "serde_json",
@@ -841,9 +841,9 @@ dependencies = [
 
 [[package]]
 name = "soroban-sdk"
-version = "0.8.0"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "722b58e836a09abc2ee1d2fdb16c208887559b0a48025b245ab4554e9c21c369"
+checksum = "1cbc4bf0b3d99d061144105800ed337aa79040a375079ca2f39394c31e3d3857"
 dependencies = [
  "bytes-lit",
  "ed25519-dalek",
@@ -857,9 +857,9 @@ dependencies = [
 
 [[package]]
 name = "soroban-sdk-macros"
-version = "0.8.0"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c26c3e6b53c96732fe1e1b7ac017954b1ccb975b55920b9a18b0c841d3eb5f7"
+checksum = "a84443356be3560cd18c17e16f5595e21616e13f06d1e5404a657463b185c8b2"
 dependencies = [
  "darling",
  "itertools",
@@ -874,9 +874,9 @@ dependencies = [
 
 [[package]]
 name = "soroban-spec"
-version = "0.8.0"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00342756df8714b52e1f8d4e9611b1cb3d527779e08ae50d7932f71dd3e89c60"
+checksum = "95f7dadfc0e10726757d8c939d3b8436a610db1e985a4b414293fe92ac147899"
 dependencies = [
  "base64 0.13.1",
  "darling",

@@ -4,7 +4,7 @@ use super::testutils::{register_test_contract as register_crowdfund, Crowdfund};
 use soroban_sdk::{
     testutils::{Address as AddressTestTrait, Events, Ledger},
     token::Client as Token,
-    vec, Address, BytesN, Env, IntoVal, RawVal, Symbol, Vec,
+    vec, Address, Env, IntoVal, RawVal, Symbol, Vec,
 };
 
 fn create_crowdfund_contract(
@@ -12,13 +12,13 @@ fn create_crowdfund_contract(
     recipient: &Address,
     deadline: u64,
     target_amount: &i128,
-    token: &BytesN<32>,
-) -> (BytesN<32>, Crowdfund) {
+    token: Address,
+) -> (Address, Crowdfund) {
     let id = register_crowdfund(e);
-    let crowdfund = Crowdfund::new(e, &id.clone().into());
+    let crowdfund = Crowdfund::new(e, id.clone());
     crowdfund
         .client()
-        .initialize(recipient, &deadline, target_amount, token);
+        .initialize(recipient, &deadline, target_amount, &token);
     (id, crowdfund)
 }
 
@@ -60,9 +60,8 @@ impl Setup<'_> {
         let token = Token::new(&e, &contract_token);
 
         // Create the crowdfunding contract
-        let (contract_crowdfund, crowdfund) =
-            create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &contract_token);
-        let crowdfund_id = Address::from_contract_id(&contract_crowdfund);
+        let (crowdfund_id, crowdfund) =
+            create_crowdfund_contract(&e, &recipient, deadline, &target_amount, contract_token.clone());
 
         // Mint some tokens to work with
         token.mock_all_auths().mint(&user1, &10);
@@ -111,8 +110,7 @@ fn test_events() {
         .mock_all_auths()
         .deposit(&setup.user2, &3);
 
-    let crowd_fund_contract_id = setup.crowdfund_id.contract_id().unwrap();
-    let mut crowd_fund_events: Vec<(BytesN<32>, soroban_sdk::Vec<RawVal>, RawVal)> =
+    let mut crowd_fund_events: Vec<(Address, soroban_sdk::Vec<RawVal>, RawVal)> =
         vec![&setup.env];
 
     // there are SAC events emitted also, filter those away, not asserting that aspect
@@ -122,7 +120,7 @@ fn test_events() {
         .all()
         .iter()
         .map(core::result::Result::unwrap)
-        .filter(|event| event.0 == crowd_fund_contract_id)
+        .filter(|event| event.0 == setup.crowdfund_id)
         .for_each(|event| crowd_fund_events.push_back(event));
 
     assert_eq!(
@@ -130,24 +128,24 @@ fn test_events() {
         vec![
             &setup.env,
             (
-                setup.crowdfund_id.contract_id().unwrap(),
+                setup.crowdfund_id.clone(),
                 (Symbol::new(&setup.env, "pledged_amount_changed"),).into_val(&setup.env),
                 10_i128.into_val(&setup.env)
             ),
             (
-                setup.crowdfund_id.contract_id().unwrap(),
+                setup.crowdfund_id.clone(),
                 (Symbol::new(&setup.env, "pledged_amount_changed"),).into_val(&setup.env),
                 15_i128.into_val(&setup.env)
             ),
             (
                 // validate that this event only emitted once, ensuing deposits over the
                 // target before expiration, don't trigger this one again
-                setup.crowdfund_id.contract_id().unwrap(),
+                setup.crowdfund_id.clone(),
                 (Symbol::new(&setup.env, "target_reached"),).into_val(&setup.env),
                 (15_i128, 15_i128).into_val(&setup.env)
             ),
             (
-                setup.crowdfund_id.contract_id().unwrap(),
+                setup.crowdfund_id.clone(),
                 (Symbol::new(&setup.env, "pledged_amount_changed"),).into_val(&setup.env),
                 18_i128.into_val(&setup.env)
             ),
