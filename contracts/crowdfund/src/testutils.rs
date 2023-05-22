@@ -23,7 +23,7 @@ impl Crowdfund {
     pub fn new(env: &Env, contract_id: Address) -> Self {
         Self {
             env: env.clone(),
-            contract_id: contract_id,
+            contract_id,
         }
     }
 }

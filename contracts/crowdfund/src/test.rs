@@ -12,13 +12,13 @@ fn create_crowdfund_contract(
     recipient: &Address,
     deadline: u64,
     target_amount: &i128,
-    token: Address,
+    token: &Address,
 ) -> (Address, Crowdfund) {
     let id = register_crowdfund(e);
     let crowdfund = Crowdfund::new(e, id.clone());
     crowdfund
         .client()
-        .initialize(recipient, &deadline, target_amount, &token);
+        .initialize(recipient, &deadline, target_amount, token);
     (id, crowdfund)
 }
 
@@ -60,13 +60,8 @@ impl Setup<'_> {
         let token = Token::new(&e, &contract_token);
 
         // Create the crowdfunding contract
-        let (crowdfund_id, crowdfund) = create_crowdfund_contract(
-            &e,
-            &recipient,
-            deadline,
-            &target_amount,
-            contract_token.clone(),
-        );
+        let (crowdfund_id, crowdfund) =
+            create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &contract_token);
 
         // Mint some tokens to work with
         token.mock_all_auths().mint(&user1, &10);
