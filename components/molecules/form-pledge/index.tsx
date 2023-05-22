@@ -3,11 +3,8 @@ import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import { Utils } from '../../../shared/utils'
 import styles from './style.module.css'
-import { useSendTransaction, useContractValue } from '@soroban-react/contracts'
+import { useSendTransaction, useContractValue, contractTransaction } from '@soroban-react/contracts'
 import { useSorobanReact } from '@soroban-react/core'
-import {
-  useNetwork,
-} from '../../../wallet'
 import * as SorobanClient from 'soroban-client'
 import BigNumber from 'bignumber.js'
 import * as convert from '../../../convert'
@@ -72,7 +69,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const [resultSubmit, setResultSubmit] = useState<IResultSubmit | undefined>()
   const [input, setInput] = useState('')
   const [isSubmitting, setSubmitting] = useState(false)
-  const { server } = useNetwork()
+  const { server } = sorobanContext
 
   const parsedAmount = BigNumber(amount || 0)
 
@@ -100,17 +97,15 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
     try {
       // Deposit the tokens
-      let result = await sendTransaction(
-        contractTransaction(
-          props.networkPassphrase,
-          source,
-          props.crowdfundId,
-          'deposit',
-          new SorobanClient.Address(props.account).toScVal(),
-          amountScVal
-        ),
-        {sorobanContext}
-      )
+      let  tx = contractTransaction({
+        source,
+        networkPassphrase: props.networkPassphrase,
+        contractId: props.crowdfundId,
+        method: 'deposit',
+        params: [new SorobanClient.Address(props.account).toScVal(), amountScVal]
+      })
+      let result = await sendTransaction(tx, {sorobanContext})
+
       setResultSubmit({
         status: 'success',
         scVal: result,
@@ -131,25 +126,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     } finally {
       setSubmitting(false)
     }
-  }
-
-  // Small helper to build a contract invokation transaction
-  function contractTransaction(
-    networkPassphrase: string,
-    source: SorobanClient.Account,
-    contractId: string,
-    method: string,
-    ...params: SorobanClient.xdr.ScVal[]
-  ): SorobanClient.Transaction {
-    const contract = new SorobanClient.Contract(contractId)
-    return new SorobanClient.TransactionBuilder(source, {
-        // TODO: Figure out the fee
-        fee: '100',
-        networkPassphrase,
-      })
-      .addOperation(contract.call(method, ...params))
-      .setTimeout(SorobanClient.TimeoutInfinite)
-      .build()
   }
 
   return (
@@ -232,8 +208,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     symbol: string
   }) {
     const [isSubmitting, setSubmitting] = useState(false)
-    const { activeChain, server } = useNetwork()
-    const networkPassphrase = activeChain?.networkPassphrase ?? ''
+    const server = sorobanContext.server
+    const networkPassphrase = sorobanContext.activeChain?.networkPassphrase
+    
 
     const { sendTransaction } = useSendTransaction()
     const amount = BigNumber(100)
