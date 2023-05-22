@@ -60,8 +60,13 @@ impl Setup<'_> {
         let token = Token::new(&e, &contract_token);
 
         // Create the crowdfunding contract
-        let (crowdfund_id, crowdfund) =
-            create_crowdfund_contract(&e, &recipient, deadline, &target_amount, contract_token.clone());
+        let (crowdfund_id, crowdfund) = create_crowdfund_contract(
+            &e,
+            &recipient,
+            deadline,
+            &target_amount,
+            contract_token.clone(),
+        );
 
         // Mint some tokens to work with
         token.mock_all_auths().mint(&user1, &10);
@@ -110,8 +115,7 @@ fn test_events() {
         .mock_all_auths()
         .deposit(&setup.user2, &3);
 
-    let mut crowd_fund_events: Vec<(Address, soroban_sdk::Vec<RawVal>, RawVal)> =
-        vec![&setup.env];
+    let mut crowd_fund_events: Vec<(Address, soroban_sdk::Vec<RawVal>, RawVal)> = vec![&setup.env];
 
     // there are SAC events emitted also, filter those away, not asserting that aspect
     setup

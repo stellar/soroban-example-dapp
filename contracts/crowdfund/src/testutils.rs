@@ -2,7 +2,7 @@
 
 use crate::CrowdfundClient;
 
-use soroban_sdk::{Env, Address};
+use soroban_sdk::{Address, Env};
 
 pub fn register_test_contract(e: &Env) -> Address {
     e.register_contract(None, crate::Crowdfund {})
