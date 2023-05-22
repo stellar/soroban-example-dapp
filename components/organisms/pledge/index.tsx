@@ -4,9 +4,8 @@ import styles from './style.module.css'
 import { Spacer } from '../../atoms/spacer'
 import { Utils } from '../../../shared/utils'
 import {
-  useAccount,
-  useNetwork,
-} from '../../../wallet'
+  useAccount
+} from '../../../hooks'
 import { useContractValue } from '@soroban-react/contracts'
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
@@ -17,11 +16,12 @@ let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
   const { data: account } = useAccount()
-  const { activeChain } = useNetwork()
+  const sorobanContext = useSorobanReact()
+
+  const { activeChain } = sorobanContext
 
   const networkPassphrase = activeChain?.networkPassphrase ?? ''
 
-  const sorobanContext = useSorobanReact()
   // Call the contract rpcs to fetch values
   const useLoadToken = (): any => {
     return {

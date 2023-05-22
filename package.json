@@ -12,9 +12,9 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
-    "@soroban-react/chains": "4.1.0",
-    "@soroban-react/contracts": "^4.1.1",
-    "@soroban-react/core": "4.1.0",
+    "@soroban-react/chains": "4.3.1",
+    "@soroban-react/contracts": "4.3.1",
+    "@soroban-react/core": "4.3.1",
     "@soroban-react/freighter": "4.0.0",
     "@soroban-react/types": "4.0.0",
     "@stellar/freighter-api": "^1.3.1",
