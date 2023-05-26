@@ -3,6 +3,7 @@ import { Card, ConnectButton, Loading, ProgressBar } from '../../atoms'
 import styles from './style.module.css'
 import { Spacer } from '../../atoms/spacer'
 import { Utils } from '../../../shared/utils'
+import BigNumber from 'bignumber.js';
 import {
   useAccount
 } from '../../../hooks'
