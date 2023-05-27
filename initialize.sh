@@ -61,6 +61,11 @@ echo Wrap the Stellar asset
 TOKEN_ID=$(soroban lab token wrap $ARGS --asset "EXT:$TOKEN_ADMIN_ADDRESS")
 echo "Token wrapped succesfully with TOKEN_ID: $TOKEN_ID"
 
+# TODO - remove this workaround when
+# https://github.com/stellar/soroban-tools/issues/661 is resolved.
+TOKEN_ADDRESS="$(node ./address_workaround.js $TOKEN_ID)"
+echo "Token Address converted to StrKey contract address format:" $TOKEN_ADDRESS
+
 echo -n "$TOKEN_ID" > .soroban/token_id
 
 echo Build the crowdfund contract
@@ -71,21 +76,19 @@ CROWDFUND_ID="$(
   soroban contract deploy $ARGS \
     --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
 )"
-echo "$CROWDFUND_ID" > .soroban/crowdfund_id
-
 echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
+echo "$CROWDFUND_ID" > .soroban/crowdfund_id
 
 echo "Initialize the crowdfund contract"
 deadline="$(($(date +"%s") + 86400))"
 soroban contract invoke \
   $ARGS \
-  --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm \
   --id "$CROWDFUND_ID" \
   -- \
   initialize \
   --recipient "$TOKEN_ADMIN_ADDRESS" \
   --deadline "$deadline" \
   --target_amount "1000000000" \
-  --token "$TOKEN_ID"
+  --token "$TOKEN_ADDRESS"
 
 echo "Done"
