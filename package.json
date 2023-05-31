@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "./initialize.sh standalone",
-    "reset": "rm -rf .soroban ; npm run setup",
+    "reset": "rm -rf .soroban-example-dapp ; npm run setup",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

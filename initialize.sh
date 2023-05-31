@@ -31,13 +31,11 @@ futurenet)
   ;;
 esac
 
-#if !(soroban config network ls | grep "$NETWORK" 2>&1 >/dev/null); then
-# Always set a net configuration 
-  echo Add the $NETWORK network to cli client
-  soroban config network add \
-    --rpc-url "$SOROBAN_RPC_URL" \
-    --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE" "$NETWORK"
-#fi
+
+echo Add the $NETWORK network to cli client
+soroban config network add \
+  --rpc-url "$SOROBAN_RPC_URL" \
+  --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE" "$NETWORK"
 
 if !(soroban config identity ls | grep token-admin 2>&1 >/dev/null); then
   echo Create the token-admin identity
@@ -47,9 +45,9 @@ TOKEN_ADMIN_SECRET="$(soroban config identity show token-admin)"
 TOKEN_ADMIN_ADDRESS="$(soroban config identity address token-admin)"
 
 # TODO: Remove this once we can use `soroban config identity` from webpack.
-mkdir -p .soroban
-echo "$TOKEN_ADMIN_SECRET" > .soroban/token_admin_secret
-echo "$TOKEN_ADMIN_ADDRESS" > .soroban/token_admin_address
+mkdir -p .soroban-example-dapp
+echo "$TOKEN_ADMIN_SECRET" > .soroban-example-dapp/token_admin_secret
+echo "$TOKEN_ADMIN_ADDRESS" > .soroban-example-dapp/token_admin_address
 
 # This will fail if the account already exists, but it'll still be fine.
 echo Fund token-admin account from friendbot
@@ -66,7 +64,7 @@ echo "Token wrapped succesfully with TOKEN_ID: $TOKEN_ID"
 TOKEN_ADDRESS="$(node ./address_workaround.js $TOKEN_ID)"
 echo "Token Address converted to StrKey contract address format:" $TOKEN_ADDRESS
 
-echo -n "$TOKEN_ID" > .soroban/token_id
+echo -n "$TOKEN_ID" > .soroban-example-dapp/token_id
 
 echo Build the crowdfund contract
 make build
@@ -77,7 +75,7 @@ CROWDFUND_ID="$(
     --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
 )"
 echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
-echo "$CROWDFUND_ID" > .soroban/crowdfund_id
+echo "$CROWDFUND_ID" > .soroban-example-dapp/crowdfund_id
 
 echo "Initialize the crowdfund contract"
 deadline="$(($(date +"%s") + 86400))"
