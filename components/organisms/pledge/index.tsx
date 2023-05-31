@@ -113,7 +113,7 @@ const Pledge: FunctionComponent = () => {
       contractId: Constants.CrowdfundId, 
       topics: ['pledged_amount_changed'], 
       cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
-        let eventTokenBalance = xdr.ScVal.fromXDR(Buffer.from(event.value.xdr, 'base64'))
+        let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
         setTokenBalance(convert.scvalToBigNumber(eventTokenBalance))
       }, 
       id: Math.random()} as EventSubscription);
