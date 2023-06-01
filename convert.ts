@@ -92,7 +92,7 @@ export function bigNumberToI128(value: BigNumber): SorobanClient.xdr.ScVal {
     padded[0] |= 0x80;
   }
 
-  const hi = new xdr.Uint64(
+  const hi = new xdr.Int64(
     bigNumberFromBytes(false, ...padded.slice(4, 8)).toNumber(),
     bigNumberFromBytes(false, ...padded.slice(0, 4)).toNumber()
   );
