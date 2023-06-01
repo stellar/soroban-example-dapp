@@ -2,15 +2,15 @@
 
 use crate::CrowdfundClient;
 
-use soroban_sdk::{BytesN, Env};
+use soroban_sdk::{Address, Env};
 
-pub fn register_test_contract(e: &Env) -> BytesN<32> {
+pub fn register_test_contract(e: &Env) -> Address {
     e.register_contract(None, crate::Crowdfund {})
 }
 
 pub struct Crowdfund {
     env: Env,
-    contract_id: BytesN<32>,
+    contract_id: Address,
 }
 
 impl Crowdfund {
@@ -20,10 +20,10 @@ impl Crowdfund {
     }
 
     #[must_use]
-    pub fn new(env: &Env, contract_id: &[u8; 32]) -> Self {
+    pub fn new(env: &Env, contract_id: Address) -> Self {
         Self {
             env: env.clone(),
-            contract_id: BytesN::from_array(env, contract_id),
+            contract_id,
         }
     }
 }

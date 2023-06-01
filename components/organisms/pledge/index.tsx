@@ -1,22 +1,26 @@
-import React, { FunctionComponent } from 'react'
+import React, { FunctionComponent, useState, useRef } from 'react'
 import { Card, ConnectButton, Loading, ProgressBar } from '../../atoms'
 import styles from './style.module.css'
 import { Spacer } from '../../atoms/spacer'
 import { Utils } from '../../../shared/utils'
+import BigNumber from 'bignumber.js';
 import {
   useAccount
 } from '../../../hooks'
+
 import { useContractValue } from '@soroban-react/contracts'
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
 import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
 import { useSorobanReact } from '@soroban-react/core'
+import { useSorobanEvents, EventSubscription } from '@soroban-react/events'
 let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
   const { data: account } = useAccount()
   const sorobanContext = useSorobanReact()
+  const sorobanEventsContext = useSorobanEvents()
 
   const { activeChain } = sorobanContext
 
@@ -64,9 +68,8 @@ const Pledge: FunctionComponent = () => {
     method: 'target',
     sorobanContext
   })
-
+ 
   // Convert the result ScVals to js types
-  const tokenBalance = convert.scvalToBigNumber(token.balance.result)
   const tokenDecimals =
     token.decimals.result && (token.decimals.result?.u32() ?? 7)
   const tokenName =
@@ -82,7 +85,20 @@ const Pledge: FunctionComponent = () => {
       ) * 1000
     )
   const targetAmount = convert.scvalToBigNumber(targetAmountXdr.result)
-
+  
+  // hook or event go through same state to update ui
+  const [tokenBalance, setTokenBalance] = useState<BigNumber>(BigNumber(0))
+  const [targetReached, setTargetReached] = useState<boolean>(false)
+ 
+  React.useEffect(() => {
+    // hook is providing data, let it update the ui model, 
+    // events will update these later also
+    const tokenBalance = convert.scvalToBigNumber(token.balance.result)
+    const targetAmount = convert.scvalToBigNumber(targetAmountXdr.result)
+    setTokenBalance(tokenBalance)
+    setTargetReached(targetAmount.gt(0) && tokenBalance.gte(targetAmount))
+  }, [token.balance, targetAmountXdr]);
+  
   const isLoading = (): boolean | undefined => {
     return (
       token.balance.loading ||
@@ -93,12 +109,42 @@ const Pledge: FunctionComponent = () => {
     )
   }
 
+  const crowdfundPledgedEventSubscription = useRef({
+      contractId: Constants.CrowdfundId, 
+      topics: ['pledged_amount_changed'], 
+      cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
+        let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
+        setTokenBalance(convert.scvalToBigNumber(eventTokenBalance))
+      }, 
+      id: Math.random()} as EventSubscription);
+
+  const crowdfundTargetReachedSubscription = useRef({
+      contractId: Constants.CrowdfundId, 
+      topics: ['target_reached'], 
+      cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
+        setTargetReached(true)
+      }, 
+      id: Math.random()} as EventSubscription);
+  
+  React.useEffect(() => {
+    const pledgedSubId = sorobanEventsContext.subscribe(crowdfundPledgedEventSubscription.current)
+    const reachedSubId = sorobanEventsContext.subscribe(crowdfundTargetReachedSubscription.current)
+
+    return () => {
+      sorobanEventsContext.unsubscribe(pledgedSubId);
+      sorobanEventsContext.unsubscribe(reachedSubId);
+    }
+  }, [sorobanEventsContext]);
+
   return (
     <Card>
       {isLoading() ? (
         <Loading size={64} />
       ) : (
         <>
+          {targetReached && (
+            <h6>SUCCESSFUL CAMPAIGN !!</h6>
+          )}
           <h6>PLEDGED</h6>
           <div className={styles.pledgeAmount}>
             {Utils.formatAmount(tokenBalance, tokenDecimals)} {tokenSymbol}

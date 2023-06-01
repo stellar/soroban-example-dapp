@@ -5,7 +5,7 @@ set -e
 case "$1" in
 standalone)
     echo "Using standalone network"
-    ARGS="--standalone --enable-core-artificially-accelerate-time-for-testing"
+    ARGS="--standalone"
     ;;
 futurenet)
     echo "Using Futurenet network"
@@ -16,6 +16,10 @@ futurenet)
     exit 1
     ;;
 esac
+
+# this is set to the quickstart `soroban-dev` image annointed as the release 
+# for a given Soroban Release, it is captured on Soroban Releases - https://soroban.stellar.org/docs/reference/releases 
+QUICKSTART_SOROBAN_DOCKER_SHA=stellar/quickstart:soroban-dev@sha256:57e8ab498bfa14c65595fbb01cb94b1cdee9637ef2e6634e59d54f6958c05bdb
 
 shift
 
@@ -44,15 +48,15 @@ docker run -dti \
   -p 8001:8000 \
   --ipc=host \
   --network soroban-network \
-  soroban-preview:8
+  soroban-preview:9
 
 # Run the stellar quickstart image
+
 docker run --rm -ti \
   --name stellar \
   --network soroban-network \
   -p 8000:8000 \
-  stellar/quickstart:soroban-dev@sha256:a057ec6f06c6702c005693f8265ed1261e901b153a754e97cf18b0962257e872 \
+  "$QUICKSTART_SOROBAN_DOCKER_SHA" \
   $ARGS \
   --enable-soroban-rpc \
-  --protocol-version 20 \
   "$@" # Pass through args from the CLI

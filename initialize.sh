@@ -31,13 +31,11 @@ futurenet)
   ;;
 esac
 
-#if !(soroban config network ls | grep "$NETWORK" 2>&1 >/dev/null); then
-# Always set a net configuration 
-  echo Add the $NETWORK network to cli client
-  soroban config network add "$NETWORK" \
-    --rpc-url "$SOROBAN_RPC_URL" \
-    --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE"
-#fi
+
+echo Add the $NETWORK network to cli client
+soroban config network add \
+  --rpc-url "$SOROBAN_RPC_URL" \
+  --network-passphrase "$SOROBAN_NETWORK_PASSPHRASE" "$NETWORK"
 
 if !(soroban config identity ls | grep token-admin 2>&1 >/dev/null); then
   echo Create the token-admin identity
@@ -47,8 +45,9 @@ TOKEN_ADMIN_SECRET="$(soroban config identity show token-admin)"
 TOKEN_ADMIN_ADDRESS="$(soroban config identity address token-admin)"
 
 # TODO: Remove this once we can use `soroban config identity` from webpack.
-echo "$TOKEN_ADMIN_SECRET" > .soroban/token_admin_secret
-echo "$TOKEN_ADMIN_ADDRESS" > .soroban/token_admin_address
+mkdir -p .soroban-example-dapp
+echo "$TOKEN_ADMIN_SECRET" > .soroban-example-dapp/token_admin_secret
+echo "$TOKEN_ADMIN_ADDRESS" > .soroban-example-dapp/token_admin_address
 
 # This will fail if the account already exists, but it'll still be fine.
 echo Fund token-admin account from friendbot
@@ -57,11 +56,15 @@ curl --silent -X POST "$FRIENDBOT_URL?addr=$TOKEN_ADMIN_ADDRESS" >/dev/null
 ARGS="--network $NETWORK --source token-admin"
 
 echo Wrap the Stellar asset
-mkdir -p .soroban
 TOKEN_ID=$(soroban lab token wrap $ARGS --asset "EXT:$TOKEN_ADMIN_ADDRESS")
 echo "Token wrapped succesfully with TOKEN_ID: $TOKEN_ID"
 
-echo -n "$TOKEN_ID" > .soroban/token_id
+# TODO - remove this workaround when
+# https://github.com/stellar/soroban-tools/issues/661 is resolved.
+TOKEN_ADDRESS="$(node ./address_workaround.js $TOKEN_ID)"
+echo "Token Address converted to StrKey contract address format:" $TOKEN_ADDRESS
+
+echo -n "$TOKEN_ID" > .soroban-example-dapp/token_id
 
 echo Build the crowdfund contract
 make build
@@ -71,21 +74,19 @@ CROWDFUND_ID="$(
   soroban contract deploy $ARGS \
     --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
 )"
-echo "$CROWDFUND_ID" > .soroban/crowdfund_id
-
 echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
+echo "$CROWDFUND_ID" > .soroban-example-dapp/crowdfund_id
 
 echo "Initialize the crowdfund contract"
 deadline="$(($(date +"%s") + 86400))"
 soroban contract invoke \
   $ARGS \
-  --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm \
   --id "$CROWDFUND_ID" \
   -- \
   initialize \
   --recipient "$TOKEN_ADMIN_ADDRESS" \
   --deadline "$deadline" \
   --target_amount "1000000000" \
-  --token "$TOKEN_ID"
+  --token "$TOKEN_ADDRESS"
 
 echo "Done"
