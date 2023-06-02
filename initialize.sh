@@ -100,5 +100,6 @@ else
     --target_amount "1000000000" \
     --token "$TOKEN_ADDRESS"
 
+  npm run generate-contract-clients
   echo "Done"
 fi

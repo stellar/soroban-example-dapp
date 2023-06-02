@@ -3,14 +3,11 @@ import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import { Utils } from '../../../shared/utils'
 import styles from './style.module.css'
-import { useSendTransaction, useContractValue, contractTransaction } from '@soroban-react/contracts'
-import { useSorobanReact } from '@soroban-react/core'
 import * as SorobanClient from 'soroban-client'
-import BigNumber from 'bignumber.js'
-import * as convert from '../../../convert'
 import { Constants } from '../../../shared/constants'
 import { Spacer } from '../../atoms/spacer'
-let xdr = SorobanClient.xdr
+import { deposit } from 'crowdfund-contract'
+import * as ft from 'ft-contract'
 
 export interface IFormPledgeProps {
   account: string
@@ -23,57 +20,125 @@ export interface IFormPledgeProps {
 
 export interface IResultSubmit {
   status: string
-  scVal?: SorobanClient.xdr.ScVal
   error?: string
-  value?: number
-  symbol?: string 
+}
+
+/**
+ * Mint 100.0000000 tokens to the user's wallet for testing
+ */
+function MintButton({ account, symbol }: { account: string; symbol: string }) {
+  const [isSubmitting, setSubmitting] = useState(false)
+
+  const amount = BigInt(100)
+
+  return (
+    <Button
+      title={`Mint ${amount.toString()} ${symbol}`}
+      onClick={async () => {
+        setSubmitting(true)
+        let adminSource, walletSource
+        try{
+          adminSource = await ft.Server.getAccount(Constants.TokenAdmin)
+          walletSource = await ft.Server.getAccount(account)
+        }
+        catch(error){
+          alert("Your wallet or the token admin wallet might not be funded")
+          setSubmitting(false)  
+          return
+        }
+
+        // 1. Establish a trustline to the admin (if necessary)
+        // 2. The admin sends us money (mint)
+        //
+        // We have to do this in two separate transactions because one
+        // requires approval from Freighter while the other can be done with
+        // the stored token issuer's secret key.
+        //
+        // FIXME: The `getAccount()` RPC endpoint doesn't return `balances`,
+        //        so we never know whether or not the user needs a trustline
+        //        to receive the minted asset.
+        //
+        // Today, we establish the trustline unconditionally.
+        try {
+          console.log("Establishing the trustline...")
+          const establishTrustlineTx = await ft.signTx(new SorobanClient.TransactionBuilder(walletSource, {
+              networkPassphrase: ft.NETWORK_PASSPHRASE,
+              fee: "1000", // arbitrary
+            })
+            .setTimeout(60)
+            .addOperation(
+              SorobanClient.Operation.changeTrust({
+                asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+              })
+            )
+            .build()
+          );
+          const trustlineResult = await ft.sendTx(establishTrustlineTx, 60);
+          console.debug(trustlineResult)
+        } catch (err) {
+          console.log("Error while establishing the trustline: ", err)
+          console.error(err)
+        }
+
+        try {
+          console.log("Minting the token...")
+          const mintTx = new SorobanClient.TransactionBuilder(adminSource, {
+              networkPassphrase: ft.NETWORK_PASSPHRASE,
+              fee: "1000",
+            })
+            .setTimeout(10)
+            .addOperation(
+              SorobanClient.Operation.payment({
+                destination: walletSource.accountId(),
+                asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
+                amount: amount.toString(),
+              })
+            )
+            .build();
+          const keypair = SorobanClient.Keypair.fromSecret(Constants.TokenAdminSecretKey);
+          mintTx.sign(keypair);
+          const mintResult = await ft.sendTx(mintTx);
+          console.debug(mintResult)
+        } catch (err) {
+          console.log("Error while minting the token: ", err)
+          console.error(err)
+        }
+        //
+        // TODO: Show some user feedback while we are awaiting, and then based
+        // on the result
+        //
+        setSubmitting(false)
+      
+      }}
+      disabled={isSubmitting}
+      isLoading={isSubmitting}
+    />
+  )
 }
 
 const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
-  const sorobanContext = useSorobanReact()
+  const [balance, setBalance] = React.useState<BigInt>(BigInt(0))
+  const [decimals, setDecimals] = React.useState<number>(0)
+  const [symbol, setSymbol] = React.useState<string>()
 
-
-  // Call the contract to get user's balance of the token
-  const useLoadToken = (): any => {
-    return {
-      userBalance: useContractValue({ 
-        contractId: Constants.TokenId,
-        method: 'balance',
-        params: [new SorobanClient.Address(props.account).toScVal()],
-        sorobanContext
-      }),
-      decimals: useContractValue({ 
-        contractId: Constants.TokenId,
-        method: 'decimals',
-        sorobanContext
-      }),
-      symbol: useContractValue({ 
-        contractId: Constants.TokenId,
-        method: 'symbol',
-        sorobanContext
-      }),
-    }
-  }
-
-  let token = useLoadToken()
-  const userBalance = convert.scvalToBigNumber(token.userBalance.result)
-  const tokenDecimals =
-    token.decimals.result && (token.decimals.result?.u32() ?? 7)
-  const tokenSymbol =
-    token.symbol.result && convert.scvalToString(token.symbol.result)?.replace("\u0000", "")
-
-   
-
-  
   const [amount, setAmount] = useState<number>()
   const [resultSubmit, setResultSubmit] = useState<IResultSubmit | undefined>()
   const [input, setInput] = useState('')
   const [isSubmitting, setSubmitting] = useState(false)
-  const { server } = sorobanContext
 
-  const parsedAmount = BigNumber(amount || 0)
+  const parsedAmount = BigInt(amount || 0)
 
-  const { sendTransaction } = useSendTransaction()
+  React.useEffect(() => {
+    Promise.all([
+      ft.balance({ id: props.account }),
+      ft.decimals(),
+      ft.symbol(),
+    ]).then(fetched => {
+      setBalance(fetched[0])
+      setDecimals(fetched[1])
+      setSymbol(fetched[2].toString())
+    })
+  })
 
   const closeModal = (): void => {
     // TODO: Make this reload only the component
@@ -90,27 +155,14 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const handleSubmit = async (): Promise<void> => {
     setSubmitting(true)
 
-    if (!server) throw new Error("Not connected to server")
-
-    const source = await server.getAccount(props.account)
-    const amountScVal = convert.bigNumberToI128(parsedAmount.shiftedBy(7))
-
     try {
-      // Deposit the tokens
-      let  tx = contractTransaction({
-        source,
-        networkPassphrase: props.networkPassphrase,
-        contractId: props.crowdfundId,
-        method: 'deposit',
-        params: [new SorobanClient.Address(props.account).toScVal(), amountScVal]
+      await deposit({
+        user: props.account,
+        amount: parsedAmount,
       })
-      let result = await sendTransaction(tx, {sorobanContext})
 
       setResultSubmit({
         status: 'success',
-        scVal: result[0],
-        value: amount,
-        symbol: props.symbol,
       })
       setInput('')
       setAmount(undefined)
@@ -181,12 +233,11 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           <Spacer rem={1} />
           <MintButton
             account={props.account}
-            decimals={props.decimals}
             symbol={props.symbol}
           />
           <div className={styles.wrapper}>
             <div>
-              <h6>Your balance:  {Utils.formatAmount(userBalance, tokenDecimals)} {tokenSymbol}</h6>
+              <h6>Your balance:  {Utils.formatAmount(balance, decimals)} {symbol}</h6>
           </div>
         </div>
         </div>
@@ -196,124 +247,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       )}
     </div>
   )
-
-  // MintButton mints 100.0000000 tokens to the user's wallet for testing
-  function MintButton({
-    account,
-    decimals,
-    symbol,
-  }: {
-    account: string
-    decimals: number
-    symbol: string
-  }) {
-    const [isSubmitting, setSubmitting] = useState(false)
-    const server = sorobanContext.server
-    const networkPassphrase = sorobanContext.activeChain?.networkPassphrase
-    
-
-    const { sendTransaction } = useSendTransaction()
-    const amount = BigNumber(100)
-
-    return (
-      <Button
-        title={`Mint ${amount.toString()} ${symbol}`}
-        onClick={async () => {
-          setSubmitting(true)
-          if (!server) throw new Error("Not connected to server")
-
-          let adminSource, walletSource
-          try{
-            adminSource = await server.getAccount(Constants.TokenAdmin)
-            walletSource = await server.getAccount(account)
-          }
-          catch(error){
-            alert("Your wallet or the token admin wallet might not be funded")
-            setSubmitting(false)  
-            return
-          }
-
-          //
-          // 1. Establish a trustline to the admin (if necessary)
-          // 2. The admin sends us money (mint)
-          //
-          // We have to do this in two separate transactions because one
-          // requires approval from Freighter while the other can be done with
-          // the stored token issuer's secret key.
-          //
-          // FIXME: The `getAccount()` RPC endpoint doesn't return `balances`,
-          //        so we never know whether or not the user needs a trustline
-          //        to receive the minted asset.
-          //
-          // Today, we establish the trustline unconditionally.
-          try {
-            console.log("Establishing the trustline...")
-            console.log("sorobanContext: ", sorobanContext)
-            const trustlineResult = await sendTransaction(
-              new SorobanClient.TransactionBuilder(walletSource, {
-                networkPassphrase,
-                fee: "1000", // arbitrary
-              })
-              .setTimeout(60)
-              .addOperation(
-                SorobanClient.Operation.changeTrust({
-                  asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
-                })
-              )
-              .build(), {
-                timeout: 60 * 1000, // should be enough time to approve the tx
-                skipAddingFootprint: true, // classic = no footprint
-                // omit `secretKey` to have Freighter prompt for signing
-                // hence, we need to explicit the sorobanContext
-                sorobanContext
-              },
-            )
-            console.debug(trustlineResult)
-          } catch (err) {
-            console.log("Error while establishing the trustline: ", err)
-            console.error(err)
-          }
-
-          try {
-            console.log("Minting the token...")
-            const paymentResult = await sendTransaction(
-              new SorobanClient.TransactionBuilder(adminSource, {
-                networkPassphrase,
-                fee: "1000",
-              })
-              .setTimeout(10)
-              .addOperation(
-                SorobanClient.Operation.payment({
-                  destination: walletSource.accountId(),
-                  asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
-                  amount: amount.toString(),
-                })
-              )
-              .build(), {
-                timeout: 10 * 1000,
-                skipAddingFootprint: true,
-                secretKey: Constants.TokenAdminSecretKey,
-                sorobanContext
-              }
-            )
-            console.debug(paymentResult)
-            sorobanContext.connect()
-          } catch (err) {
-            console.log("Error while minting the token: ", err)
-            console.error(err)
-          }
-          //
-          // TODO: Show some user feedback while we are awaiting, and then based
-          // on the result
-          //
-          setSubmitting(false)
-        
-        }}
-        disabled={isSubmitting}
-        isLoading={isSubmitting}
-      />
-    )
-  }
 }
 
 export { FormPledge }
