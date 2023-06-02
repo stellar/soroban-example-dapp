@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "./initialize.sh standalone",
-    "reset": "rm -rf .soroban ; npm run setup",
+    "reset": "rm -rf .soroban-example-dapp ; npm run setup",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -12,20 +12,21 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
-    "@soroban-react/chains": "4.3.1",
-    "@soroban-react/contracts": "4.3.1",
-    "@soroban-react/core": "4.3.1",
-    "@soroban-react/freighter": "4.0.0",
-    "@soroban-react/types": "4.0.0",
-    "@stellar/freighter-api": "^1.3.1",
+    "@soroban-react/chains": "v4.5.2", 
+    "@soroban-react/contracts": "5.0.3-alpha.1",
+    "@soroban-react/core": "5.0.3-alpha.1",
+    "@soroban-react/events": "5.0.3-alpha.1",
+    "@soroban-react/freighter": "5.0.0-alpha.0",
+    "@soroban-react/types": "4.0.0",   
+    "@stellar/freighter-api": "^1.4.0",
     "axios": "^0.27.2",
     "bignumber.js": "^9.1.0",
     "humanize-duration": "^3.27.3",
     "moment": "^2.29.4",
-    "next": "12.1.5",
-    "react": "18.1.0",
-    "react-dom": "18.1.0",
-    "soroban-client": "^0.5.0"
+    "next": "^13.3.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "soroban-client": "0.7.2"
   },
   "devDependencies": {
     "@types/humanize-duration": "^3.27.1",
@@ -33,7 +34,7 @@
     "@types/react": "18.0.8",
     "@types/react-dom": "18.0.3",
     "eslint": "^8.14.0",
-    "eslint-config-next": "^12.1.5",
+    "eslint-config-next": "^13.3.1",
     "typescript": "4.6.4"
   },
   "engines": {

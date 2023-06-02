@@ -3,13 +3,13 @@ name = "soroban-crowdfund-contract"
 version = "0.0.0"
 edition = "2021"
 publish = false
+autobins = false
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
 soroban-sdk = { workspace = true }
-stellar-xdr = { workspace = true, features = ["next", "std"], optional = true }
 
 [dev_dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }

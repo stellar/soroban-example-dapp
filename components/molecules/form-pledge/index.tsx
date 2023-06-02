@@ -108,7 +108,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
       setResultSubmit({
         status: 'success',
-        scVal: result,
+        scVal: result[0],
         value: amount,
         symbol: props.symbol,
       })
