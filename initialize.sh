@@ -4,29 +4,35 @@ set -e
 
 NETWORK="$1"
 
-# If soroban-cli is called inside the soroban-preview docker containter,
-# it can call the stellar standalone container just using its name "stellar"
-if [[ "$IS_USING_DOCKER" == "true" ]]; then
-  SOROBAN_RPC_HOST="http://stellar:8000"
-else
-  SOROBAN_RPC_HOST="http://localhost:8000"
+SOROBAN_RPC_HOST="$2"
+
+if [[ "$SOROBAN_RPC_HOST" == "" ]]; then
+  # If soroban-cli is called inside the soroban-preview docker container,
+  # it can call the stellar standalone container just using its name "stellar"
+  if [[ "$IS_USING_DOCKER" == "true" ]]; then
+    SOROBAN_RPC_HOST="http://stellar:8000"
+  elif [[ "$NETWORK" == "futurenet" ]]; then
+    SOROBAN_RPC_HOST="https://rpc-futurenet.stellar.org:443"
+  else
+    SOROBAN_RPC_HOST="http://localhost:8000"
+  fi
 fi
 
 SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
 
 case "$1" in
 standalone)
-  echo "Using standalone network"
+  echo "Using standalone network with RPC URL: $SOROBAN_RPC_URL"
   SOROBAN_NETWORK_PASSPHRASE="Standalone Network ; February 2017"
   FRIENDBOT_URL="$SOROBAN_RPC_HOST/friendbot"
   ;;
 futurenet)
-  echo "Using Futurenet network"
+  echo "Using Futurenet network with RPC URL: $SOROBAN_RPC_URL"
   SOROBAN_NETWORK_PASSPHRASE="Test SDF Future Network ; October 2022"
   FRIENDBOT_URL="https://friendbot-futurenet.stellar.org/"
   ;;
 *)
-  echo "Usage: $0 standalone|futurenet"
+  echo "Usage: $0 standalone|futurenet [rpc-host]"
   exit 1
   ;;
 esac
@@ -56,37 +62,43 @@ curl --silent -X POST "$FRIENDBOT_URL?addr=$TOKEN_ADMIN_ADDRESS" >/dev/null
 ARGS="--network $NETWORK --source token-admin"
 
 echo Wrap the Stellar asset
-TOKEN_ID=$(soroban lab token wrap $ARGS --asset "EXT:$TOKEN_ADMIN_ADDRESS")
-echo "Token wrapped succesfully with TOKEN_ID: $TOKEN_ID"
+TOKEN_ID=$(soroban lab token wrap $ARGS --asset "EXT:$TOKEN_ADMIN_ADDRESS" 2>/dev/null)
 
-# TODO - remove this workaround when
-# https://github.com/stellar/soroban-tools/issues/661 is resolved.
-TOKEN_ADDRESS="$(node ./address_workaround.js $TOKEN_ID)"
-echo "Token Address converted to StrKey contract address format:" $TOKEN_ADDRESS
+if [[ "$TOKEN_ID" == "" ]]; then
+  echo "Token already wrapped; everything initialized."
+  exit 0
+else
+  echo "Token wrapped succesfully with TOKEN_ID: $TOKEN_ID"
 
-echo -n "$TOKEN_ID" > .soroban-example-dapp/token_id
+  # TODO - remove this workaround when
+  # https://github.com/stellar/soroban-tools/issues/661 is resolved.
+  TOKEN_ADDRESS="$(node ./address_workaround.js $TOKEN_ID)"
+  echo "Token Address converted to StrKey contract address format:" $TOKEN_ADDRESS
 
-echo Build the crowdfund contract
-make build
+  echo -n "$TOKEN_ID" > .soroban-example-dapp/token_id
 
-echo Deploy the crowdfund contract
-CROWDFUND_ID="$(
-  soroban contract deploy $ARGS \
-    --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
-)"
-echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
-echo "$CROWDFUND_ID" > .soroban-example-dapp/crowdfund_id
+  echo Build the crowdfund contract
+  make build
 
-echo "Initialize the crowdfund contract"
-deadline="$(($(date +"%s") + 86400))"
-soroban contract invoke \
-  $ARGS \
-  --id "$CROWDFUND_ID" \
-  -- \
-  initialize \
-  --recipient "$TOKEN_ADMIN_ADDRESS" \
-  --deadline "$deadline" \
-  --target_amount "1000000000" \
-  --token "$TOKEN_ADDRESS"
+  echo Deploy the crowdfund contract
+  CROWDFUND_ID="$(
+    soroban contract deploy $ARGS \
+      --wasm target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm
+  )"
+  echo "Contract deployed succesfully with ID: $CROWDFUND_ID"
+  echo "$CROWDFUND_ID" > .soroban-example-dapp/crowdfund_id
 
-echo "Done"
+  echo "Initialize the crowdfund contract"
+  deadline="$(($(date +"%s") + 86400))"
+  soroban contract invoke \
+    $ARGS \
+    --id "$CROWDFUND_ID" \
+    -- \
+    initialize \
+    --recipient "$TOKEN_ADMIN_ADDRESS" \
+    --deadline "$deadline" \
+    --target_amount "1000000000" \
+    --token "$TOKEN_ADDRESS"
+
+  echo "Done"
+fi
