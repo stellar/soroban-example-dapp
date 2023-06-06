@@ -13,10 +13,10 @@ Install Dependencies
 --------------------
 
 1. `soroban-cli v0.8.0`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
-2. `docker` (both Standalone and Futurenet backends require it).
+2. If you want to run everything locally: `docker` (you can run both Standalone and Futurenet backends with it)
 3. `Node.js v17`
-4. `Freighter wallet v5.0.2`. Download it from the Chrome or Firefox extension store and Enable "Experimental Mode" in the settings (gear icon).
-5. Build the `soroban-preview` docker image:
+4. [Freighter Wallet](https://www.freighter.app/) ≥[v5.0.2](https://github.com/stellar/freighter/releases/tag/2.9.1). Or from the Firefox / Chrome extension store. Once installed, enable "Experimental Mode" in the settings (gear icon).
+5. If you want to run everything locally, build the `soroban-preview` docker image:
 
        make build-docker
 
@@ -25,9 +25,55 @@ Install Dependencies
 Run Backend
 -----------
 
-You have two options: 1. run in [localnet/standalone](https://soroban.stellar.org/docs/getting-started/deploy-to-a-local-network) mode, or 2. run on [Futurenet](https://soroban.stellar.org/docs/getting-started/deploy-to-futurenet)
+You have three options: 1. Deploy on [Futurenet](https://soroban.stellar.org/docs/getting-started/deploy-to-futurenet) using a remote [RPC](https://soroban.stellar.org/docs/getting-started/run-rpc) endpoint, 2. Run your own Futerenet RPC node with Docker and deploy to it, 3. run in [localnet/standalone](https://soroban.stellar.org/docs/getting-started/deploy-to-a-local-network) mode.
 
-### Option 1: Localnet/Standalone
+### Option 1: Deploy on Futurenet
+
+0. Make sure you have soroban-cli installed, as explained above
+
+1. Deploy the contracts and initialize them
+
+       ./initialize.sh futurenet
+
+   This will create a `token-admin` identity for you (`soroban config identity create token-admin`) and deploy a Fungible Token contract as well as the [crowdfund contract](./contracts/crowdfund), with this account as admin.
+
+2. Select the Futurenet network in your Freighter browser extension
+
+### Option 2: Run your own Futurenet node
+
+1. Run the backend docker container with `./quickstart.sh futurenet`, and wait for it to start.
+
+   **Note:** This can take up to 5 minutes to start syncing. You can tell it is
+   working by visiting http://localhost:8000/, and look at the
+   `ingest_latest_ledger`, field. If it is `0`, the quickstart image is not ready yet. The quickstart container also prints console statements on start status, it will print `soroban rpc: waiting for ready state...` at first and then `soroban rpc: up and ready` when network sync has been reached.
+
+2. Load the contracts and initialize them
+
+   Use your own local soroban-cli:
+
+       ./initialize.sh futurenet http://localhost:8000
+
+   Or run it inside the soroban-preview docker container:
+
+       docker exec soroban-preview ./initialize.sh futurenet
+
+3. Add the Futurenet custom network in Freighter (Note, the out-of-the-box
+   "Future Net" network in Freighter will not work with a local quickstart
+   container, so we need to add our own):
+
+   |   |   |
+   |---|---|
+   | Name | Futurenet Local RPC|
+   | URL | http://localhost:8000/soroban/rpc |
+   | Passphrase | Test SDF Future Network ; October 2022 |
+   | Allow HTTP connection | Enabled |
+   | Switch to this network | Enabled |
+
+4. Add some Futurenet network lumens to your Freighter wallet.
+
+   Visit https://laboratory.stellar.org/#create-account, and follow the instructions to create your freighter account on Futurenet.
+
+### Option 3: Localnet/Standalone
 
 0. If you didn't yet, build the `soroban-preview` docker image, as described above:
 
@@ -68,39 +114,6 @@ You have two options: 1. run in [localnet/standalone](https://soroban.stellar.or
    1. Copy the address for your freighter wallet.
    2. Visit `http://localhost:8000/friendbot?addr=<your address>`
 
-### Option 2: Futurenet
-
-1. Run the backend docker container with `./quickstart.sh futurenet`, and wait for it to start.
-
-   **Note:** This can take up to 5 minutes to start syncing. You can tell it is
-   working by visiting http://localhost:8000/, and look at the
-   `ingest_latest_ledger`, field. If it is `0`, the quickstart image is not ready yet. The quickstart container also prints console statements on start status, it will print `soroban rpc: waiting for ready state...` at first and then `soroban rpc: up and ready` when network sync has been reached.
-
-2. Load the contracts and initialize them
-
-   Use your own local soroban-cli:
-
-       ./initialize.sh futurenet
-
-   Or run it inside the soroban-preview docker container:
-
-       docker exec soroban-preview ./initialize.sh futurenet
-
-3. Add the Futurenet custom network in Freighter (Note, the out-of-the-box
-   "Future Net" network in Freighter will not work with a local quickstart
-   container, so we need to add our own):
-
-   |   |   |
-   |---|---|
-   | Name | Futurenet Local RPC|
-   | URL | http://localhost:8000/soroban/rpc |
-   | Passphrase | Test SDF Future Network ; October 2022 |
-   | Allow HTTP connection | Enabled |
-   | Switch to this network | Enabled |
-
-4. Add some Futurenet network lumens to your Freighter wallet.
-
-   Visit https://laboratory.stellar.org/#create-account, and follow the instructions to create your freighter account on Futurenet.
 
 Frontend
 --------
