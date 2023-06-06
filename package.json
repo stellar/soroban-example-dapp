@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "setup": "./initialize.sh standalone",
+    "setup": "./initialize.sh futurenet",
     "reset": "rm -rf .soroban-example-dapp ; npm run setup",
     "dev": "next dev",
     "build": "next build",
