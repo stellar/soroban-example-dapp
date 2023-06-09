@@ -1,0 +1,15 @@
+[package]
+name = "soroban-token-contract"
+description = "Soroban standard token contract"
+version = "0.0.6"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+soroban-sdk = { version = "0.8.4" }
+soroban-token-sdk = { version = "0.8.4" }
+
+[dev_dependencies]
+soroban-sdk = { version = "0.8.4", features = ["testutils"] }

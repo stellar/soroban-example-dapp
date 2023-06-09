@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate-contract-clients": "loroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./target/js-clients/crowdfund-contract --network futurenet --contract-name crowdfund-contract && loroban contract bindings typescript --wasm ../examples/target/wasm32-unknown-unknown/release/soroban_token_contract.wasm --id $(cat ./.soroban-example-dapp/token_id) --output-dir ./target/js-clients/ft-contract --network futurenet --contract-name ft-contract"
+    "fetch-ft-wasm": "./target/bin/soroban contract fetch --id $(cat ./.soroban-example-dapp/token_id) --network futurenet --out-file ./target/wasm32-unknown-unknown/releases/ft-contract.wasm",
+    "generate-contract-clients": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./target/js-clients/crowdfund-contract --network futurenet --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_token_contract.wasm --id $(cat ./.soroban-example-dapp/token_id) --output-dir ./target/js-clients/ft-contract --network futurenet --contract-name ft-contract"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
