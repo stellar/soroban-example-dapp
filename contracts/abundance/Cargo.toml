@@ -1,6 +1,6 @@
 [package]
-name = "soroban-token-contract"
-description = "Soroban standard token contract"
+name = "abundance-token"
+description = "Soroban standard token contract, but anyone can mint to themselves."
 version = "0.0.6"
 edition = "2021"
 

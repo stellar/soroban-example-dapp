@@ -12,7 +12,7 @@ import moment from 'moment'
 export function formatAmount(undivided: BigInt, decimals: number): string {
   const n = undivided.valueOf() < BigInt(Number.MAX_SAFE_INTEGER)
     ? Number(undivided) / (10 ** decimals)
-    : (undivided.valueOf() / (10n ** BigInt(decimals))) as unknown as BigInt;
+    : (undivided.valueOf() / (10n ** BigInt(decimals)));
   return String(n);
 }
 
@@ -39,16 +39,20 @@ const isExpired = (date?: Date): boolean => {
   return moment(date).diff(Date.now()) <= 0
 }
 
+/**
+ * Calculate percentage of two BigInts
+ * Assumes that each use the same number of decimals,
+ * and that dividing each one by `decimals` results in a value representable as
+ * a `number` type.
+ */
 const percentage = (
-  value: BigNumber,
-  divider: BigNumber,
+  value: BigInt,
+  divider: BigInt,
   decimals = 7
 ): number => {
-  return (
-    (value.shiftedBy(decimals * -1).toNumber() /
-      divider.shiftedBy(decimals * -1).toNumber()) *
-    100
-  )
+  return (Number(value.valueOf() / (10n ** BigInt(decimals))) /
+      Number(divider.valueOf() / (10n ** BigInt(decimals)))
+    ) * 100
 }
 
 const Utils = {

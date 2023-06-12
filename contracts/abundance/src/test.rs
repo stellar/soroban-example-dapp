@@ -26,7 +26,7 @@ fn test() {
     assert_eq!(
         e.auths(),
         [(
-            admin1.clone(),
+            user1.clone(),
             token.address.clone(),
             Symbol::short("mint"),
             (&user1, 1000_i128).into_val(&e),

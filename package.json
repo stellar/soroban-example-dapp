@@ -3,14 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "setup": "./initialize.sh futurenet && npm run generate-contract-clients",
-    "reset": "rm -rf .soroban-example-dapp ; npm run setup",
+    "setup": "./initialize.sh futurenet && npm run generate-contract-clients && npm install",
+    "reset": "rm -rf .soroban-example-dapp && rm -rf .next && rm -rf node_modules/crowdfund-contract && rm -rf node_modules/abundance-token && npm run setup",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "fetch-ft-wasm": "./target/bin/soroban contract fetch --id $(cat ./.soroban-example-dapp/token_id) --network futurenet --out-file ./target/wasm32-unknown-unknown/releases/ft-contract.wasm",
-    "generate-contract-clients": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./target/js-clients/crowdfund-contract --network futurenet --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_token_contract.wasm --id $(cat ./.soroban-example-dapp/token_id) --output-dir ./target/js-clients/ft-contract --network futurenet --contract-name ft-contract"
+    "generate-contract-clients": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./target/js-clients/crowdfund-contract --network futurenet --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./target/js-clients/abundance-token --network futurenet --contract-name abundance-token"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
@@ -18,7 +17,7 @@
     "axios": "^0.27.2",
     "bigint-conversion": "^2.4.1",
     "crowdfund-contract": "file:target/js-clients/crowdfund-contract",
-    "ft-contract": "file:target/js-clients/ft-contract",
+    "abundance-token": "file:target/js-clients/abundance-token",
     "humanize-duration": "^3.27.3",
     "moment": "^2.29.4",
     "next": "^13.4.4",

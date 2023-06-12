@@ -171,12 +171,18 @@ impl TokenTrait for Token {
         event::set_authorized(&e, admin, id, authorize);
     }
 
+    /// Mint yourself some tokens!
+    ///
+    /// # Arguments
+    ///
+    /// * `to` - The account to mint tokens to; the transaction must also be signed by this
+    /// account
+    /// * `amount` - The amount of tokens to mint (remember to multiply by `decimals`!)
     fn mint(e: Env, to: Address, amount: i128) {
         check_nonnegative_amount(amount);
-        let admin = read_administrator(&e);
-        admin.require_auth();
+        to.require_auth();
         receive_balance(&e, to.clone(), amount);
-        event::mint(&e, admin, to, amount);
+        event::mint(&e, to.clone(), to, amount);
     }
 
     fn set_admin(e: Env, new_admin: Address) {

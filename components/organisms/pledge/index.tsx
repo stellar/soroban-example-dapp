@@ -7,7 +7,7 @@ import {
   useAccount
 } from '../../../hooks'
 import * as crowdfundContract from 'crowdfund-contract'
-import * as ftContract from 'ft-contract'
+import * as abundanceContract from 'abundance-token'
 
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
@@ -19,7 +19,7 @@ const Pledge: FunctionComponent = () => {
   const account = useAccount()
   const sorobanEventsContext = useSorobanEvents()
 
-  const [token, setToken] = React.useState<{
+  const [abundance, setAbundance] = React.useState<{
     balance: BigInt
     decimals: number
     name: string
@@ -33,15 +33,15 @@ const Pledge: FunctionComponent = () => {
 
   React.useEffect(() => {
     Promise.all([
-      ftContract.balance({ id: crowdfundContract.CONTRACT_ID }),
-      ftContract.decimals(),
-      ftContract.name(),
-      ftContract.symbol(),
+      abundanceContract.balance({ id: crowdfundContract.CONTRACT_ID }),
+      abundanceContract.decimals(),
+      abundanceContract.name(),
+      abundanceContract.symbol(),
 
       crowdfundContract.deadline(),
       crowdfundContract.target(),
     ]).then(fetched => {
-      setToken({
+      setAbundance({
         balance: fetched[0],
         decimals: fetched[1],
         name: fetched[2].toString(),
@@ -62,7 +62,7 @@ const Pledge: FunctionComponent = () => {
       topics: ['pledged_amount_changed'], 
       cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
         let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
-        setToken({ ...token!, balance: convert.scvalToBigInt(eventTokenBalance) })
+        setAbundance({ ...abundance!, balance: convert.scvalToBigInt(eventTokenBalance) })
       }, 
       id: Math.random()} as EventSubscription);
 
@@ -86,7 +86,7 @@ const Pledge: FunctionComponent = () => {
 
   return (
     <Card>
-      {!token || !crowdfund ? (
+      {!abundance || !crowdfund ? (
         <Loading size={64} />
       ) : (
         <>
@@ -95,14 +95,14 @@ const Pledge: FunctionComponent = () => {
           )}
           <h6>PLEDGED</h6>
           <div className={styles.pledgeAmount}>
-            {Utils.formatAmount(token.balance, token.decimals)} {token.symbol}
+            {Utils.formatAmount(abundance.balance, abundance.decimals)} {abundance.symbol}
           </div>
           <span className={styles.pledgeGoal}>{`of ${Utils.formatAmount(
             crowdfund.target,
-            token.decimals
-          )} ${token.symbol} goal`}</span>
+            abundance.decimals
+          )} ${abundance.symbol} goal`}</span>
           <ProgressBar
-            value={Utils.percentage(token.balance, crowdfund.target, token.decimals)}
+            value={Utils.percentage(abundance.balance, crowdfund.target, abundance.decimals)}
           />
           <div className={styles.wrapper}>
             <div>
@@ -120,12 +120,9 @@ const Pledge: FunctionComponent = () => {
           {!Utils.isExpired(crowdfund.deadline) &&
             (account ? (
               <FormPledge
-                tokenId={ftContract.CONTRACT_ID}
-                crowdfundId={crowdfundContract.CONTRACT_ID}
-                decimals={token.decimals || 7}
-                networkPassphrase={ftContract.NETWORK_PASSPHRASE}
+                decimals={abundance.decimals || 7}
                 account={account.address}
-                symbol={token.symbol}
+                symbol={abundance.symbol}
               />
             ) : (
               <ConnectButton label="Connect wallet to pledge" isHigher={true} />
@@ -133,9 +130,9 @@ const Pledge: FunctionComponent = () => {
           {account && (
             <Deposits
               address={account.address}
-              decimals={token.decimals || 7}
-              name={token.name}
-              symbol={token.symbol}
+              decimals={abundance.decimals || 7}
+              name={abundance.name}
+              symbol={abundance.symbol}
               idCrowdfund={crowdfundContract.CONTRACT_ID}
             />
           )}

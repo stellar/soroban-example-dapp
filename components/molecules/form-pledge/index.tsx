@@ -3,18 +3,13 @@ import { AmountInput, Button, Checkbox } from '../../atoms'
 import { TransactionModal } from '../../molecules/transaction-modal'
 import { Utils } from '../../../shared/utils'
 import styles from './style.module.css'
-import * as SorobanClient from 'soroban-client'
-import { Constants } from '../../../shared/constants'
 import { Spacer } from '../../atoms/spacer'
 import { deposit } from 'crowdfund-contract'
-import * as ft from 'ft-contract'
+import * as abundance from 'abundance-token'
 
 export interface IFormPledgeProps {
   account: string
-  tokenId: string
-  crowdfundId: string
   decimals: number
-  networkPassphrase: string
   symbol?: string
 }
 
@@ -36,69 +31,10 @@ function MintButton({ account, symbol }: { account: string; symbol: string }) {
       title={`Mint ${amount.toString()} ${symbol}`}
       onClick={async () => {
         setSubmitting(true)
-        let adminSource, walletSource
-        try{
-          adminSource = await ft.Server.getAccount(Constants.TokenAdmin)
-          walletSource = await ft.Server.getAccount(account)
-        }
-        catch(error){
-          alert("Your wallet or the token admin wallet might not be funded")
-          setSubmitting(false)  
-          return
-        }
-
-        // 1. Establish a trustline to the admin (if necessary)
-        // 2. The admin sends us money (mint)
-        //
-        // We have to do this in two separate transactions because one
-        // requires approval from Freighter while the other can be done with
-        // the stored token issuer's secret key.
-        //
-        // FIXME: The `getAccount()` RPC endpoint doesn't return `balances`,
-        //        so we never know whether or not the user needs a trustline
-        //        to receive the minted asset.
-        //
-        // Today, we establish the trustline unconditionally.
-        try {
-          console.log("Establishing the trustline...")
-          const establishTrustlineTx = await ft.signTx(new SorobanClient.TransactionBuilder(walletSource, {
-              networkPassphrase: ft.NETWORK_PASSPHRASE,
-              fee: "1000", // arbitrary
-            })
-            .setTimeout(60)
-            .addOperation(
-              SorobanClient.Operation.changeTrust({
-                asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
-              })
-            )
-            .build()
-          );
-          const trustlineResult = await ft.sendTx(establishTrustlineTx, 60);
-          console.debug(trustlineResult)
-        } catch (err) {
-          console.log("Error while establishing the trustline: ", err)
-          console.error(err)
-        }
-
         try {
           console.log("Minting the token...")
-          const mintTx = new SorobanClient.TransactionBuilder(adminSource, {
-              networkPassphrase: ft.NETWORK_PASSPHRASE,
-              fee: "1000",
-            })
-            .setTimeout(10)
-            .addOperation(
-              SorobanClient.Operation.payment({
-                destination: walletSource.accountId(),
-                asset: new SorobanClient.Asset(symbol, Constants.TokenAdmin),
-                amount: amount.toString(),
-              })
-            )
-            .build();
-          const keypair = SorobanClient.Keypair.fromSecret(Constants.TokenAdminSecretKey);
-          mintTx.sign(keypair);
-          const mintResult = await ft.sendTx(mintTx);
-          console.debug(mintResult)
+          const mintTx = await abundance.mint({ to: account, amount })
+          console.debug(mintTx)
         } catch (err) {
           console.log("Error while minting the token: ", err)
           console.error(err)
@@ -130,9 +66,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
 
   React.useEffect(() => {
     Promise.all([
-      ft.balance({ id: props.account }),
-      ft.decimals(),
-      ft.symbol(),
+      abundance.balance({ id: props.account }),
+      abundance.decimals(),
+      abundance.symbol(),
     ]).then(fetched => {
       setBalance(fetched[0])
       setDecimals(fetched[1])
