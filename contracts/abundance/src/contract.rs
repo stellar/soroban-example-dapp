@@ -38,6 +38,8 @@ pub trait TokenTrait {
 
     fn mint(e: Env, to: Address, amount: i128);
 
+    fn mint_100(e: Env, to: Address);
+
     fn set_admin(e: Env, new_admin: Address);
 
     fn decimals(e: Env) -> u32;
@@ -180,6 +182,14 @@ impl TokenTrait for Token {
     /// * `amount` - The amount of tokens to mint (remember to multiply by `decimals`!)
     fn mint(e: Env, to: Address, amount: i128) {
         check_nonnegative_amount(amount);
+        to.require_auth();
+        receive_balance(&e, to.clone(), amount);
+        event::mint(&e, to.clone(), to, amount);
+    }
+
+    fn mint_100(e: Env, to: Address) {
+        let amount = 100 * 10i128.pow(read_decimal(&e));
+        // check_nonnegative_amount(amount);
         to.require_auth();
         receive_balance(&e, to.clone(), amount);
         event::mint(&e, to.clone(), to, amount);

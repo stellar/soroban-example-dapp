@@ -33,7 +33,7 @@ function MintButton({ account, symbol }: { account: string; symbol: string }) {
         setSubmitting(true)
         try {
           console.log("Minting the token...")
-          const mintTx = await abundance.mint({ to: account, amount })
+          const mintTx = await abundance.mint_100({ to: account }, { signAndSend: true })
           console.debug(mintTx)
         } catch (err) {
           console.log("Error while minting the token: ", err)
@@ -44,7 +44,7 @@ function MintButton({ account, symbol }: { account: string; symbol: string }) {
         // on the result
         //
         setSubmitting(false)
-      
+
       }}
       disabled={isSubmitting}
       isLoading={isSubmitting}
@@ -174,8 +174,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           <div className={styles.wrapper}>
             <div>
               <h6>Your balance:  {Utils.formatAmount(balance, decimals)} {symbol}</h6>
+            </div>
           </div>
-        </div>
         </div>
       ) : null}
       {resultSubmit && (
