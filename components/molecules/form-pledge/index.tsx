@@ -21,7 +21,7 @@ export interface IResultSubmit {
 /**
  * Mint 100.0000000 tokens to the user's wallet for testing
  */
-function MintButton({ account, symbol }: { account: string; symbol: string }) {
+function MintButton({ account, symbol, onComplete, decimals }: { decimals: number, account: string; symbol: string, onComplete: (amount: BigInt) => void }) {
   const [isSubmitting, setSubmitting] = useState(false)
 
   const amount = BigInt(100)
@@ -31,20 +31,9 @@ function MintButton({ account, symbol }: { account: string; symbol: string }) {
       title={`Mint ${amount.toString()} ${symbol}`}
       onClick={async () => {
         setSubmitting(true)
-        try {
-          console.log("Minting the token...")
-          const mintTx = await abundance.mint_100({ to: account }, { signAndSend: true })
-          console.debug(mintTx)
-        } catch (err) {
-          console.log("Error while minting the token: ", err)
-          console.error(err)
-        }
-        //
-        // TODO: Show some user feedback while we are awaiting, and then based
-        // on the result
-        //
+        await abundance.mint_100({ to: account }, { signAndSend: true })
         setSubmitting(false)
-
+        onComplete(amount * 10n**BigInt(decimals))
       }}
       disabled={isSubmitting}
       isLoading={isSubmitting}
@@ -170,6 +159,8 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           <MintButton
             account={props.account}
             symbol={props.symbol}
+            decimals={decimals}
+            onComplete={amount => setBalance(amount.valueOf() + balance.valueOf())}
           />
           <div className={styles.wrapper}>
             <div>
