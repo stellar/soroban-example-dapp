@@ -57,34 +57,30 @@ const Pledge: FunctionComponent = () => {
 
   const [targetReached, setTargetReached] = useState<boolean>(false)
 
-  // const crowdfundPledgedEventSubscription = useRef({
-  //   contractId: crowdfundContract.CONTRACT_ID,
-  //   topics: ['pledged_amount_changed'],
-  //   cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
-  //     let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
-  //     setAbundance({ ...abundance!, balance: convert.scvalToBigInt(eventTokenBalance) })
-  //   },
-  //   id: Math.random()
-  // } as EventSubscription);
+  const crowdfundPledgedEventSubscription = useRef({
+      contractId: crowdfundContract.CONTRACT_ID,
+      topics: ['pledged_amount_changed'],
+      cb: (event) => {
+        let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
+        setAbundance({ ...abundance!, balance: convert.scvalToBigInt(eventTokenBalance) })
+      },
+      id: Math.random()} as EventSubscription);
 
-  // const crowdfundTargetReachedSubscription = useRef({
-  //   contractId: crowdfundContract.CONTRACT_ID,
-  //   topics: ['target_reached'],
-  //   cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
-  //     setTargetReached(true)
-  //   },
-  //   id: Math.random()
-  // } as EventSubscription);
+  const crowdfundTargetReachedSubscription = useRef({
+      contractId: crowdfundContract.CONTRACT_ID,
+      topics: ['target_reached'],
+      cb: () => { setTargetReached(true) },
+      id: Math.random()} as EventSubscription);
 
-  // React.useEffect(() => {
-  //   const pledgedSubId = sorobanEventsContext.subscribe(crowdfundPledgedEventSubscription.current)
-  //   const reachedSubId = sorobanEventsContext.subscribe(crowdfundTargetReachedSubscription.current)
+  React.useEffect(() => {
+    const pledgedSubId = sorobanEventsContext.subscribe(crowdfundPledgedEventSubscription.current)
+    const reachedSubId = sorobanEventsContext.subscribe(crowdfundTargetReachedSubscription.current)
 
-  //   return () => {
-  //     sorobanEventsContext.unsubscribe(pledgedSubId);
-  //     sorobanEventsContext.unsubscribe(reachedSubId);
-  //   }
-  // }, [sorobanEventsContext]);
+    return () => {
+      sorobanEventsContext.unsubscribe(pledgedSubId);
+      sorobanEventsContext.unsubscribe(reachedSubId);
+    }
+  }, [sorobanEventsContext]);
 
   return (
     <Card>
