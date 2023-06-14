@@ -28,12 +28,10 @@ jobs:
       with:
         node-version: 17.x
         cache: 'npm'
-    - run: npm run generate-contract-clients
-    - run: npm ci
     - run: |
         mkdir -p .soroban-example-dapp
-        echo 'a9ab643486dc0dbcdc1485e6589e8bb3bcbbd8e69ad66c703556b4d6645a6dc8' > .soroban-example-dapp/token_id
-        echo '42798d5db884626e57f96630e7d02ba8210b4629d2959ef79ebb9e6538676ef9' > .soroban-example-dapp/crowdfund_id
-        echo 'GDT2NORMZF6S2T4PT4OBJJ43OPD3GPRNTJG3WVVFB356TUHWZQMU6C3U' > .soroban-example-dapp/token_admin_address
-        echo 'SAKCFFFNCE7XAWYMYVRZQYKUK6KMUCDIINLWISJYTMYJLNR2QLCDLFVT' > .soroban-example-dapp/token_admin_secret
+        echo 'CC757WDV3G442WQCNPNOA2UEXOC7UJD5VP4BLLCRDW5LRM6UZZR6ISVU' > .soroban-example-dapp/abundance_token_id
+        echo 'CCHCPXECLYGX4QU34ZZOHP6C6KVAPIDTUNPIUA6GF4SP6ECFF5BX57OG' > .soroban-example-dapp/crowdfund_id
+    - run: npm run generate-contract-clients
+    - run: npm ci
     - run: npm run-script build

@@ -62,13 +62,7 @@ if !(soroban config identity ls | grep token-admin 2>&1 >/dev/null); then
   echo Create the token-admin identity
   soroban config identity generate token-admin
 fi
-ABUNDANCE_ADMIN_SECRET="$(soroban config identity show token-admin)"
 ABUNDANCE_ADMIN_ADDRESS="$(soroban config identity address token-admin)"
-
-# TODO: Remove this once we can use `soroban config identity` from webpack.
-mkdir -p .soroban-example-dapp
-echo "$ABUNDANCE_ADMIN_SECRET" > .soroban-example-dapp/token_admin_secret
-echo "$ABUNDANCE_ADMIN_ADDRESS" > .soroban-example-dapp/token_admin_address
 
 # This will fail if the account already exists, but it'll still be fine.
 echo Fund token-admin account from friendbot
@@ -85,6 +79,7 @@ ABUNDANCE_ID="$(
     --wasm target/wasm32-unknown-unknown/release/abundance_token.wasm
 )"
 echo "Contract deployed succesfully with ID: $ABUNDANCE_ID"
+mkdir -p .soroban-example-dapp
 echo -n "$ABUNDANCE_ID" > .soroban-example-dapp/abundance_token_id
 
 echo Deploy the crowdfund contract
