@@ -16,6 +16,7 @@ import { useSorobanEvents, EventSubscription } from '@soroban-react/events'
 let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
+  const [loadedAt, setLoadedAt] = React.useState<number>(Date.now())
   const account = useAccount()
   const sorobanEventsContext = useSorobanEvents()
 
@@ -53,7 +54,7 @@ const Pledge: FunctionComponent = () => {
         target: fetched[5],
       })
     })
-  }, [])
+  }, [loadedAt])
 
   const [targetReached, setTargetReached] = useState<boolean>(false)
 
@@ -121,6 +122,7 @@ const Pledge: FunctionComponent = () => {
                 decimals={abundance.decimals || 7}
                 account={account.address}
                 symbol={abundance.symbol}
+                onPledge={() => setLoadedAt(Date.now())}
               />
             ) : (
               <ConnectButton label="Connect wallet to pledge" isHigher={true} />

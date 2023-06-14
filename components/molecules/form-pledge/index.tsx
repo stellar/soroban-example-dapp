@@ -11,29 +11,33 @@ export interface IFormPledgeProps {
   account: string
   decimals: number
   symbol?: string
+  onPledge: () => void
 }
 
 export interface IResultSubmit {
   status: string
+  value?: string
+  symbol?: string
   error?: string
 }
 
 /**
  * Mint 100.0000000 tokens to the user's wallet for testing
  */
-function MintButton({ account, symbol, onComplete, decimals }: { decimals: number, account: string; symbol: string, onComplete: (amount: BigInt) => void }) {
+function MintButton({ account, symbol, onComplete, decimals }: { decimals: number, account: string; symbol: string, onComplete: () => void }) {
   const [isSubmitting, setSubmitting] = useState(false)
 
-  const amount = BigInt(100)
+  const displayAmount = 100
+  const amount = BigInt(displayAmount * 10**decimals)
 
   return (
     <Button
-      title={`Mint ${amount.toString()} ${symbol}`}
+      title={`Mint ${displayAmount} ${symbol}`}
       onClick={async () => {
         setSubmitting(true)
-        await abundance.mint_100({ to: account }, { signAndSend: true })
+        await abundance.mint({ to: account, amount }, { signAndSend: true })
         setSubmitting(false)
-        onComplete(amount * 10n**BigInt(decimals))
+        onComplete()
       }}
       disabled={isSubmitting}
       isLoading={isSubmitting}
@@ -42,6 +46,7 @@ function MintButton({ account, symbol, onComplete, decimals }: { decimals: numbe
 }
 
 const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
+  const [loadedAt, setLoadedAt] = React.useState<number>(Date.now())
   const [balance, setBalance] = React.useState<BigInt>(BigInt(0))
   const [decimals, setDecimals] = React.useState<number>(0)
   const [symbol, setSymbol] = React.useState<string>()
@@ -50,8 +55,6 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
   const [resultSubmit, setResultSubmit] = useState<IResultSubmit | undefined>()
   const [input, setInput] = useState('')
   const [isSubmitting, setSubmitting] = useState(false)
-
-  const parsedAmount = BigInt(amount || 0)
 
   React.useEffect(() => {
     Promise.all([
@@ -63,32 +66,31 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       setDecimals(fetched[1])
       setSymbol(fetched[2].toString())
     })
-  })
-
-  const closeModal = (): void => {
-    // TODO: Make this reload only the component
-    if (resultSubmit?.status == 'success') {
-      window.location.reload()
-    }
-    setResultSubmit(undefined)
-  }
+  }, [props.account, loadedAt])
 
   const clearInput = (): void => {
     setInput('')
   }
 
   const handleSubmit = async (): Promise<void> => {
+    if (!amount) return
+
     setSubmitting(true)
 
     try {
       await deposit({
         user: props.account,
-        amount: parsedAmount,
+        amount: BigInt(amount * 10**decimals),
+      }, {
+        signAndSend: true
       })
 
       setResultSubmit({
         status: 'success',
+        value: String(amount),
+        symbol,
       })
+      props.onPledge()
       setInput('')
       setAmount(undefined)
     } catch (e) {
@@ -160,7 +162,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             account={props.account}
             symbol={props.symbol}
             decimals={decimals}
-            onComplete={amount => setBalance(amount.valueOf() + balance.valueOf())}
+            onComplete={() => setLoadedAt(Date.now())}
           />
           <div className={styles.wrapper}>
             <div>
@@ -170,7 +172,10 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
         </div>
       ) : null}
       {resultSubmit && (
-        <TransactionModal result={resultSubmit} closeModal={closeModal} />
+        <TransactionModal
+          result={resultSubmit}
+          closeModal={() => setResultSubmit(undefined)}
+        />
       )}
     </div>
   )
