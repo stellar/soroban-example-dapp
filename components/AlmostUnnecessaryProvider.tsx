@@ -10,7 +10,8 @@ const connectors: Connector[] = [freighter()];
                                            
 /**
  * This machinery is needed for @soroban-react/events functionality, which
- * we still need until event subscriptions are moved to the generated libraries.
+ * we still need until event subscriptions are implemented in the libraries
+ * generated with `soroban contract bindings typescript`
  */
 export default function AlmostUnnecessaryProvider({children}:{children: React.ReactNode}) {
   return (
