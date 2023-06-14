@@ -75,18 +75,35 @@ export function scValToJs<T>(val: xdr.ScVal): T {
         }
         case xdr.ScValType.scvVec(): {
             type Element = ElementType<T>;
-            return val.vec().map(v => scValToJs<Element>(v)) as unknown as T;
+            return val.vec()!.map(v => scValToJs<Element>(v)) as unknown as T;
         }
         case xdr.ScValType.scvMap(): {
             type Key = KeyType<T>;
             type Value = ValueType<T>;
-            let res = new Map<Key, Value>();
-            val.map().forEach((e) => {
+            let res: any = {};
+            val.map()!.forEach((e) => {
                 let key = scValToJs<Key>(e.key());
-                let value = scValToJs<Value>(e.val());
-                res.set(key as Key, value as Value);
+                let value;
+                let v: xdr.ScVal = e.val();
+                // For now we assume second level maps are real maps. Not perfect but better.
+                switch (v?.switch()) {
+                    case xdr.ScValType.scvMap(): {
+                        let inner_map = new Map() as Map<any, any>;
+                        v.map()!.forEach((e) => {
+                            let key = scValToJs<Key>(e.key());
+                            let value = scValToJs<Value>(e.val());
+                            inner_map.set(key, value);
+                        });
+                        value = inner_map;
+                        break;
+                    }
+                    default: {
+                        value = scValToJs<Value>(e.val());
+                    }
+                }
+                //@ts-ignore
+                res[key as Key] = value as Value;
             });
-
             return res as unknown as T
         }
         case xdr.ScValType.scvContractExecutable():
@@ -108,3 +125,22 @@ export function scValToJs<T>(val: xdr.ScVal): T {
 type ElementType<T> = T extends Array<infer U> ? U : never;
 type KeyType<T> = T extends Map<infer K, any> ? K : never;
 type ValueType<T> = T extends Map<any, infer V> ? V : never;
+
+export function addressToScVal(addr: string): xdr.ScVal {
+    let addrObj = Address.fromString(addr);
+    return addrObj.toScVal();
+}
+
+export function i128ToScVal(i: bigint): xdr.ScVal {
+    return xdr.ScVal.scvI128(new xdr.Int128Parts({
+        lo: xdr.Uint64.fromString((i & BigInt(0xFFFFFFFFFFFFFFFFn)).toString()),
+        hi: xdr.Int64.fromString(((i >> BigInt(64)) & BigInt(0xFFFFFFFFFFFFFFFFn)).toString()),
+    }))
+}
+
+export function u128ToScVal(i: bigint): xdr.ScVal {
+    return xdr.ScVal.scvU128(new xdr.UInt128Parts({
+        lo: xdr.Uint64.fromString((i & BigInt(0xFFFFFFFFFFFFFFFFn)).toString()),
+        hi: xdr.Int64.fromString(((i >> BigInt(64)) & BigInt(0xFFFFFFFFFFFFFFFFn)).toString()),
+    }))
+}
