@@ -28,6 +28,7 @@ jobs:
       with:
         node-version: 17.x
         cache: 'npm'
+    - run: npm run generate-contract-clients
     - run: npm ci
     - run: |
         mkdir -p .soroban-example-dapp
