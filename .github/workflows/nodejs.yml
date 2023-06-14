@@ -35,4 +35,4 @@ jobs:
         echo 'CCHCPXECLYGX4QU34ZZOHP6C6KVAPIDTUNPIUA6GF4SP6ECFF5BX57OG' > .soroban-example-dapp/crowdfund_id
     - run: npm run generate-contract-clients
     - run: npm ci
-    - run: npm run-script build
+    - run: npm run build
