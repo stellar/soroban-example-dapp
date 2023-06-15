@@ -3,23 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "setup": "./initialize.sh futurenet && npm run generate-contract-clients && npm install",
+    "setup": "./initialize.sh futurenet && npm install",
     "reset": "rm -rf .soroban-example-dapp && rm -rf .next && rm -rf node_modules/crowdfund-contract && rm -rf node_modules/abundance-token && npm run setup",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate-contract-clients": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./target/js-clients/crowdfund-contract --network futurenet --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./target/js-clients/abundance-token --network futurenet --contract-name abundance-token"
+    "postinstall": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./node_modules/crowdfund-contract --network futurenet --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./node_modules/abundance-token --network futurenet --contract-name abundance-token"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
     "@soroban-react/chains": "^5.0.3",
     "@soroban-react/events": "^5.0.3",
     "@stellar/freighter-api": "^1.4.0",
-    "abundance-token": "./target/js-clients/abundance-token",
     "axios": "^0.27.2",
     "bigint-conversion": "^2.4.1",
-    "crowdfund-contract": "./target/js-clients/crowdfund-contract",
     "humanize-duration": "^3.27.3",
     "moment": "^2.29.4",
     "next": "^13.4.4",
