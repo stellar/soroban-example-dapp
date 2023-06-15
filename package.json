@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "setup": "./initialize.sh futurenet && yarn generate-contract-clients && yarn install",
-    "reset": "rm -rf .soroban-example-dapp && rm -rf .next && rm -rf node_modules/crowdfund-contract && rm -rf node_modules/abundance-token && yarn setup",
+    "setup": "./initialize.sh futurenet && npm run generate-contract-clients && npm install",
+    "reset": "rm -rf .soroban-example-dapp && rm -rf .next && rm -rf node_modules/crowdfund-contract && rm -rf node_modules/abundance-token && npm run setup",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -25,7 +25,8 @@
     "next": "^13.4.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "soroban-client": "0.8.0"
+    "soroban-client": "0.8.0",
+    "stellar-base": "9.0.0-soroban.3"
   },
   "devDependencies": {
     "@types/humanize-duration": "^3.27.1",

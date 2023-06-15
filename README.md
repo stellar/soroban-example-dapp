@@ -14,7 +14,7 @@ Install Dependencies
 
 1. `soroban-cli v0.8.0`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
 2. If you want to run everything locally: `docker` (you can run both Standalone and Futurenet backends with it)
-3. Node.js v18 and [Yarn](https://yarnpkg.com/)
+3. Node.js v18
 4. [Freighter Wallet](https://www.freighter.app/) ≥[v5.0.2](https://github.com/stellar/freighter/releases/tag/2.9.1). Or from the Firefox / Chrome extension store. Once installed, enable "Experimental Mode" in the settings (gear icon).
 5. If you want to run everything locally, build the `soroban-preview` docker image:
 
@@ -120,7 +120,7 @@ Frontend
 
 Now that you're running the backend, you can run the development server:
 
-    yarn dev
+    npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
