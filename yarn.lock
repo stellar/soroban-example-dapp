@@ -448,7 +448,7 @@
     "@typescript-eslint/types" "5.61.0"
     eslint-visitor-keys "^3.3.0"
 
-"abundance-token@file:target/js-clients/abundance-token":
+abundance-token@./target/js-clients/abundance-token:
   version "0.0.0"
   dependencies:
     "@stellar/freighter-api" "1.5.0"
@@ -874,7 +874,7 @@ cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-"crowdfund-contract@file:target/js-clients/crowdfund-contract":
+crowdfund-contract@./target/js-clients/crowdfund-contract:
   version "0.0.0"
   dependencies:
     "@stellar/freighter-api" "1.5.0"
