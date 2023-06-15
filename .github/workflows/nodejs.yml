@@ -32,6 +32,5 @@ jobs:
         mkdir -p .soroban-example-dapp
         echo 'CC757WDV3G442WQCNPNOA2UEXOC7UJD5VP4BLLCRDW5LRM6UZZR6ISVU' > .soroban-example-dapp/abundance_token_id
         echo 'CCHCPXECLYGX4QU34ZZOHP6C6KVAPIDTUNPIUA6GF4SP6ECFF5BX57OG' > .soroban-example-dapp/crowdfund_id
-    - run: npm run generate-contract-clients
     - run: npm ci
     - run: npm run build
