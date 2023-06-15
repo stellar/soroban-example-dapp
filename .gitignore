@@ -5,8 +5,8 @@
 /node_modules
 /.pnp
 .pnp.js
-# We use npm in this project.
-yarn.lock
+# We use yarn in this project.
+package-lock.json
 
 # testing
 /coverage

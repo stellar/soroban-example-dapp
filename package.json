@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "setup": "./initialize.sh futurenet && npm run generate-contract-clients && npm install",
-    "reset": "rm -rf .soroban-example-dapp && rm -rf .next && rm -rf node_modules/crowdfund-contract && rm -rf node_modules/abundance-token && npm run setup",
+    "setup": "./initialize.sh futurenet && yarn generate-contract-clients && yarn install",
+    "reset": "rm -rf .soroban-example-dapp && rm -rf .next && rm -rf node_modules/crowdfund-contract && rm -rf node_modules/abundance-token && yarn setup",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
