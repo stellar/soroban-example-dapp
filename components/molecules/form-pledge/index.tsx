@@ -12,6 +12,7 @@ export interface IFormPledgeProps {
   decimals: number
   symbol?: string
   onPledge: () => void
+  updatedAt: number
 }
 
 export interface IResultSubmit {
@@ -46,7 +47,6 @@ function MintButton({ account, symbol, onComplete, decimals }: { decimals: numbe
 }
 
 const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
-  const [loadedAt, setLoadedAt] = React.useState<number>(Date.now())
   const [balance, setBalance] = React.useState<BigInt>(BigInt(0))
   const [decimals, setDecimals] = React.useState<number>(0)
   const [symbol, setSymbol] = React.useState<string>()
@@ -66,7 +66,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       setDecimals(fetched[1])
       setSymbol(fetched[2].toString())
     })
-  }, [props.account, loadedAt])
+  }, [props.account, props.updatedAt])
 
   const clearInput = (): void => {
     setInput('')
@@ -162,7 +162,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
             account={props.account}
             symbol={props.symbol}
             decimals={decimals}
-            onComplete={() => setLoadedAt(Date.now())}
+            onComplete={() => props.onPledge()}
           />
           <div className={styles.wrapper}>
             <div>

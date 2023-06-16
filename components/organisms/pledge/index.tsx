@@ -16,7 +16,7 @@ import * as convert from '../../../convert'
 let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
-  const [loadedAt, setLoadedAt] = React.useState<number>(Date.now())
+  const [updatedAt, setUpdatedAt] = React.useState<number>(Date.now())
   const account = useAccount()
 
   const [abundance, setAbundance] = React.useState<{
@@ -53,7 +53,7 @@ const Pledge: FunctionComponent = () => {
         target: fetched[5],
       })
     })
-  }, [loadedAt])
+  }, [updatedAt])
 
   const [targetReached, setTargetReached] = useState<boolean>(false)
 
@@ -105,7 +105,8 @@ const Pledge: FunctionComponent = () => {
                 decimals={abundance.decimals || 7}
                 account={account.address}
                 symbol={abundance.symbol}
-                onPledge={() => setLoadedAt(Date.now())}
+                updatedAt={updatedAt}
+                onPledge={() => setUpdatedAt(Date.now())}
               />
             ) : (
               <ConnectButton label="Connect wallet to pledge" isHigher={true} />
