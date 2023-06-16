@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { getPublicKey } from "@stellar/freighter-api";
+import { getUserInfo } from "@stellar/freighter-api";
 
-let address: Awaited<ReturnType<typeof getPublicKey>>;
+let address: string;
 
-let addressLookup = getPublicKey()
+let addressLookup = getUserInfo()
 
 // returning the same object identity every time avoids unnecessary re-renders
 const addressObject = {
@@ -37,7 +37,7 @@ export function useAccount(): typeof addressObject | null {
     if (address !== undefined) return;
 
     addressLookup
-      .then((publicKey) => { address = publicKey })
+      .then(({ publicKey }) => { address = publicKey })
       .catch(() => { address = '' })
       .finally(() => { setLoading(false) });
   }, []);
