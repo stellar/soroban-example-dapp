@@ -2,6 +2,7 @@
 
 [alias] # command aliases
 install_soroban = "install --git https://github.com/ahalabs/soroban-tools --rev aea9f9450b8d0e8344bb1c6a2639c2805956aa90 --root ./target soroban-cli --debug"
+b = "build --target wasm32-unknown-unknown --release"
 # c = "check"
 # t = "test"
 # r = "run"
@@ -15,7 +16,7 @@ install_soroban = "install --git https://github.com/ahalabs/soroban-tools --rev 
 # rustc-wrapper = "…"           # run this wrapper instead of `rustc`
 # rustc-workspace-wrapper = "…" # run this wrapper instead of `rustc` for workspace members
 # rustdoc = "rustdoc"           # the doc generator tool
-target = "wasm32-unknown-unknown" # build for the target triple (ignored by `cargo install`)
+# target = "wasm32-unknown-unknown" # build for the target triple (ignored by `cargo install`)
 # target-dir = "target"         # path of where to place all generated artifacts
 rustflags = [ # set these to match .github/workflows/rust.yml
     "-Wclippy::all", # warn for all clippy lints
