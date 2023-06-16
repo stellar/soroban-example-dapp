@@ -12,13 +12,18 @@ import * as abundanceContract from 'abundance-token'
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
 import * as convert from '../../../convert'
-import { useSorobanEvents, EventSubscription } from '@soroban-react/events'
 let xdr = SorobanClient.xdr
+
+const pollInterval = 5000
+
+// TODO: update js-soroban-client to include latestLedger
+interface GetEventsWithLatestLedger extends SorobanClient.SorobanRpc.GetEventsResponse {
+  latestLedger?: string;
+}
 
 const Pledge: FunctionComponent = () => {
   const [loadedAt, setLoadedAt] = React.useState<number>(Date.now())
   const account = useAccount()
-  const sorobanEventsContext = useSorobanEvents()
 
   const [abundance, setAbundance] = React.useState<{
     balance: BigInt
@@ -58,30 +63,91 @@ const Pledge: FunctionComponent = () => {
 
   const [targetReached, setTargetReached] = useState<boolean>(false)
 
-  const crowdfundPledgedEventSubscription = useRef({
-      contractId: crowdfundContract.CONTRACT_ID,
+  const subscriptions: {
+    contractId: string
+    topics: string[]
+    cb: (event: { value: { xdr: string } }) => void
+    lastLedgerStart?: number
+    pagingToken?: string
+  }[] = React.useMemo(() => [
+    {
+      contractId: crowdfundContract.CONTRACT_ID_HEX,
       topics: ['pledged_amount_changed'],
       cb: (event) => {
         let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
         setAbundance({ ...abundance!, balance: convert.scvalToBigInt(eventTokenBalance) })
       },
-      id: Math.random()} as EventSubscription);
-
-  const crowdfundTargetReachedSubscription = useRef({
-      contractId: crowdfundContract.CONTRACT_ID,
+    },
+    {
+      contractId: crowdfundContract.CONTRACT_ID_HEX,
       topics: ['target_reached'],
       cb: () => { setTargetReached(true) },
-      id: Math.random()} as EventSubscription);
+    },
+  ], [abundance, setTargetReached])
 
   React.useEffect(() => {
-    const pledgedSubId = sorobanEventsContext.subscribe(crowdfundPledgedEventSubscription.current)
-    const reachedSubId = sorobanEventsContext.subscribe(crowdfundTargetReachedSubscription.current)
+    let timeoutId: NodeJS.Timer | null = null
+    let stop = false
+
+    async function pollEvents(): Promise<void> {
+      try {
+        for (const subscription of subscriptions) {
+          if (!subscription.lastLedgerStart) {
+            let latestLedgerState = await crowdfundContract.Server.getLatestLedger();
+            subscription.lastLedgerStart = latestLedgerState.sequence
+          } 
+         
+          const subscriptionTopicXdrs: Array<string> = []
+          subscription.topics && subscription.topics.forEach( topic => {
+            subscriptionTopicXdrs.push( xdr.ScVal.scvSymbol(topic).toXDR("base64"));
+          })
+
+          // TODO: use rpc batch for single round trip, each subscription can be one
+          // getEvents request in the batch, is that possible now?
+          let response = await crowdfundContract.Server.getEvents({
+            startLedger: !subscription.pagingToken ? subscription.lastLedgerStart : undefined,
+            cursor: subscription.pagingToken,
+            filters: [
+              {
+                contractIds: [subscription.contractId],
+                topics: [subscriptionTopicXdrs],
+                type: "contract"
+              }  
+            ],
+            limit: 10
+          }) as GetEventsWithLatestLedger;
+       
+          delete subscription.pagingToken;
+          if (response.latestLedger) {
+            subscription.lastLedgerStart = parseInt(response.latestLedger);
+          }
+          response.events && response.events.forEach(event => {
+            try {
+              subscription.cb(event)
+            } catch (error) {
+              console.error("Poll Events: subscription callback had error: ", error);
+            } finally {
+              subscription.pagingToken = event.pagingToken
+            }
+          }) 
+        }   
+      } catch (error) {
+        console.error("Poll Events: error: ", error);
+      } finally {
+        if (!stop) {
+          timeoutId = setTimeout(pollEvents, pollInterval);
+        }
+      }
+    }
+
+    pollEvents();
 
     return () => {
-      sorobanEventsContext.unsubscribe(pledgedSubId);
-      sorobanEventsContext.unsubscribe(reachedSubId);
+      if (timeoutId != null) clearTimeout(timeoutId)
+      stop = true
     }
-  }, [sorobanEventsContext]);
+  }, [subscriptions]);
+
 
   return (
     <Card>
