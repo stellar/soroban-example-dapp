@@ -1,7 +1,7 @@
 # paths = ["/path/to/override"] # path dependency overrides
 
 [alias] # command aliases
-install_soroban = "install --git https://github.com/ahalabs/soroban-tools --rev aea9f9450b8d0e8344bb1c6a2639c2805956aa90 --root ./target soroban-cli --debug"
+install_soroban = "install --git https://github.com/ahalabs/soroban-tools --rev 9fbf7550db18b363bacce0544b645b757499ad5b --root ./target soroban-cli --debug"
 b = "build --target wasm32-unknown-unknown --release"
 # c = "check"
 # t = "test"
