@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { getUserInfo } from "@stellar/freighter-api";
+import { isConnected, getUserInfo } from "@stellar/freighter-api";
 
 let address: string;
 
-let addressLookup = getUserInfo()
+let addressLookup = (async () => {
+  if (isConnected()) return getUserInfo()
+})();
 
 // returning the same object identity every time avoids unnecessary re-renders
 const addressObject = {
