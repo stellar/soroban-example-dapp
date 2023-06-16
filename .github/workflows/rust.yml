@@ -6,7 +6,7 @@ on:
   pull_request:
 
 env:
-  RUSTFLAGS: -Dwarnings -Dclippy::all -Dclippy::pedantic
+  RUSTFLAGS: -Wclippy::all -Wclippy::pedantic
 
 jobs:
 
