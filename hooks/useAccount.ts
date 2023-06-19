@@ -39,8 +39,7 @@ export function useAccount(): typeof addressObject | null {
     if (address !== undefined) return;
 
     addressLookup
-      .then(({ publicKey }) => { address = publicKey })
-      .catch(() => { address = '' })
+      .then(user => { if (user) address = user.publicKey })
       .finally(() => { setLoading(false) });
   }, []);
 
