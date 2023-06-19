@@ -21,8 +21,7 @@
     "next": "^13.4.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "soroban-client": "0.8.0",
-    "stellar-base": "9.0.0-soroban.3"
+    "soroban-client": "0.8.1"
   },
   "devDependencies": {
     "@types/humanize-duration": "^3.27.1",
