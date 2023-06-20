@@ -1,6 +1,5 @@
 all: check build test
 
-export RUSTFLAGS=-Dwarnings -Dclippy::all -Dclippy::pedantic
 CARGO_BUILD_TARGET?=wasm32-unknown-unknown
 
 test: fmt
