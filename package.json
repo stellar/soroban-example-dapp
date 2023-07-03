@@ -13,9 +13,9 @@
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
     "@soroban-react/chains": "v4.5.2", 
-    "@soroban-react/contracts": "5.0.3",
-    "@soroban-react/core": "5.0.3",
-    "@soroban-react/events": "5.0.3",
+    "@soroban-react/contracts": "5.3.1",
+    "@soroban-react/core": "5.3.1",
+    "@soroban-react/events": "5.3.1",
     "@soroban-react/freighter": "5.0.3",
     "@soroban-react/types": "5.0.3",   
     "@stellar/freighter-api": "^1.4.0",
