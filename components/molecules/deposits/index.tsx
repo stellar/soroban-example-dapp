@@ -3,7 +3,7 @@ import * as SorobanClient from 'soroban-client'
 import styles from './style.module.css'
 import { Utils } from '../../../shared/utils'
 import { Spacer } from '../../atoms/spacer'
-import * as convert from '../../../convert'
+import * as convert from '../../../helpers/convert'
 import { Constants } from '../../../shared/constants'
 import {
   ContractValueType,

@@ -1,8 +1,15 @@
 import BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
+import { I128 } from "./xdr";
+
 let xdr = SorobanClient.xdr;
 
 export function scvalToBigNumber(scval: SorobanClient.xdr.ScVal | undefined): BigNumber {
+  console.log("🚀 ~ file: convert.ts:6 ~ scvalToBigNumber ~ scval:", scval)
+  if (scval){
+    console.log("If we decode: ", decodei128ScVal(scval))
+  }
+  
   switch (scval?.switch()) {
   case undefined: {
     return BigNumber(0);
@@ -23,15 +30,13 @@ export function scvalToBigNumber(scval: SorobanClient.xdr.ScVal | undefined): Bi
   }
   case xdr.ScValType.scvU128(): {
     const parts = scval.u128();
-    const a = parts.hi();
-    const b = parts.lo();
-    return bigNumberFromBytes(false, a.high, a.low, b.high, b.low);
+    console.log("🚀 ~ file: convert.ts:28 ~ casexdr.ScValType.scvU128 ~ parts:", parts)
+    const hi = parts.hi();
+    const lo = parts.lo();
+    return bigNumberFromBytes(false, lo.low, lo.high, hi.low, hi.high);
   }
   case xdr.ScValType.scvI128(): {
-    const parts = scval.i128();
-    const a = parts.hi();
-    const b = parts.lo();
-    return bigNumberFromBytes(true, a.high, a.low, b.high, b.low);
+    return BigNumber(decodei128ScVal(scval));
   }
   case xdr.ScValType.scvU256(): {
     const parts = scval.u256();
@@ -139,3 +144,18 @@ export function scvalToString(value: SorobanClient.xdr.ScVal): string | undefine
   return value.bytes().toString();
 }
 
+
+// XDR -> String
+export const decodei128ScVal = (value: SorobanClient.xdr.ScVal) => {
+  try {
+    return new I128([
+      BigInt(value.i128().lo().low),
+      BigInt(value.i128().lo().high),
+      BigInt(value.i128().hi().low),
+      BigInt(value.i128().hi().high),
+    ]).toString();
+  } catch (error) {
+    console.log(error);
+    return 0;
+  }
+};

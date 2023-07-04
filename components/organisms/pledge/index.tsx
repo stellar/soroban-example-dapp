@@ -11,7 +11,7 @@ import {
 import { useContractValue } from '@soroban-react/contracts'
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
-import * as convert from '../../../convert'
+import * as convert from '../../../helpers/convert'
 import { Constants } from '../../../shared/constants'
 import { useSorobanReact } from '@soroban-react/core'
 import { useSorobanEvents, EventSubscription } from '@soroban-react/events'

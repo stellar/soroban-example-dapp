@@ -7,7 +7,7 @@ import { useSendTransaction, useContractValue, contractTransaction } from '@soro
 import { useSorobanReact } from '@soroban-react/core'
 import * as SorobanClient from 'soroban-client'
 import BigNumber from 'bignumber.js'
-import * as convert from '../../../convert'
+import * as convert from '../../../helpers/convert'
 import { Constants } from '../../../shared/constants'
 import { Spacer } from '../../atoms/spacer'
 let xdr = SorobanClient.xdr
