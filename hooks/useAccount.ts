@@ -4,7 +4,7 @@ import { isConnected, getUserInfo } from "@stellar/freighter-api";
 let address: string;
 
 let addressLookup = (async () => {
-  if (isConnected()) return getUserInfo()
+  if (await isConnected()) return getUserInfo()
 })();
 
 // returning the same object identity every time avoids unnecessary re-renders
