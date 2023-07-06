@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./.soroban/crowdfund-contract --network $(cat ./.soroban-example-dapp/network) --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./.soroban/abundance-token --network $(cat ./.soroban-example-dapp/network) --contract-name abundance-token"
+    "postinstall": "rm -rf ./.soroban/crowdfund-contract && rm -rf ./.soroban/abundance-token && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./.soroban/crowdfund-contract --network $(cat ./.soroban-example-dapp/network) --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./.soroban/abundance-token --network $(cat ./.soroban-example-dapp/network) --contract-name abundance-token"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
@@ -22,8 +22,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "soroban-client": "0.8.1",
-    "crowdfund-contract": "file:./.soroban/crowdfund-contract",
-    "abundance-token": "file:./.soroban/abundance-token"
+    "crowdfund-contract": "file:.soroban/crowdfund-contract",
+    "abundance-token": "file:.soroban/abundance-token"
   },
   "devDependencies": {
     "@types/humanize-duration": "^3.27.1",
