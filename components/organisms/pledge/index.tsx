@@ -1,144 +1,74 @@
-import React, { FunctionComponent, useState, useRef } from 'react'
+import React, { FunctionComponent, useState } from 'react'
 import { Card, ConnectButton, Loading, ProgressBar } from '../../atoms'
 import styles from './style.module.css'
 import { Spacer } from '../../atoms/spacer'
 import { Utils } from '../../../shared/utils'
-import BigNumber from 'bignumber.js';
 import {
-  useAccount
+  useAccount,
+  useSubscription,
 } from '../../../hooks'
+import * as crowdfundContract from 'crowdfund-contract'
+import * as abundanceContract from 'abundance-token'
 
-import { useContractValue } from '@soroban-react/contracts'
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
 import * as convert from '../../../convert'
-import { Constants } from '../../../shared/constants'
-import { useSorobanReact } from '@soroban-react/core'
-import { useSorobanEvents, EventSubscription } from '@soroban-react/events'
 let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
-  const { data: account } = useAccount()
-  const sorobanContext = useSorobanReact()
-  const sorobanEventsContext = useSorobanEvents()
+  const [updatedAt, setUpdatedAt] = React.useState<number>(Date.now())
+  const account = useAccount()
 
-  const { activeChain } = sorobanContext
+  const [abundance, setAbundance] = React.useState<{
+    balance: BigInt
+    decimals: number
+    name: string
+    symbol: string
+  }>()
 
-  const networkPassphrase = activeChain?.networkPassphrase ?? ''
+  const [crowdfund, setCrowdfund] = React.useState<{
+    deadline: Date
+    target: BigInt
+  }>()
 
-  // Call the contract rpcs to fetch values
-  const useLoadToken = (): any => {
-    return {
-      balance: useContractValue({ 
-        contractId: Constants.TokenId,
-        method: 'balance',
-        params: [SorobanClient.Address.contract(Buffer.from(Constants.CrowdfundId, 'hex')).toScVal()],
-        sorobanContext
-      }),
+  React.useEffect(() => {
+    Promise.all([
+      abundanceContract.balance({ id: crowdfundContract.CONTRACT_ID }),
+      abundanceContract.decimals(),
+      abundanceContract.name(),
+      abundanceContract.symbol(),
 
-      decimals: useContractValue({ 
-        contractId: Constants.TokenId,
-        method: 'decimals',
-        sorobanContext
-      }),
+      crowdfundContract.deadline(),
+      crowdfundContract.target(),
+    ]).then(fetched => {
+      setAbundance({
+        balance: fetched[0],
+        decimals: fetched[1],
+        name: fetched[2].toString(),
+        symbol: fetched[3].toString(),
+      })
 
-      name: useContractValue({ 
-        contractId: Constants.TokenId,
-        method: 'name',
-        sorobanContext
-      }),
+      setCrowdfund({
+        deadline: new Date(Number(fetched[4]) * 1000),
+        target: fetched[5],
+      })
+    })
+  }, [updatedAt])
 
-      symbol: useContractValue({ 
-        contractId: Constants.TokenId,
-        method: 'symbol',
-        sorobanContext
-      }),
-    }
-  }
-
-  let token = useLoadToken()
-  let deadline = useContractValue({ 
-    contractId: Constants.CrowdfundId,
-    method: 'deadline',
-    sorobanContext
-  })
-
-  let targetAmountXdr = useContractValue({ 
-    contractId: Constants.CrowdfundId,
-    method: 'target',
-    sorobanContext
-  })
- 
-  // Convert the result ScVals to js types
-  const tokenDecimals =
-    token.decimals.result && (token.decimals.result?.u32() ?? 7)
-  const tokenName =
-    token.name.result && convert.scvalToString(token.name.result)
-  // asset4 codes seem right-padded with null bytes, so strip those off
-  const tokenSymbol =
-    token.symbol.result && convert.scvalToString(token.symbol.result)?.replace("\u0000", "")
-  const deadlineDate =
-    deadline.result &&
-    new Date(
-      convert.xdrUint64ToNumber(
-        deadline.result.u64() ?? xdr.Int64.fromString('0')
-      ) * 1000
-    )
-  const targetAmount = convert.scvalToBigNumber(targetAmountXdr.result)
-  
-  // hook or event go through same state to update ui
-  const [tokenBalance, setTokenBalance] = useState<BigNumber>(BigNumber(0))
   const [targetReached, setTargetReached] = useState<boolean>(false)
- 
-  React.useEffect(() => {
-    // hook is providing data, let it update the ui model, 
-    // events will update these later also
-    const tokenBalance = convert.scvalToBigNumber(token.balance.result)
-    const targetAmount = convert.scvalToBigNumber(targetAmountXdr.result)
-    setTokenBalance(tokenBalance)
-    setTargetReached(targetAmount.gt(0) && tokenBalance.gte(targetAmount))
-  }, [token.balance, targetAmountXdr]);
-  
-  const isLoading = (): boolean | undefined => {
-    return (
-      token.balance.loading ||
-      token.decimals.loading ||
-      token.name.loading ||
-      token.symbol.loading ||
-      deadline.loading
-    )
-  }
 
-  const crowdfundPledgedEventSubscription = useRef({
-      contractId: Constants.CrowdfundId, 
-      topics: ['pledged_amount_changed'], 
-      cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
-        let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
-        setTokenBalance(convert.scvalToBigNumber(eventTokenBalance))
-      }, 
-      id: Math.random()} as EventSubscription);
+  useSubscription(crowdfundContract, 'pledged_amount_changed', React.useMemo(() => event => {
+    let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
+    setAbundance({ ...abundance!, balance: convert.scvalToBigInt(eventTokenBalance) })
+  }, [abundance]))
 
-  const crowdfundTargetReachedSubscription = useRef({
-      contractId: Constants.CrowdfundId, 
-      topics: ['target_reached'], 
-      cb: (event: SorobanClient.SorobanRpc.EventResponse): void => {
-        setTargetReached(true)
-      }, 
-      id: Math.random()} as EventSubscription);
-  
-  React.useEffect(() => {
-    const pledgedSubId = sorobanEventsContext.subscribe(crowdfundPledgedEventSubscription.current)
-    const reachedSubId = sorobanEventsContext.subscribe(crowdfundTargetReachedSubscription.current)
-
-    return () => {
-      sorobanEventsContext.unsubscribe(pledgedSubId);
-      sorobanEventsContext.unsubscribe(reachedSubId);
-    }
-  }, [sorobanEventsContext]);
+  useSubscription(crowdfundContract, 'target_reached', React.useMemo(() => () => {
+    setTargetReached(true)
+  }, []))
 
   return (
     <Card>
-      {isLoading() ? (
+      {!abundance || !crowdfund ? (
         <Loading size={64} />
       ) : (
         <>
@@ -147,20 +77,20 @@ const Pledge: FunctionComponent = () => {
           )}
           <h6>PLEDGED</h6>
           <div className={styles.pledgeAmount}>
-            {Utils.formatAmount(tokenBalance, tokenDecimals)} {tokenSymbol}
+            {Utils.formatAmount(abundance.balance, abundance.decimals)} {abundance.symbol}
           </div>
           <span className={styles.pledgeGoal}>{`of ${Utils.formatAmount(
-            targetAmount,
-            tokenDecimals
-          )} ${tokenSymbol} goal`}</span>
+            crowdfund.target,
+            abundance.decimals
+          )} ${abundance.symbol} goal`}</span>
           <ProgressBar
-            value={Utils.percentage(tokenBalance, targetAmount, tokenDecimals)}
+            value={Utils.percentage(abundance.balance, crowdfund.target, abundance.decimals)}
           />
           <div className={styles.wrapper}>
             <div>
               <h6>Time remaining</h6>
               <span className={styles.values}>
-                {Utils.getRemainingTime(deadlineDate)}
+                {Utils.getRemainingTime(crowdfund.deadline)}
               </span>
             </div>
             <div>
@@ -169,15 +99,14 @@ const Pledge: FunctionComponent = () => {
             </div>
           </div>
           <Spacer rem={1.5} />
-          {!Utils.isExpired(deadlineDate) &&
+          {!Utils.isExpired(crowdfund.deadline) &&
             (account ? (
               <FormPledge
-                tokenId={Constants.TokenId}
-                crowdfundId={Constants.CrowdfundId}
-                decimals={tokenDecimals || 7}
-                networkPassphrase={networkPassphrase}
+                decimals={abundance.decimals || 7}
                 account={account.address}
-                symbol={tokenSymbol}
+                symbol={abundance.symbol}
+                updatedAt={updatedAt}
+                onPledge={() => setUpdatedAt(Date.now())}
               />
             ) : (
               <ConnectButton label="Connect wallet to pledge" isHigher={true} />
@@ -185,10 +114,10 @@ const Pledge: FunctionComponent = () => {
           {account && (
             <Deposits
               address={account.address}
-              decimals={tokenDecimals || 7}
-              name={tokenName}
-              symbol={tokenSymbol}
-              idCrowdfund={Constants.CrowdfundId}
+              decimals={abundance.decimals || 7}
+              name={abundance.name}
+              symbol={abundance.symbol}
+              idCrowdfund={crowdfundContract.CONTRACT_ID}
             />
           )}
         </>

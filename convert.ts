@@ -1,141 +1,146 @@
-import BigNumber from 'bignumber.js';
-import * as SorobanClient from 'soroban-client';
-let xdr = SorobanClient.xdr;
+import { Address, xdr } from 'soroban-client';
+import { Buffer } from "buffer";
+import { bufToBigint } from 'bigint-conversion';
 
-export function scvalToBigNumber(scval: SorobanClient.xdr.ScVal | undefined): BigNumber {
-  switch (scval?.switch()) {
-  case undefined: {
-    return BigNumber(0);
-  }
-  case xdr.ScValType.scvU32(): {
-    return BigNumber(scval.u32());
-  }
-  case xdr.ScValType.scvI32(): {
-    return BigNumber(scval.i32());
-  }
-  case xdr.ScValType.scvU64(): {
-    const {high, low} = scval.u64();
-    return bigNumberFromBytes(false, high, low);
-  }
-  case xdr.ScValType.scvI64(): {
-    const {high, low} = scval.i64();
-    return bigNumberFromBytes(true, high, low);
-  }
-  case xdr.ScValType.scvU128(): {
-    const parts = scval.u128();
-    const a = parts.hi();
-    const b = parts.lo();
-    return bigNumberFromBytes(false, a.high, a.low, b.high, b.low);
-  }
-  case xdr.ScValType.scvI128(): {
-    const parts = scval.i128();
-    const a = parts.hi();
-    const b = parts.lo();
-    return bigNumberFromBytes(true, a.high, a.low, b.high, b.low);
-  }
-  case xdr.ScValType.scvU256(): {
-    const parts = scval.u256();
-    const a = parts.hiHi();
-    const b = parts.hiLo();
-    const c = parts.loHi();
-    const d = parts.loLo();
-    return bigNumberFromBytes(false, a.high, a.low, b.high, b.low, c.high, c.low, d.high, d.low);
-  }
-  case xdr.ScValType.scvI256(): {
-    const parts = scval.i256();
-    const a = parts.hiHi();
-    const b = parts.hiLo();
-    const c = parts.loHi();
-    const d = parts.loLo();
-    return bigNumberFromBytes(true, a.high, a.low, b.high, b.low, c.high, c.low, d.high, d.low);
-  }
-  default: {
-    throw new Error(`Invalid type for scvalToBigNumber: ${scval?.switch().name}`);
-  }
-  };
+export function scvalToBigInt(scval: xdr.ScVal | undefined): BigInt {
+    switch (scval?.switch()) {
+        case undefined: {
+            return BigInt(0);
+        }
+        case xdr.ScValType.scvU64(): {
+            const { high, low } = scval.u64();
+            return bufToBigint(new Uint32Array([high, low]));
+        }
+        case xdr.ScValType.scvI64(): {
+            const { high, low } = scval.i64();
+            return bufToBigint(new Int32Array([high, low]));
+        }
+        case xdr.ScValType.scvU128(): {
+            const parts = scval.u128();
+            const a = parts.hi();
+            const b = parts.lo();
+            return bufToBigint(new Uint32Array([a.high, a.low, b.high, b.low]));
+        }
+        case xdr.ScValType.scvI128(): {
+            const parts = scval.i128();
+            const a = parts.hi();
+            const b = parts.lo();
+            return bufToBigint(new Int32Array([a.high, a.low, b.high, b.low]));
+        }
+        default: {
+            throw new Error(`Invalid type for scvalToBigInt: ${scval?.switch().name}`);
+        }
+    };
 }
 
-function bigNumberFromBytes(signed: boolean, ...bytes: (string | number | bigint)[]): BigNumber {
-    let sign = 1;
-    if (signed && bytes[0] === 0x80) {
-      // top bit is set, negative number.
-      sign = -1;
-      bytes[0] &= 0x7f;
-    }
-    let b = BigInt(0);
-    for (let byte of bytes) {
-      b <<= BigInt(8);
-      b |= BigInt(byte);
-    }
-    return BigNumber(b.toString()).multipliedBy(sign);
+export function scValStrToJs<T>(base64Xdr: string): T {
+    let scval = xdr.ScVal.fromXDR(Buffer.from(base64Xdr, 'base64'));
+    return scValToJs(scval);
 }
 
-export function bigNumberToI128(value: BigNumber): SorobanClient.xdr.ScVal {
-  const b: bigint = BigInt(value.toFixed(0));
-  const buf = bigintToBuf(b);
-  if (buf.length > 16) {
-    throw new Error("BigNumber overflows i128");
-  }
-
-  if (value.isNegative()) {
-    // Clear the top bit
-    buf[0] &= 0x7f;
-  }
-
-  // left-pad with zeros up to 16 bytes
-  let padded = Buffer.alloc(16);
-  buf.copy(padded, padded.length-buf.length);
-  console.debug({value: value.toString(), padded});
-
-  if (value.isNegative()) {
-    // Set the top bit
-    padded[0] |= 0x80;
-  }
-
-  const hi = new xdr.Int64(
-    bigNumberFromBytes(false, ...padded.slice(4, 8)).toNumber(),
-    bigNumberFromBytes(false, ...padded.slice(0, 4)).toNumber()
-  );
-  const lo = new xdr.Uint64(
-    bigNumberFromBytes(false, ...padded.slice(12, 16)).toNumber(),
-    bigNumberFromBytes(false, ...padded.slice(8, 12)).toNumber()
-  );
-
-  return xdr.ScVal.scvI128(new xdr.Int128Parts({lo, hi}));
+export function scValToJs<T>(val: xdr.ScVal): T {
+    switch (val?.switch()) {
+        case xdr.ScValType.scvBool(): {
+            return val.b() as unknown as T;
+        }
+        case xdr.ScValType.scvVoid():
+        case undefined: {
+            return 0 as unknown as T;
+        }
+        case xdr.ScValType.scvU32(): {
+            return val.u32() as unknown as T;
+        }
+        case xdr.ScValType.scvI32(): {
+            return val.i32() as unknown as T;
+        }
+        case xdr.ScValType.scvU64():
+        case xdr.ScValType.scvI64():
+        case xdr.ScValType.scvU128():
+        case xdr.ScValType.scvI128():
+        case xdr.ScValType.scvU256():
+        case xdr.ScValType.scvI256(): {
+            return scvalToBigInt(val) as unknown as T;
+        }
+        case xdr.ScValType.scvAddress(): {
+            return Address.fromScVal(val).toString() as unknown as T;
+        }
+        case xdr.ScValType.scvString(): {
+            return val.str().toString() as unknown as T;
+        }
+        case xdr.ScValType.scvSymbol(): {
+            return val.sym().toString() as unknown as T;
+        }
+        case xdr.ScValType.scvBytes(): {
+            return val.bytes() as unknown as T;
+        }
+        case xdr.ScValType.scvVec(): {
+            type Element = ElementType<T>;
+            return val.vec()!.map(v => scValToJs<Element>(v)) as unknown as T;
+        }
+        case xdr.ScValType.scvMap(): {
+            type Key = KeyType<T>;
+            type Value = ValueType<T>;
+            let res: any = {};
+            val.map()!.forEach((e) => {
+                let key = scValToJs<Key>(e.key());
+                let value;
+                let v: xdr.ScVal = e.val();
+                // For now we assume second level maps are real maps. Not perfect but better.
+                switch (v?.switch()) {
+                    case xdr.ScValType.scvMap(): {
+                        let inner_map = new Map() as Map<any, any>;
+                        v.map()!.forEach((e) => {
+                            let key = scValToJs<Key>(e.key());
+                            let value = scValToJs<Value>(e.val());
+                            inner_map.set(key, value);
+                        });
+                        value = inner_map;
+                        break;
+                    }
+                    default: {
+                        value = scValToJs<Value>(e.val());
+                    }
+                }
+                //@ts-ignore
+                res[key as Key] = value as Value;
+            });
+            return res as unknown as T
+        }
+        case xdr.ScValType.scvContractExecutable():
+            return val.exec() as unknown as T;
+        case xdr.ScValType.scvLedgerKeyNonce():
+            return val.nonceKey() as unknown as T;
+        case xdr.ScValType.scvTimepoint():
+            return val.timepoint() as unknown as T;
+        case xdr.ScValType.scvDuration():
+            return val.duration() as unknown as T;
+        // TODO: Add this case when merged
+        // case xdr.ScValType.scvError():
+        default: {
+            throw new Error(`type not implemented yet: ${val?.switch().name}`);
+        }
+    };
 }
 
-function bigintToBuf(bn: bigint): Buffer {
-  var hex = BigInt(bn).toString(16).replace(/^-/, '');
-  if (hex.length % 2) { hex = '0' + hex; }
+type ElementType<T> = T extends Array<infer U> ? U : never;
+type KeyType<T> = T extends Map<infer K, any> ? K : never;
+type ValueType<T> = T extends Map<any, infer V> ? V : never;
 
-  var len = hex.length / 2;
-  var u8 = new Uint8Array(len);
-
-  var i = 0;
-  var j = 0;
-  while (i < len) {
-    u8[i] = parseInt(hex.slice(j, j+2), 16);
-    i += 1;
-    j += 2;
-  }
-
-  if (bn < BigInt(0)) {
-    // Set the top bit
-    u8[0] |= 0x80;
-  }
-
-  return Buffer.from(u8);
+export function addressToScVal(addr: string): xdr.ScVal {
+    let addrObj = Address.fromString(addr);
+    return addrObj.toScVal();
 }
 
-export function xdrUint64ToNumber(value: SorobanClient.xdr.Uint64): number {
-  let b = 0;
-  b |= value.high;
-  b <<= 8;
-  b |= value.low;
-  return b;
+export function i128ToScVal(i: bigint): xdr.ScVal {
+    return xdr.ScVal.scvI128(new xdr.Int128Parts({
+        lo: xdr.Uint64.fromString((i & BigInt(0xFFFFFFFFFFFFFFFFn)).toString()),
+        hi: xdr.Int64.fromString(((i >> BigInt(64)) & BigInt(0xFFFFFFFFFFFFFFFFn)).toString()),
+    }))
 }
 
-export function scvalToString(value: SorobanClient.xdr.ScVal): string | undefined {
-  return value.bytes().toString();
+export function u128ToScVal(i: bigint): xdr.ScVal {
+    return xdr.ScVal.scvU128(new xdr.UInt128Parts({
+        lo: xdr.Uint64.fromString((i & BigInt(0xFFFFFFFFFFFFFFFFn)).toString()),
+        hi: xdr.Int64.fromString(((i >> BigInt(64)) & BigInt(0xFFFFFFFFFFFFFFFFn)).toString()),
+    }))
 }
-

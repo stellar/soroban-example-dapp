@@ -1,0 +1,133 @@
+# paths = ["/path/to/override"] # path dependency overrides
+
+[alias] # command aliases
+install_soroban = "install --git https://github.com/stellar/soroban-tools --rev 2b343d3e6afdb5eff54fb03622627cd55e785358 --root ./target soroban-cli --debug"
+b = "build --target wasm32-unknown-unknown --release"
+# c = "check"
+# t = "test"
+# r = "run"
+# rr = "run --release"
+# recursive_example = "rr --example recursions"
+# space_example = ["run", "--release", "--", "\"command list\""]
+
+[build]
+# jobs = 1                      # number of parallel jobs, defaults to # of CPUs
+# rustc = "rustc"               # the rust compiler tool
+# rustc-wrapper = "…"           # run this wrapper instead of `rustc`
+# rustc-workspace-wrapper = "…" # run this wrapper instead of `rustc` for workspace members
+# rustdoc = "rustdoc"           # the doc generator tool
+# target = "wasm32-unknown-unknown" # build for the target triple (ignored by `cargo install`)
+# target-dir = "target"         # path of where to place all generated artifacts
+rustflags = [ # set these to match .github/workflows/rust.yml
+    "-Wclippy::all", # warn for all clippy lints
+    "-Wclippy::pedantic", # warn for pedantic clippy lints
+] # custom flags to pass to all compiler invocations
+# rustdocflags = ["…", "…"]     # custom flags to pass to rustdoc
+# incremental = true            # whether or not to enable incremental compilation
+# dep-info-basedir = "…"        # path for the base directory for targets in depfiles
+
+# [doc]
+# browser = "chromium"          # browser to use with `cargo doc --open`,
+#                               # overrides the `BROWSER` environment variable
+
+# [env]
+# # Set ENV_VAR_NAME=value for any process run by Cargo
+# ENV_VAR_NAME = "value"
+# # Set even if already present in environment
+# ENV_VAR_NAME_2 = { value = "value", force = true }
+# # Value is relative to .cargo directory containing `config.toml`, make absolute
+# ENV_VAR_NAME_3 = { value = "relative/path", relative = true }
+
+# [future-incompat-report]
+# frequency = 'always' # when to display a notification about a future incompat report
+
+# [cargo-new]
+# vcs = "none"              # VCS to use ('git', 'hg', 'pijul', 'fossil', 'none')
+
+# [http]
+# debug = false               # HTTP debugging
+# proxy = "host:port"         # HTTP proxy in libcurl format
+# ssl-version = "tlsv1.3"     # TLS version to use
+# ssl-version.max = "tlsv1.3" # maximum TLS version
+# ssl-version.min = "tlsv1.1" # minimum TLS version
+# timeout = 30                # timeout for each HTTP request, in seconds
+# low-speed-limit = 10        # network timeout threshold (bytes/sec)
+# cainfo = "cert.pem"         # path to Certificate Authority (CA) bundle
+# check-revoke = true         # check for SSL certificate revocation
+# multiplexing = true         # HTTP/2 multiplexing
+# user-agent = "…"            # the user-agent header
+
+# [install]
+# root = "/some/path"         # `cargo install` destination directory
+
+# [net]
+# retry = 2                   # network retries
+# git-fetch-with-cli = true   # use the `git` executable for git operations
+# offline = true              # do not access the network
+
+# [net.ssh]
+# known-hosts = ["..."]       # known SSH host keys
+
+# [patch.<registry>]
+# # Same keys as for [patch] in Cargo.toml
+
+# [profile.<name>]         # Modify profile settings via config.
+# inherits = "dev"         # Inherits settings from [profile.dev].
+# opt-level = 0            # Optimization level.
+# debug = true             # Include debug info.
+# split-debuginfo = '...'  # Debug info splitting behavior.
+# debug-assertions = true  # Enables debug assertions.
+# overflow-checks = true   # Enables runtime integer overflow checks.
+# lto = false              # Sets link-time optimization.
+# panic = 'unwind'         # The panic strategy.
+# incremental = true       # Incremental compilation.
+# codegen-units = 16       # Number of code generation units.
+# rpath = false            # Sets the rpath linking option.
+# [profile.<name>.build-override]  # Overrides build-script settings.
+# # Same keys for a normal profile.
+# [profile.<name>.package.<name>]  # Override profile for a package.
+# # Same keys for a normal profile (minus `panic`, `lto`, and `rpath`).
+
+# [registries.<name>]  # registries other than crates.io
+# index = "…"          # URL of the registry index
+# token = "…"          # authentication token for the registry
+
+# [registry]
+# default = "…"        # name of the default registry
+# token = "…"          # authentication token for crates.io
+
+# [source.<name>]      # source definition and replacement
+# replace-with = "…"   # replace this source with the given named source
+# directory = "…"      # path to a directory source
+# registry = "…"       # URL to a registry source
+# local-registry = "…" # path to a local registry source
+# git = "…"            # URL of a git repository source
+# branch = "…"         # branch name for the git repository
+# tag = "…"            # tag name for the git repository
+# rev = "…"            # revision for the git repository
+
+# [target.<triple>]
+# linker = "…"            # linker to use
+# runner = "…"            # wrapper to run executables
+# rustflags = ["…", "…"]  # custom flags for `rustc`
+
+# [target.<cfg>]
+# runner = "…"            # wrapper to run executables
+# rustflags = ["…", "…"]  # custom flags for `rustc`
+
+# [target.<triple>.<links>] # `links` build script override
+# rustc-link-lib = ["foo"]
+# rustc-link-search = ["/path/to/foo"]
+# rustc-flags = ["-L", "/some/path"]
+# rustc-cfg = ['key="value"']
+# rustc-env = {key = "value"}
+# rustc-cdylib-link-arg = ["…"]
+# metadata_key1 = "value"
+# metadata_key2 = "value"
+
+# [term]
+# quiet = false          # whether cargo output is quiet
+# verbose = false        # whether cargo provides verbose output
+# color = 'auto'         # whether cargo colorizes output
+# progress.when = 'auto' # whether cargo shows progress bar
+# progress.width = 80    # width of progress bar

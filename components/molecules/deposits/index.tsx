@@ -1,15 +1,8 @@
 import React from 'react'
-import * as SorobanClient from 'soroban-client'
 import styles from './style.module.css'
 import { Utils } from '../../../shared/utils'
 import { Spacer } from '../../atoms/spacer'
-import * as convert from '../../../convert'
-import { Constants } from '../../../shared/constants'
-import {
-  ContractValueType,
-  useContractValue,
-} from '@soroban-react/contracts'
-import { useSorobanReact } from '@soroban-react/core'
+import { balance as getBalance } from 'crowdfund-contract'
 
 export interface IDepositsProps {
   address: string
@@ -20,19 +13,14 @@ export interface IDepositsProps {
 }
 
 export function Deposits(props: IDepositsProps) {
-  const useLoadDeposits = (): ContractValueType => {
-    return useContractValue({
-      contractId: props.idCrowdfund,
-      method: 'balance',
-      params: [new SorobanClient.Address(props.address).toScVal()],
-      sorobanContext: useSorobanReact()
-    })
-  }
+  const [balance, setBalance] = React.useState<BigInt>(BigInt(0))
 
-  let yourDepositsXdr = useLoadDeposits()
-  const yourDeposits = convert.scvalToBigNumber(yourDepositsXdr.result)
+  React.useEffect(() => {
+    getBalance({ user: props.address }).then(setBalance)
+  }, [props.address])
 
-  if (yourDeposits.toNumber() <= 0) {
+
+  if (Number(balance) <= 0) {
     return <React.Fragment />
   }
 
@@ -42,7 +30,7 @@ export function Deposits(props: IDepositsProps) {
       <h6>You’ve Pledged</h6>
       <div className={styles.pledgeContainer}>
         <span className={styles.values}>
-          {Utils.formatAmount(yourDeposits, props.decimals)}{' '}
+          {Utils.formatAmount(balance, props.decimals)}{' '}
           <span title={props.name}>{props.symbol}</span>
         </span>
         {/*<a>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSorobanReact } from '@soroban-react/core'
+import { setAllowed } from '@stellar/freighter-api'
 import styles from './style.module.css'
 
 export interface ConnectButtonProps {
@@ -8,16 +8,11 @@ export interface ConnectButtonProps {
 }
 
 export function ConnectButton({ label, isHigher }: ConnectButtonProps) {
-  const { connect } = useSorobanReact()
-  const openConnectModal = async () => {
-    await connect()
-  }
-
   return (
     <button
       className={styles.button}
       style={{ height: isHigher ? 50 : 38 }}
-      onClick={openConnectModal}
+      onClick={setAllowed}
     >
       {label}
     </button>

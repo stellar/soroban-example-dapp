@@ -2,7 +2,7 @@
 resolver = "2"
 
 members = [
-    "contracts/crowdfund",
+    "contracts/*",
 ]
 
 [profile.release]
@@ -15,11 +15,6 @@ panic = "abort"
 codegen-units = 1
 lto = true
 
-[workspace.dependencies.soroban-sdk]
-version = "0.8.2"
-
-
-
-
-
-
+[workspace.dependencies]
+soroban-sdk = "0.8.4"
+soroban-token-sdk = "0.8.4"
