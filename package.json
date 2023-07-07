@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "setup": "./initialize.sh ${NETWORK:-futurenet} && npm install",
-    "reset": "rm -rf .soroban-example-dapp && rm -rf .next && rm -rf node_modules/crowdfund-contract && rm -rf node_modules/abundance-token && npm run setup",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./node_modules/crowdfund-contract --network $(cat ./.soroban-example-dapp/network) --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./node_modules/abundance-token --network $(cat ./.soroban-example-dapp/network) --contract-name abundance-token"
+    "setup": "./initialize.sh ${NETWORK:-futurenet} && npm install",
+    "clean": "rm -rf .next .soroban .soroban-example-dapp node_modules target",
+    "reset": "npm run clean && npm run setup",
+    "postinstall": "rm -rf ./.soroban/crowdfund-contract && rm -rf ./.soroban/abundance-token && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./.soroban/crowdfund-contract --network $(cat ./.soroban-example-dapp/network) --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./.soroban/abundance-token --network $(cat ./.soroban-example-dapp/network) --contract-name abundance-token"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
@@ -21,7 +22,9 @@
     "next": "^13.4.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "soroban-client": "0.8.1"
+    "soroban-client": "0.8.1",
+    "crowdfund-contract": "file:.soroban/crowdfund-contract",
+    "abundance-token": "file:.soroban/abundance-token"
   },
   "devDependencies": {
     "@types/humanize-duration": "^3.27.1",
@@ -31,6 +34,10 @@
     "eslint": "^8.14.0",
     "eslint-config-next": "^13.3.1",
     "typescript": "5.1.3"
+  },
+  "optionalDependencies": {
+    "crowdfund-contract": "*",
+    "abundance-token": "*"
   },
   "engines": {
     "node": ">=17",
