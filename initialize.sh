@@ -99,9 +99,9 @@ soroban contract invoke \
   --id "$ABUNDANCE_ID" \
   -- \
   initialize \
-  --symbol '"41424E44"' \
+  --symbol ABND \
   --decimal 7 \
-  --name '"4162756E64616E636520546F6B656E"' \
+  --name abundance \
   --admin "$ABUNDANCE_ADMIN_ADDRESS"
 
 echo "Initialize the crowdfund contract"
