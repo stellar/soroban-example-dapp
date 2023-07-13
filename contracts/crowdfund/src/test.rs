@@ -3,8 +3,7 @@
 use super::testutils::{register_test_contract as register_crowdfund, Crowdfund};
 use soroban_sdk::{
     testutils::{Address as AddressTestTrait, Events, Ledger},
-    token::Client as Token,
-    vec, Address, Env, IntoVal, RawVal, Symbol, Vec,
+    token, vec, Address, Env, IntoVal, Symbol, Val, Vec,
 };
 
 fn create_crowdfund_contract(
@@ -33,9 +32,20 @@ struct Setup<'a> {
     recipient: Address,
     user1: Address,
     user2: Address,
-    token: Token<'a>,
+    token: token::Client<'a>,
     crowdfund: Crowdfund,
     crowdfund_id: Address,
+}
+
+fn create_token_contract<'a>(
+    e: &Env,
+    admin: &Address,
+) -> (token::Client<'a>, token::AdminClient<'a>) {
+    let contract_address = e.register_stellar_asset_contract(admin.clone());
+    (
+        token::Client::new(e, &contract_address),
+        token::AdminClient::new(e, &contract_address),
+    )
 }
 
 /// Sets up a crowdfund with -
@@ -56,16 +66,15 @@ impl Setup<'_> {
 
         // Create the token contract
         let token_admin = Address::random(&e);
-        let contract_token = e.register_stellar_asset_contract(token_admin);
-        let token = Token::new(&e, &contract_token);
+        let (token, token_admin) = create_token_contract(&e, &token_admin);
 
         // Create the crowdfunding contract
         let (crowdfund_id, crowdfund) =
-            create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &contract_token);
+            create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &token.address);
 
         // Mint some tokens to work with
-        token.mock_all_auths().mint(&user1, &10);
-        token.mock_all_auths().mint(&user2, &8);
+        token_admin.mock_all_auths().mint(&user1, &10);
+        token_admin.mock_all_auths().mint(&user2, &8);
 
         crowdfund.client().mock_all_auths().deposit(&user1, &10);
 
@@ -110,7 +119,7 @@ fn test_events() {
         .mock_all_auths()
         .deposit(&setup.user2, &3);
 
-    let mut crowd_fund_events: Vec<(Address, soroban_sdk::Vec<RawVal>, RawVal)> = vec![&setup.env];
+    let mut crowd_fund_events: Vec<(Address, soroban_sdk::Vec<Val>, Val)> = vec![&setup.env];
 
     // there are SAC events emitted also, filter those away, not asserting that aspect
     setup
@@ -118,7 +127,6 @@ fn test_events() {
         .events()
         .all()
         .iter()
-        .map(core::result::Result::unwrap)
         .filter(|event| event.0 == setup.crowdfund_id)
         .for_each(|event| crowd_fund_events.push_back(event));
 
