@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contractimpl, contractmeta, contracttype, token, Address, Env, IntoVal, RawVal};
+use soroban_sdk::{contract, contractimpl, contractmeta, contracttype, token, Address, Env, ConversionError, TryFromVal, Val};
 
 mod events;
 mod test;
@@ -25,9 +25,11 @@ pub enum State {
     Expired = 2,
 }
 
-impl IntoVal<Env, RawVal> for State {
-    fn into_val(&self, env: &Env) -> RawVal {
-        (*self as u32).into_val(env)
+impl TryFromVal<Env, State> for Val {
+    type Error = ConversionError;
+
+    fn try_from_val(_env: &Env, v: &State) -> Result<Self, Self::Error> {
+        Ok((*v as u32).into())
     }
 }
 
@@ -36,52 +38,45 @@ fn get_ledger_timestamp(e: &Env) -> u64 {
 }
 
 fn get_recipient(e: &Env) -> Address {
-    e.storage()
+    e.storage().instance()
         .get(&DataKey::Recipient)
-        .expect("not initialized")
         .unwrap()
 }
 
 fn get_recipient_claimed(e: &Env) -> bool {
-    e.storage()
+    e.storage().instance()
         .get(&DataKey::RecipientClaimed)
-        .expect("not initialized")
         .unwrap()
 }
 
 fn get_deadline(e: &Env) -> u64 {
-    e.storage()
+    e.storage().instance()
         .get(&DataKey::Deadline)
-        .expect("not initialized")
         .unwrap()
 }
 
 fn get_started(e: &Env) -> u64 {
-    e.storage()
+    e.storage().instance()
         .get(&DataKey::Started)
-        .expect("not initialized")
         .unwrap()
 }
 
 fn get_target_amount(e: &Env) -> i128 {
-    e.storage()
+    e.storage().instance()
         .get(&DataKey::Target)
-        .expect("not initialized")
         .unwrap()
 }
 
 fn get_token(e: &Env) -> Address {
-    e.storage()
+    e.storage().instance()
         .get(&DataKey::Token)
-        .expect("not initialized")
         .unwrap()
 }
 
 fn get_user_deposited(e: &Env, user: &Address) -> i128 {
-    e.storage()
+    e.storage().instance()
         .get(&DataKey::User(user.clone()))
-        .unwrap_or(Ok(0))
-        .unwrap()
+        .unwrap_or(0)
 }
 
 fn get_balance(e: &Env, contract_id: &Address) -> i128 {
@@ -114,11 +109,11 @@ fn get_state(e: &Env) -> State {
 }
 
 fn set_user_deposited(e: &Env, user: &Address, amount: &i128) {
-    e.storage().set(&DataKey::User(user.clone()), amount);
+    e.storage().instance().set(&DataKey::User(user.clone()), amount);
 }
 
 fn set_recipient_claimed(e: &Env) {
-    e.storage().set(&DataKey::RecipientClaimed, &true);
+    e.storage().instance().set(&DataKey::RecipientClaimed, &true);
 }
 
 // Transfer tokens from the contract to the recipient
@@ -134,7 +129,8 @@ contractmeta!(
     val = "Crowdfunding contract that allows users to deposit tokens and withdraw them if the target is not met"
 );
 
-struct Crowdfund;
+#[contract]
+pub struct Crowdfund;
 
 /*
 How to use this contract to run a crowdfund
@@ -154,15 +150,15 @@ impl Crowdfund {
         target_amount: i128,
         token: Address,
     ) {
-        assert!(!e.storage().has(&DataKey::Recipient), "already initialized");
+        assert!(!e.storage().instance().has(&DataKey::Recipient), "already initialized");
 
-        e.storage().set(&DataKey::Recipient, &recipient);
-        e.storage().set(&DataKey::RecipientClaimed, &false);
-        e.storage()
+        e.storage().instance().set(&DataKey::Recipient, &recipient);
+        e.storage().instance().set(&DataKey::RecipientClaimed, &false);
+        e.storage().instance()
             .set(&DataKey::Started, &get_ledger_timestamp(&e));
-        e.storage().set(&DataKey::Deadline, &deadline);
-        e.storage().set(&DataKey::Target, &target_amount);
-        e.storage().set(&DataKey::Token, &token);
+        e.storage().instance().set(&DataKey::Deadline, &deadline);
+        e.storage().instance().set(&DataKey::Target, &target_amount);
+        e.storage().instance().set(&DataKey::Token, &token);
     }
 
     pub fn recipient(e: Env) -> Address {

@@ -3,8 +3,8 @@
 use super::testutils::{register_test_contract as register_crowdfund, Crowdfund};
 use soroban_sdk::{
     testutils::{Address as AddressTestTrait, Events, Ledger},
-    token::Client as Token,
-    vec, Address, Env, IntoVal, RawVal, Symbol, Vec,
+    token::Client as Token, token::AdminClient as AdminToken,
+    vec, Address, Env, IntoVal, Symbol, Vec, Val,
 };
 
 fn create_crowdfund_contract(
@@ -58,14 +58,15 @@ impl Setup<'_> {
         let token_admin = Address::random(&e);
         let contract_token = e.register_stellar_asset_contract(token_admin);
         let token = Token::new(&e, &contract_token);
+        let admin_client = AdminToken::new(&e, &contract_token);
 
         // Create the crowdfunding contract
         let (crowdfund_id, crowdfund) =
             create_crowdfund_contract(&e, &recipient, deadline, &target_amount, &contract_token);
 
         // Mint some tokens to work with
-        token.mock_all_auths().mint(&user1, &10);
-        token.mock_all_auths().mint(&user2, &8);
+        admin_client.mock_all_auths().mint(&user1, &10);
+        admin_client.mock_all_auths().mint(&user2, &8);
 
         crowdfund.client().mock_all_auths().deposit(&user1, &10);
 
@@ -110,7 +111,7 @@ fn test_events() {
         .mock_all_auths()
         .deposit(&setup.user2, &3);
 
-    let mut crowd_fund_events: Vec<(Address, soroban_sdk::Vec<RawVal>, RawVal)> = vec![&setup.env];
+    let mut crowd_fund_events: Vec<(Address, soroban_sdk::Vec<Val>, Val)> = vec![&setup.env];
 
     // there are SAC events emitted also, filter those away, not asserting that aspect
     setup
@@ -118,7 +119,6 @@ fn test_events() {
         .events()
         .all()
         .iter()
-        .map(core::result::Result::unwrap)
         .filter(|event| event.0 == setup.crowdfund_id)
         .for_each(|event| crowd_fund_events.push_back(event));
 
