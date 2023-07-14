@@ -6,11 +6,11 @@ use crate::balance::{is_authorized, write_authorization};
 use crate::balance::{read_balance, receive_balance, spend_balance};
 use crate::event;
 use crate::metadata::{read_decimal, read_name, read_symbol, write_metadata};
-use soroban_sdk::{contractimpl, Address, Bytes, Env};
+use soroban_sdk::{contract, contractimpl, Address, Env, String};
 use soroban_token_sdk::TokenMetadata;
 
 pub trait TokenTrait {
-    fn initialize(e: Env, admin: Address, decimal: u32, name: Bytes, symbol: Bytes);
+    fn initialize(e: Env, admin: Address, decimal: u32, name: String, symbol: String);
 
     fn allowance(e: Env, from: Address, spender: Address) -> i128;
 
@@ -42,9 +42,9 @@ pub trait TokenTrait {
 
     fn decimals(e: Env) -> u32;
 
-    fn name(e: Env) -> Bytes;
+    fn name(e: Env) -> String;
 
-    fn symbol(e: Env) -> Bytes;
+    fn symbol(e: Env) -> String;
 }
 
 fn check_nonnegative_amount(amount: i128) {
@@ -53,11 +53,12 @@ fn check_nonnegative_amount(amount: i128) {
     }
 }
 
+#[contract]
 pub struct Token;
 
 #[contractimpl]
 impl TokenTrait for Token {
-    fn initialize(e: Env, admin: Address, decimal: u32, name: Bytes, symbol: Bytes) {
+    fn initialize(e: Env, admin: Address, decimal: u32, name: String, symbol: String) {
         if has_administrator(&e) {
             panic!("already initialized")
         }
@@ -196,11 +197,11 @@ impl TokenTrait for Token {
         read_decimal(&e)
     }
 
-    fn name(e: Env) -> Bytes {
+    fn name(e: Env) -> String {
         read_name(&e)
     }
 
-    fn symbol(e: Env) -> Bytes {
+    fn symbol(e: Env) -> String {
         read_symbol(&e)
     }
 }

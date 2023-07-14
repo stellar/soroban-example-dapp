@@ -2,13 +2,8 @@
 extern crate std;
 
 use crate::{contract::Token, TokenClient};
-use soroban_sdk::{testutils::Address as _, Address, Env, IntoVal, Symbol};
+use soroban_sdk::{testutils::{Address as _, AuthorizedInvocation, AuthorizedFunction}, Address, Env, IntoVal, Symbol, String, vec};
 
-fn create_token<'a>(e: &Env, admin: &Address) -> TokenClient<'a> {
-    let token = TokenClient::new(e, &e.register_contract(None, Token {}));
-    token.initialize(admin, &7, &"name".into_val(e), &"symbol".into_val(e));
-    token
-}
 
 #[test]
 fn test() {
@@ -20,111 +15,152 @@ fn test() {
     let user1 = Address::random(&e);
     let user2 = Address::random(&e);
     let user3 = Address::random(&e);
-    let token = create_token(&e, &admin1);
-
-    token.mint(&user1, &1000);
+    let contract_id = e.register_contract(None, Token {});
+    let token = TokenClient::new(&e, &contract_id);
+    token.initialize(&admin1, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
+    token.mock_all_auths().mint(&user1, &1000);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             user1.clone(),
-            token.address.clone(),
-            Symbol::short("mint"),
-            (&user1, 1000_i128).into_val(&e),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "mint"),
+                    (&user1, 1000_i128).into_val(&e)
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
     assert_eq!(token.balance(&user1), 1000);
 
-    token.increase_allowance(&user2, &user3, &500);
+    token.mock_all_auths().increase_allowance(&user2, &user3, &500);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             user2.clone(),
-            token.address.clone(),
-            Symbol::new(&e, "increase_allowance"),
-            (&user2, &user3, 500_i128).into_val(&e),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "increase_allowance"),
+                    (&user2, &user3, 500_i128).into_val(&e)
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
     assert_eq!(token.allowance(&user2, &user3), 500);
 
-    token.transfer(&user1, &user2, &600);
+    token.mock_all_auths().transfer(&user1, &user2, &600);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             user1.clone(),
-            token.address.clone(),
-            Symbol::short("transfer"),
-            (&user1, &user2, 600_i128).into_val(&e),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "transfer"),
+                    (&user1, &user2, 600_i128).into_val(&e)
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
     assert_eq!(token.balance(&user1), 400);
     assert_eq!(token.balance(&user2), 600);
 
-    token.transfer_from(&user3, &user2, &user1, &400);
+    token.mock_all_auths().transfer_from(&user3, &user2, &user1, &400);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             user3.clone(),
-            token.address.clone(),
-            Symbol::new(&e, "transfer_from"),
-            (&user3, &user2, &user1, 400_i128).into_val(&e),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "transfer_from"),
+                    (&user3, &user2, &user1,400_i128).into_val(&e)
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
     assert_eq!(token.balance(&user1), 800);
     assert_eq!(token.balance(&user2), 200);
 
-    token.transfer(&user1, &user3, &300);
+    token.mock_all_auths().transfer(&user1, &user3, &300);
     assert_eq!(token.balance(&user1), 500);
     assert_eq!(token.balance(&user3), 300);
 
-    token.set_admin(&admin2);
+    token.mock_all_auths().set_admin(&admin2);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             admin1.clone(),
-            token.address.clone(),
-            Symbol::short("set_admin"),
-            (&admin2,).into_val(&e), //THIS DOESN'T WORK
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "set_admin"),
+                    vec![&e, admin2.into_val(&e)]
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
 
-    token.set_authorized(&user2, &false);
+    token.mock_all_auths().set_authorized(&user2, &false);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             admin2.clone(),
-            token.address.clone(),
-            Symbol::new(&e, "set_authorized"),
-            (&user2, false).into_val(&e),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "set_authorized"),
+                    (&user2, false).into_val(&e)
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
     assert_eq!(token.authorized(&user2), false);
 
-    token.set_authorized(&user3, &true);
+    token.mock_all_auths().set_authorized(&user3, &true);
     assert_eq!(token.authorized(&user3), true);
 
-    token.clawback(&user3, &100);
+    token.mock_all_auths().clawback(&user3, &100);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             admin2.clone(),
-            token.address.clone(),
-            Symbol::short("clawback"),
-            (&user3, 100_i128).into_val(&e),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "clawback"),
+                    (&user3, 100_i128).into_val(&e)
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
     assert_eq!(token.balance(&user3), 200);
 
     // Increase by 400, with an existing 100 = 500
-    token.increase_allowance(&user2, &user3, &400);
+    token.mock_all_auths().increase_allowance(&user2, &user3, &400);
     assert_eq!(token.allowance(&user2, &user3), 500);
-    token.decrease_allowance(&user2, &user3, &501);
+    token.mock_all_auths().decrease_allowance(&user2, &user3, &501);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             user2.clone(),
-            token.address.clone(),
-            Symbol::new(&e, "decrease_allowance"),
-            (&user2, &user3, 501_i128).into_val(&e),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "decrease_allowance"),
+                    (&user2, &user3, 501_i128).into_val(&e)
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
     assert_eq!(token.allowance(&user2, &user3), 0);
@@ -138,7 +174,9 @@ fn test_burn() {
     let admin = Address::random(&e);
     let user1 = Address::random(&e);
     let user2 = Address::random(&e);
-    let token = create_token(&e, &admin);
+    let contract_id = e.register_contract(None, Token {});
+    let token = TokenClient::new(&e, &contract_id);
+    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -149,11 +187,16 @@ fn test_burn() {
     token.burn_from(&user2, &user1, &500);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             user2.clone(),
-            token.address.clone(),
-            Symbol::short("burn_from"),
-            (&user2, &user1, 500_i128).into_val(&e),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "burn_from"),
+                    (&user2, &user1, 500_i128).into_val(&e)
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
     assert_eq!(token.allowance(&user1, &user2), 0);
@@ -163,11 +206,16 @@ fn test_burn() {
     token.burn(&user1, &500);
     assert_eq!(
         e.auths(),
-        [(
+        std::vec![(
             user1.clone(),
-            token.address.clone(),
-            Symbol::short("burn"),
-            (&user1, 500_i128).into_val(&e),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    contract_id.clone(),
+                    Symbol::new(&e, "burn"),
+                    (&user1, 500_i128).into_val(&e)
+                )),
+                sub_invocations: std::vec![]
+            }
         )]
     );
     assert_eq!(token.balance(&user1), 0);
@@ -183,7 +231,9 @@ fn transfer_insufficient_balance() {
     let admin = Address::random(&e);
     let user1 = Address::random(&e);
     let user2 = Address::random(&e);
-    let token = create_token(&e, &admin);
+    let contract_id = e.register_contract(None, Token {});
+    let token = TokenClient::new(&e, &contract_id);
+    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -200,7 +250,9 @@ fn transfer_receive_deauthorized() {
     let admin = Address::random(&e);
     let user1 = Address::random(&e);
     let user2 = Address::random(&e);
-    let token = create_token(&e, &admin);
+    let contract_id = e.register_contract(None, Token {});
+    let token = TokenClient::new(&e, &contract_id);
+    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -218,7 +270,9 @@ fn transfer_spend_deauthorized() {
     let admin = Address::random(&e);
     let user1 = Address::random(&e);
     let user2 = Address::random(&e);
-    let token = create_token(&e, &admin);
+    let contract_id = e.register_contract(None, Token {});
+    let token = TokenClient::new(&e, &contract_id);
+    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -237,7 +291,9 @@ fn transfer_from_insufficient_allowance() {
     let user1 = Address::random(&e);
     let user2 = Address::random(&e);
     let user3 = Address::random(&e);
-    let token = create_token(&e, &admin);
+    let contract_id = e.register_contract(None, Token {});
+    let token = TokenClient::new(&e, &contract_id);
+    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -253,9 +309,11 @@ fn transfer_from_insufficient_allowance() {
 fn initialize_already_initialized() {
     let e = Env::default();
     let admin = Address::random(&e);
-    let token = create_token(&e, &admin);
+    let contract_id = e.register_contract(None, Token {});
+    let token = TokenClient::new(&e, &contract_id);
+    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
 
-    token.initialize(&admin, &10, &"name".into_val(&e), &"symbol".into_val(&e));
+    token.initialize(&admin, &10, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
 }
 
 #[test]
@@ -267,7 +325,7 @@ fn decimal_is_over_max() {
     token.initialize(
         &admin,
         &(u32::from(u8::MAX) + 1),
-        &"name".into_val(&e),
-        &"symbol".into_val(&e),
+        &String::from_slice(&e, "name"),
+        &String::from_slice(&e, "symbol"),
     );
 }

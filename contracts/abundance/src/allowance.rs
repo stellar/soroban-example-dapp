@@ -3,16 +3,12 @@ use soroban_sdk::{Address, Env};
 
 pub fn read_allowance(e: &Env, from: Address, spender: Address) -> i128 {
     let key = DataKey::Allowance(AllowanceDataKey { from, spender });
-    if let Some(allowance) = e.storage().get(&key) {
-        allowance.unwrap()
-    } else {
-        0
-    }
+    e.storage().instance().get(&key).unwrap_or(0)
 }
 
 pub fn write_allowance(e: &Env, from: Address, spender: Address, amount: i128) {
     let key = DataKey::Allowance(AllowanceDataKey { from, spender });
-    e.storage().set(&key, &amount);
+    e.storage().instance().set(&key, &amount);
 }
 
 pub fn spend_allowance(e: &Env, from: Address, spender: Address, amount: i128) {

@@ -3,16 +3,12 @@ use soroban_sdk::{Address, Env};
 
 pub fn read_balance(e: &Env, addr: Address) -> i128 {
     let key = DataKey::Balance(addr);
-    if let Some(balance) = e.storage().get(&key) {
-        balance.unwrap()
-    } else {
-        0
-    }
+    e.storage().instance().get(&key).unwrap_or(0)
 }
 
 fn write_balance(e: &Env, addr: Address, amount: i128) {
     let key = DataKey::Balance(addr);
-    e.storage().set(&key, &amount);
+    e.storage().instance().set(&key, &amount);
 }
 
 pub fn receive_balance(e: &Env, addr: Address, amount: i128) {
@@ -36,14 +32,10 @@ pub fn spend_balance(e: &Env, addr: Address, amount: i128) {
 
 pub fn is_authorized(e: &Env, addr: Address) -> bool {
     let key = DataKey::State(addr);
-    if let Some(state) = e.storage().get(&key) {
-        state.unwrap()
-    } else {
-        true
-    }
+    e.storage().instance().get(&key).unwrap_or(true)
 }
 
 pub fn write_authorization(e: &Env, addr: Address, is_authorized: bool) {
     let key = DataKey::State(addr);
-    e.storage().set(&key, &is_authorized);
+    e.storage().instance().set(&key, &is_authorized);
 }
