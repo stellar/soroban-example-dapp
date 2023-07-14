@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "setup": "./initialize.sh ${NETWORK:-futurenet} && npm install",
-    "clean": "rm -rf .next .soroban .soroban-example-dapp node_modules target",
+    "clean": "rm -rf .next .soroban .soroban-example-dapp node_modules",
     "reset": "npm run clean && npm run setup",
     "postinstall": "rm -rf ./.soroban/crowdfund-contract && rm -rf ./.soroban/abundance-token && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./.soroban/crowdfund-contract --network $(cat ./.soroban-example-dapp/network) --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./.soroban/abundance-token --network $(cat ./.soroban-example-dapp/network) --contract-name abundance-token"
   },
