@@ -61,6 +61,11 @@ soroban config network add \
 echo Add $NETWORK to .soroban-example-dapp for use with npm scripts
 mkdir -p .soroban-example-dapp
 echo $NETWORK > ./.soroban-example-dapp/network
+echo $SOROBAN_RPC_URL > ./.soroban-example-dapp/rpc-url
+echo "$SOROBAN_NETWORK_PASSPHRASE" > ./.soroban-example-dapp/passphrase
+
+
+
 
 if !(soroban config identity ls | grep token-admin 2>&1 >/dev/null); then
   echo Create the token-admin identity

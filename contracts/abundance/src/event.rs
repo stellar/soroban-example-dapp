@@ -1,4 +1,4 @@
-use soroban_sdk::{Address, Env, Symbol, symbol_short};
+use soroban_sdk::{symbol_short, Address, Env, Symbol};
 
 pub(crate) fn increase_allowance(e: &Env, from: Address, to: Address, amount: i128) {
     let topics = (Symbol::new(e, "increase_allowance"), from, to);

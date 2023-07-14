@@ -2,8 +2,10 @@
 extern crate std;
 
 use crate::{contract::Token, TokenClient};
-use soroban_sdk::{testutils::{Address as _, AuthorizedInvocation, AuthorizedFunction}, Address, Env, IntoVal, Symbol, String, vec};
-
+use soroban_sdk::{
+    testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation},
+    vec, Address, Env, IntoVal, String, Symbol,
+};
 
 #[test]
 fn test() {
@@ -17,7 +19,12 @@ fn test() {
     let user3 = Address::random(&e);
     let contract_id = e.register_contract(None, Token {});
     let token = TokenClient::new(&e, &contract_id);
-    token.initialize(&admin1, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
+    token.initialize(
+        &admin1,
+        &7,
+        &String::from_slice(&e, "name"),
+        &String::from_slice(&e, "symbol"),
+    );
     token.mock_all_auths().mint(&user1, &1000);
     assert_eq!(
         e.auths(),
@@ -35,7 +42,9 @@ fn test() {
     );
     assert_eq!(token.balance(&user1), 1000);
 
-    token.mock_all_auths().increase_allowance(&user2, &user3, &500);
+    token
+        .mock_all_auths()
+        .increase_allowance(&user2, &user3, &500);
     assert_eq!(
         e.auths(),
         std::vec![(
@@ -70,7 +79,9 @@ fn test() {
     assert_eq!(token.balance(&user1), 400);
     assert_eq!(token.balance(&user2), 600);
 
-    token.mock_all_auths().transfer_from(&user3, &user2, &user1, &400);
+    token
+        .mock_all_auths()
+        .transfer_from(&user3, &user2, &user1, &400);
     assert_eq!(
         e.auths(),
         std::vec![(
@@ -79,7 +90,7 @@ fn test() {
                 function: AuthorizedFunction::Contract((
                     contract_id.clone(),
                     Symbol::new(&e, "transfer_from"),
-                    (&user3, &user2, &user1,400_i128).into_val(&e)
+                    (&user3, &user2, &user1, 400_i128).into_val(&e)
                 )),
                 sub_invocations: std::vec![]
             }
@@ -146,9 +157,13 @@ fn test() {
     assert_eq!(token.balance(&user3), 200);
 
     // Increase by 400, with an existing 100 = 500
-    token.mock_all_auths().increase_allowance(&user2, &user3, &400);
+    token
+        .mock_all_auths()
+        .increase_allowance(&user2, &user3, &400);
     assert_eq!(token.allowance(&user2, &user3), 500);
-    token.mock_all_auths().decrease_allowance(&user2, &user3, &501);
+    token
+        .mock_all_auths()
+        .decrease_allowance(&user2, &user3, &501);
     assert_eq!(
         e.auths(),
         std::vec![(
@@ -176,7 +191,12 @@ fn test_burn() {
     let user2 = Address::random(&e);
     let contract_id = e.register_contract(None, Token {});
     let token = TokenClient::new(&e, &contract_id);
-    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
+    token.initialize(
+        &admin,
+        &7,
+        &String::from_slice(&e, "name"),
+        &String::from_slice(&e, "symbol"),
+    );
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -233,7 +253,12 @@ fn transfer_insufficient_balance() {
     let user2 = Address::random(&e);
     let contract_id = e.register_contract(None, Token {});
     let token = TokenClient::new(&e, &contract_id);
-    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
+    token.initialize(
+        &admin,
+        &7,
+        &String::from_slice(&e, "name"),
+        &String::from_slice(&e, "symbol"),
+    );
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -252,7 +277,12 @@ fn transfer_receive_deauthorized() {
     let user2 = Address::random(&e);
     let contract_id = e.register_contract(None, Token {});
     let token = TokenClient::new(&e, &contract_id);
-    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
+    token.initialize(
+        &admin,
+        &7,
+        &String::from_slice(&e, "name"),
+        &String::from_slice(&e, "symbol"),
+    );
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -272,7 +302,12 @@ fn transfer_spend_deauthorized() {
     let user2 = Address::random(&e);
     let contract_id = e.register_contract(None, Token {});
     let token = TokenClient::new(&e, &contract_id);
-    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
+    token.initialize(
+        &admin,
+        &7,
+        &String::from_slice(&e, "name"),
+        &String::from_slice(&e, "symbol"),
+    );
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -293,7 +328,12 @@ fn transfer_from_insufficient_allowance() {
     let user3 = Address::random(&e);
     let contract_id = e.register_contract(None, Token {});
     let token = TokenClient::new(&e, &contract_id);
-    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
+    token.initialize(
+        &admin,
+        &7,
+        &String::from_slice(&e, "name"),
+        &String::from_slice(&e, "symbol"),
+    );
 
     token.mint(&user1, &1000);
     assert_eq!(token.balance(&user1), 1000);
@@ -311,9 +351,19 @@ fn initialize_already_initialized() {
     let admin = Address::random(&e);
     let contract_id = e.register_contract(None, Token {});
     let token = TokenClient::new(&e, &contract_id);
-    token.initialize(&admin, &7, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
+    token.initialize(
+        &admin,
+        &7,
+        &String::from_slice(&e, "name"),
+        &String::from_slice(&e, "symbol"),
+    );
 
-    token.initialize(&admin, &10, &String::from_slice(&e ,"name"), &String::from_slice(&e, "symbol"));
+    token.initialize(
+        &admin,
+        &10,
+        &String::from_slice(&e, "name"),
+        &String::from_slice(&e, "symbol"),
+    );
 }
 
 #[test]

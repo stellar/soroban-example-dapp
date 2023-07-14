@@ -1,5 +1,8 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contractmeta, contracttype, token, Address, Env, ConversionError, TryFromVal, Val};
+use soroban_sdk::{
+    contract, contractimpl, contractmeta, contracttype, token, Address, ConversionError, Env,
+    TryFromVal, Val,
+};
 
 mod events;
 mod test;
@@ -38,43 +41,35 @@ fn get_ledger_timestamp(e: &Env) -> u64 {
 }
 
 fn get_recipient(e: &Env) -> Address {
-    e.storage().instance()
-        .get(&DataKey::Recipient)
-        .unwrap()
+    e.storage().instance().get(&DataKey::Recipient).unwrap()
 }
 
 fn get_recipient_claimed(e: &Env) -> bool {
-    e.storage().instance()
+    e.storage()
+        .instance()
         .get(&DataKey::RecipientClaimed)
         .unwrap()
 }
 
 fn get_deadline(e: &Env) -> u64 {
-    e.storage().instance()
-        .get(&DataKey::Deadline)
-        .unwrap()
+    e.storage().instance().get(&DataKey::Deadline).unwrap()
 }
 
 fn get_started(e: &Env) -> u64 {
-    e.storage().instance()
-        .get(&DataKey::Started)
-        .unwrap()
+    e.storage().instance().get(&DataKey::Started).unwrap()
 }
 
 fn get_target_amount(e: &Env) -> i128 {
-    e.storage().instance()
-        .get(&DataKey::Target)
-        .unwrap()
+    e.storage().instance().get(&DataKey::Target).unwrap()
 }
 
 fn get_token(e: &Env) -> Address {
-    e.storage().instance()
-        .get(&DataKey::Token)
-        .unwrap()
+    e.storage().instance().get(&DataKey::Token).unwrap()
 }
 
 fn get_user_deposited(e: &Env, user: &Address) -> i128 {
-    e.storage().instance()
+    e.storage()
+        .instance()
         .get(&DataKey::User(user.clone()))
         .unwrap_or(0)
 }
@@ -109,11 +104,15 @@ fn get_state(e: &Env) -> State {
 }
 
 fn set_user_deposited(e: &Env, user: &Address, amount: &i128) {
-    e.storage().instance().set(&DataKey::User(user.clone()), amount);
+    e.storage()
+        .instance()
+        .set(&DataKey::User(user.clone()), amount);
 }
 
 fn set_recipient_claimed(e: &Env) {
-    e.storage().instance().set(&DataKey::RecipientClaimed, &true);
+    e.storage()
+        .instance()
+        .set(&DataKey::RecipientClaimed, &true);
 }
 
 // Transfer tokens from the contract to the recipient
@@ -150,11 +149,17 @@ impl Crowdfund {
         target_amount: i128,
         token: Address,
     ) {
-        assert!(!e.storage().instance().has(&DataKey::Recipient), "already initialized");
+        assert!(
+            !e.storage().instance().has(&DataKey::Recipient),
+            "already initialized"
+        );
 
         e.storage().instance().set(&DataKey::Recipient, &recipient);
-        e.storage().instance().set(&DataKey::RecipientClaimed, &false);
-        e.storage().instance()
+        e.storage()
+            .instance()
+            .set(&DataKey::RecipientClaimed, &false);
+        e.storage()
+            .instance()
             .set(&DataKey::Started, &get_ledger_timestamp(&e));
         e.storage().instance().set(&DataKey::Deadline, &deadline);
         e.storage().instance().set(&DataKey::Target, &target_amount);

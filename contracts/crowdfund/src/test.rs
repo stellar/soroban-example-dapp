@@ -3,8 +3,9 @@
 use super::testutils::{register_test_contract as register_crowdfund, Crowdfund};
 use soroban_sdk::{
     testutils::{Address as AddressTestTrait, Events, Ledger},
-    token::Client as Token, token::AdminClient as AdminToken,
-    vec, Address, Env, IntoVal, Symbol, Vec, Val,
+    token::AdminClient as AdminToken,
+    token::Client as Token,
+    vec, Address, Env, IntoVal, Symbol, Val, Vec,
 };
 
 fn create_crowdfund_contract(
