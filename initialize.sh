@@ -32,7 +32,7 @@ if [[ "$SOROBAN_RPC_HOST" == "" ]]; then
   fi
 fi
 
-SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
+SOROBAN_RPC_URL="$SOROBAN_RPC_HOST"
 
 case "$1" in
 standalone)
