@@ -1,4 +1,4 @@
-import { Address, xdr } from 'soroban-client';
+import { Address, Contract, xdr } from 'soroban-client';
 import { Buffer } from "buffer";
 import { bufToBigint } from 'bigint-conversion';
 
@@ -33,9 +33,12 @@ export function scvalToBigInt(scval: xdr.ScVal | undefined): BigInt {
     };
 }
 
+export function strToScVal(base64Xdr: string): xdr.ScVal {
+    return xdr.ScVal.fromXDR(Buffer.from(base64Xdr, 'base64'));
+}
+
 export function scValStrToJs<T>(base64Xdr: string): T {
-    let scval = xdr.ScVal.fromXDR(Buffer.from(base64Xdr, 'base64'));
-    return scValToJs(scval);
+    return scValToJs(strToScVal(base64Xdr));
 }
 
 export function scValToJs<T>(val: xdr.ScVal): T {
@@ -106,8 +109,8 @@ export function scValToJs<T>(val: xdr.ScVal): T {
             });
             return res as unknown as T
         }
-        case xdr.ScValType.scvContractExecutable():
-            return val.exec() as unknown as T;
+        case xdr.ScValType.scvContractInstance():
+            return val.instance() as unknown as T;
         case xdr.ScValType.scvLedgerKeyNonce():
             return val.nonceKey() as unknown as T;
         case xdr.ScValType.scvTimepoint():

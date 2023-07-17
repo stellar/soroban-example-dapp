@@ -22,7 +22,7 @@
     "next": "^13.4.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "soroban-client": "0.8.1",
+    "soroban-client": "0.9.1",
     "crowdfund-contract": "file:.soroban/crowdfund-contract",
     "abundance-token": "file:.soroban/abundance-token"
   },
