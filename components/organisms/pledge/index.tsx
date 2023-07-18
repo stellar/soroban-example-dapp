@@ -12,7 +12,6 @@ import * as abundanceContract from 'abundance-token'
 
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
-import * as convert from '../../../convert'
 let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
@@ -59,7 +58,7 @@ const Pledge: FunctionComponent = () => {
 
   useSubscription(crowdfundContract, 'pledged_amount_changed', React.useMemo(() => event => {
     let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
-    setAbundance({ ...abundance!, balance: convert.scvalToBigInt(eventTokenBalance) })
+    setAbundance({ ...abundance!, balance: SorobanClient.scValToNative(eventTokenBalance) })
   }, [abundance]))
 
   useSubscription(crowdfundContract, 'target_reached', React.useMemo(() => () => {
