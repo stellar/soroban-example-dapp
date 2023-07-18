@@ -31,7 +31,7 @@ if [[ "$SOROBAN_RPC_HOST" == "" ]]; then
     SOROBAN_RPC_URL="$SOROBAN_RPC_HOST"
   else
      # assumes standalone on quickstart, which has the soroban/rpc path
-    SOROBAN_RPC_HOST="http://localhost:8000/"
+    SOROBAN_RPC_HOST="http://localhost:8000"
     SOROBAN_RPC_URL="$SOROBAN_RPC_HOST/soroban/rpc"
   fi
 else 
