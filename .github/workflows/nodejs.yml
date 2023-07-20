@@ -33,5 +33,7 @@ jobs:
         echo 'futurenet' > .soroban-example-dapp/network
         echo 'CC757WDV3G442WQCNPNOA2UEXOC7UJD5VP4BLLCRDW5LRM6UZZR6ISVU' > .soroban-example-dapp/abundance_token_id
         echo 'CCHCPXECLYGX4QU34ZZOHP6C6KVAPIDTUNPIUA6GF4SP6ECFF5BX57OG' > .soroban-example-dapp/crowdfund_id
+        echo 'Standalone Network ; February 2017' > .soroban-example-dapp/passphrase
+        echo 'https://rpc-futurenet.stellar.org/' > .soroban-example-dapp/rpc-url
     - run: npm ci
     - run: npm run build

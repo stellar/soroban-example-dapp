@@ -21,6 +21,7 @@ Install Dependencies
        make build-docker
 
    Building the docker image lets you avoid installing the specific version of soroban-cli in step (1), if desired.
+6. **NOTE** - Follow the instructions below for Futurenet or Standalone and ensure that you have funded your wallet address that you intend to use from browser, otherwise the dapp display will be blank and a 'Account not found' will be printed on browser's console only.    
 
 Run Backend
 -----------

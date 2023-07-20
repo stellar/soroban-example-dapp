@@ -1,7 +1,7 @@
 # paths = ["/path/to/override"] # path dependency overrides
 
 [alias] # command aliases
-install_soroban = "install --git https://github.com/stellar/soroban-tools --rev af4b38e8fa7f6cb027089471d0ddfbc090cbf60e --root ./target soroban-cli --debug"
+install_soroban = "install --git https://github.com/stellar/soroban-tools --rev cb3c44f9d8080917a7cb019d6be25019f6cf78c3 --root ./target soroban-cli --debug"
 b = "build --target wasm32-unknown-unknown --release"
 # c = "check"
 # t = "test"
