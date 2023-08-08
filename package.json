@@ -15,10 +15,10 @@
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
     "@stellar/freighter-api": "^1.5.1",
-    "abundance-token": "file:./.soroban-example-dapp/abundance-client",
+    "abundance-token": "file:./.soroban-example-dapp/abundance-client/abundance-token",
     "axios": "^0.27.2",
     "bigint-conversion": "^2.4.1",
-    "crowdfund-contract": "file:./.soroban-example-dapp/crowdfund-client",
+    "crowdfund-contract": "file:./.soroban-example-dapp/crowdfund-client/crowdfund-contract",
     "humanize-duration": "^3.27.3",
     "moment": "^2.29.4",
     "next": "^13.4.4",
