@@ -33,6 +33,10 @@
     "eslint-config-next": "^13.3.1",
     "typescript": "5.1.3"
   },
+  "optionalDependencies": {
+    "crowdfund-contract": "*",
+    "abundance-token": "*"
+  },
   "engines": {
     "node": ">=17",
     "npm": ">=8"
