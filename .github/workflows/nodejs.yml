@@ -26,7 +26,7 @@ jobs:
     - run: cargo install_soroban
     - uses: actions/setup-node@v3
       with:
-        node-version: 18.x
+        node-version: 18.14.2
         cache: 'npm'
     - run: |
         mkdir -p .soroban-example-dapp
