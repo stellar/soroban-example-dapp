@@ -29,14 +29,14 @@ function MintButton({ account, symbol, onComplete, decimals }: { decimals: numbe
   const [isSubmitting, setSubmitting] = useState(false)
 
   const displayAmount = 100
-  const amount = BigInt(displayAmount * 10**decimals)
+  const amount = BigInt(displayAmount * 10 ** decimals)
 
   return (
     <Button
       title={`Mint ${displayAmount} ${symbol}`}
       onClick={async () => {
         setSubmitting(true)
-        await abundance.mint({ to: account, amount }, { signAndSend: true })
+        await abundance.mint({ to: account, amount })
         setSubmitting(false)
         onComplete()
       }}
@@ -80,9 +80,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     try {
       await deposit({
         user: props.account,
-        amount: BigInt(amount * 10**decimals),
-      }, {
-        signAndSend: true
+        amount: BigInt(amount * 10 ** decimals),
       })
 
       setResultSubmit({
