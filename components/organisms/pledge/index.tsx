@@ -1,11 +1,11 @@
-import React, { FunctionComponent, useState } from 'react'
+import React, { FunctionComponent, useState, useContext } from 'react'
 import { Card, ConnectButton, Loading, ProgressBar } from '../../atoms'
 import styles from './style.module.css'
 import { Spacer } from '../../atoms/spacer'
 import { Utils } from '../../../shared/utils'
 import {
-  useAccount,
   useSubscription,
+  AccountContext
 } from '../../../hooks'
 import * as crowdfundContract from 'crowdfund-contract'
 import * as abundanceContract from 'abundance-token'
@@ -16,7 +16,7 @@ let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
   const [updatedAt, setUpdatedAt] = React.useState<number>(Date.now())
-  const account = useAccount()
+  const account = useContext(AccountContext)
 
   const [abundance, setAbundance] = React.useState<{
     balance: BigInt

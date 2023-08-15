@@ -5,7 +5,16 @@ import styles from '../styles/Home.module.css'
 import { Campaign, Pledge } from '../components/organisms'
 import { WalletData } from '../components/molecules'
 
+import { AccountContext, AccountSetContext, AddressObject, useAccount } from '../hooks' 
+
 const Home: NextPage = () => {
+  const [account, setAccount] = React.useState<AddressObject | null>(null);
+  const loggedAccount = useAccount()
+
+  if (loggedAccount && account == null) {
+    setAccount(loggedAccount)
+  }
+
   return (
     <>
       <Head>
@@ -20,16 +29,21 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <header className={styles.header}>
-        <h3>Starfund</h3>
-        <WalletData />
-      </header>
-      <main className={styles.main}>
-        <div className={styles.content}>
-          <Campaign />
-          <Pledge />
-        </div>
-      </main>
+      <AccountContext.Provider value={account}>
+        <AccountSetContext.Provider value={setAccount}>
+          <header className={styles.header}>
+            <h3>Starfund</h3>
+            <WalletData />
+          </header>
+          <main className={styles.main}>
+            <div className={styles.content}>
+              <Campaign />
+              <Pledge />
+            </div>
+          </main>
+        </AccountSetContext.Provider>
+      </AccountContext.Provider>
+
     </>
   )
 }
