@@ -1,7 +1,7 @@
 Soroban Crowdfunding Dapp Example
 =================================
 
-![Screenshot of the Example Dapp](screenshot.png)
+![Screenshot of the Example Dapp](updated_screenshot.png)
 
 This is a [Next.js](https://nextjs.org/) project, demoing how to build a dapp frontend
 backed by smart contracts on Stellar.
@@ -130,9 +130,9 @@ Now that you're running the backend, you can run the development server:
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-**Note:** Before you can "Back this project", you'll need to have some EXT (example
-token) in your freighter wallet. There is a "Mint 100 EXT" button, which will
-gift you 100 EXT tokens for that purpose.
+**Note:** Before you can "Back this project", you'll need to have some ABND (abundance
+token) in your freighter wallet. There is a "Mint 100 ABND" button, which will
+gift you 100 ABND tokens for that purpose.
 
 User Workflows
 ==============
