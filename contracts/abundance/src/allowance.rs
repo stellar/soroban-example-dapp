@@ -40,12 +40,11 @@ pub fn write_allowance(
     e.storage().temporary().set(&key.clone(), &allowance);
 
     if amount > 0 {
-        e.storage().temporary().bump(
-            &key,
-            expiration_ledger
-                .checked_sub(e.ledger().sequence())
-                .unwrap(),
-        )
+        let live_for = expiration_ledger
+            .checked_sub(e.ledger().sequence())
+            .unwrap();
+
+        e.storage().temporary().bump(&key, live_for, live_for)
     }
 }
 

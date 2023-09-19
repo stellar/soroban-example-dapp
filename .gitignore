@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 /.soroban-example-dapp
 /.soroban
+/shared/config.json
 # dependencies
 /node_modules
 /.pnp

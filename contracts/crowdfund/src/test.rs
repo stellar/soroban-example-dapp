@@ -40,11 +40,11 @@ struct Setup<'a> {
 fn create_token_contract<'a>(
     e: &Env,
     admin: &Address,
-) -> (token::Client<'a>, token::AdminClient<'a>) {
+) -> (token::Client<'a>, token::StellarAssetClient<'a>) {
     let contract_address = e.register_stellar_asset_contract(admin.clone());
     (
         token::Client::new(e, &contract_address),
-        token::AdminClient::new(e, &contract_address),
+        token::StellarAssetClient::new(e, &contract_address),
     )
 }
 

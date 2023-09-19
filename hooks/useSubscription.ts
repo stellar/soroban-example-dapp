@@ -1,19 +1,10 @@
 import * as React from 'react'
+import { server } from '../shared/contracts'
 import * as SorobanClient from 'soroban-client'
 let xdr = SorobanClient.xdr
 
-interface GeneratedLibrary {
-  Server: SorobanClient.Server
-  CONTRACT_ID_HEX: string
-}
-
-// TODO: update js-soroban-client to include latestLedger
-interface GetEventsWithLatestLedger extends SorobanClient.SorobanRpc.GetEventsResponse {
-  latestLedger?: string;
-}
-
 /**
- * Concatenated `${CONTRACT_ID_HEX}:${topic}`
+ * Concatenated `${contractId}:${topic}`
  */
 type PagingKey = string
 
@@ -33,12 +24,12 @@ const paging: Record<PagingKey, { lastLedgerStart?: number, pagingToken?: string
  * non-React use.
  */
 export function useSubscription(
-  library: GeneratedLibrary,
+  contractId: string,
   topic: string,
   onEvent: (event: SorobanClient.SorobanRpc.EventResponse) => void,
   pollInterval = 5000
 ) {
-  const id = `${library.CONTRACT_ID_HEX}:${topic}`
+  const id = `${contractId}:${topic}`
   paging[id] = paging[id] || {}
 
   React.useEffect(() => {
@@ -48,18 +39,18 @@ export function useSubscription(
     async function pollEvents(): Promise<void> {
       try {
         if (!paging[id].lastLedgerStart) {
-          let latestLedgerState = await library.Server.getLatestLedger();
+          let latestLedgerState = await server.getLatestLedger();
           paging[id].lastLedgerStart = latestLedgerState.sequence
         } 
        
-        let response = await library.Server.getEvents({
+        let response = await server.getEvents({
           startLedger: !paging[id].pagingToken
             ? paging[id].lastLedgerStart
             : undefined,
           cursor: paging[id].pagingToken,
           filters: [
             {
-              contractIds: [library.CONTRACT_ID_HEX],
+              contractIds: [contractId],
               topics: [[
                 xdr.ScVal.scvSymbol(topic).toXDR("base64")
               ]],
@@ -67,7 +58,7 @@ export function useSubscription(
             }  
           ],
           limit: 10
-        }) as GetEventsWithLatestLedger;
+        });
      
         paging[id].pagingToken = undefined;
         if (response.latestLedger) {
@@ -97,5 +88,5 @@ export function useSubscription(
       if (timeoutId != null) clearTimeout(timeoutId)
       stop = true
     }
-  }, [library, topic, onEvent, id, pollInterval])
+  }, [contractId, topic, onEvent, id, pollInterval])
 }

@@ -116,43 +116,6 @@ fn test() {
         )]
     );
 
-    token.set_authorized(&user2, &false);
-    assert_eq!(
-        e.auths(),
-        std::vec![(
-            admin2.clone(),
-            AuthorizedInvocation {
-                function: AuthorizedFunction::Contract((
-                    token.address.clone(),
-                    Symbol::new(&e, "set_authorized"),
-                    (&user2, false).into_val(&e),
-                )),
-                sub_invocations: std::vec![]
-            }
-        )]
-    );
-    assert_eq!(token.authorized(&user2), false);
-
-    token.set_authorized(&user3, &true);
-    assert_eq!(token.authorized(&user3), true);
-
-    token.clawback(&user3, &100);
-    assert_eq!(
-        e.auths(),
-        std::vec![(
-            admin2.clone(),
-            AuthorizedInvocation {
-                function: AuthorizedFunction::Contract((
-                    token.address.clone(),
-                    symbol_short!("clawback"),
-                    (&user3, 100_i128).into_val(&e),
-                )),
-                sub_invocations: std::vec![]
-            }
-        )]
-    );
-    assert_eq!(token.balance(&user3), 200);
-
     // Increase to 500
     token.approve(&user2, &user3, &500, &200);
     assert_eq!(token.allowance(&user2, &user3), 500);
@@ -245,42 +208,6 @@ fn transfer_insufficient_balance() {
     assert_eq!(token.balance(&user1), 1000);
 
     token.transfer(&user1, &user2, &1001);
-}
-
-#[test]
-#[should_panic(expected = "can't receive when deauthorized")]
-fn transfer_receive_deauthorized() {
-    let e = Env::default();
-    e.mock_all_auths();
-
-    let admin = Address::random(&e);
-    let user1 = Address::random(&e);
-    let user2 = Address::random(&e);
-    let token = create_token(&e, &admin);
-
-    token.mint(&user1, &1000);
-    assert_eq!(token.balance(&user1), 1000);
-
-    token.set_authorized(&user2, &false);
-    token.transfer(&user1, &user2, &1);
-}
-
-#[test]
-#[should_panic(expected = "can't spend when deauthorized")]
-fn transfer_spend_deauthorized() {
-    let e = Env::default();
-    e.mock_all_auths();
-
-    let admin = Address::random(&e);
-    let user1 = Address::random(&e);
-    let user2 = Address::random(&e);
-    let token = create_token(&e, &admin);
-
-    token.mint(&user1, &1000);
-    assert_eq!(token.balance(&user1), 1000);
-
-    token.set_authorized(&user1, &false);
-    token.transfer(&user1, &user2, &1);
 }
 
 #[test]

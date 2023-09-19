@@ -2,21 +2,20 @@ import React from 'react'
 import styles from './style.module.css'
 import { Utils } from '../../../shared/utils'
 import { Spacer } from '../../atoms/spacer'
-import { balance as getBalance } from 'crowdfund-contract'
+import { crowdfund } from '../../../shared/contracts'
 
 export interface IDepositsProps {
   address: string
   decimals: number
   name?: string
   symbol?: string
-  idCrowdfund: string
 }
 
 export function Deposits(props: IDepositsProps) {
   const [balance, setBalance] = React.useState<BigInt>(BigInt(0))
 
   React.useEffect(() => {
-    getBalance({ user: props.address }).then(setBalance)
+    crowdfund.balance({ user: props.address }).then(setBalance)
   }, [props.address])
 
 

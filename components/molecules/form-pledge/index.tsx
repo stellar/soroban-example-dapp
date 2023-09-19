@@ -4,8 +4,7 @@ import { TransactionModal } from '../../molecules/transaction-modal'
 import { Utils } from '../../../shared/utils'
 import styles from './style.module.css'
 import { Spacer } from '../../atoms/spacer'
-import { deposit } from 'crowdfund-contract'
-import * as abundance from 'abundance-token'
+import { abundance, crowdfund } from '../../../shared/contracts'
 
 export interface IFormPledgeProps {
   account: string
@@ -78,7 +77,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     setSubmitting(true)
 
     try {
-      await deposit({
+      await crowdfund.deposit({
         user: props.account,
         amount: BigInt(amount * 10 ** decimals),
       })
