@@ -31,9 +31,11 @@ jobs:
     - run: |
         mkdir -p .soroban-example-dapp
         echo 'futurenet' > .soroban-example-dapp/network
-        echo 'CC757WDV3G442WQCNPNOA2UEXOC7UJD5VP4BLLCRDW5LRM6UZZR6ISVU' > .soroban-example-dapp/abundance_token_id
-        echo 'CCHCPXECLYGX4QU34ZZOHP6C6KVAPIDTUNPIUA6GF4SP6ECFF5BX57OG' > .soroban-example-dapp/crowdfund_id
-        echo 'Standalone Network ; February 2017' > .soroban-example-dapp/passphrase
+        echo 'CAU23MVDEW7VMB3AXC5PL5GZO3HBYZPEIP2P46X4T3AIC4Y7FXYZWES5' > .soroban-example-dapp/abundance_token_id
+        echo 'CDJPYH5HNGZ24SEWXFJOW6RXXHHNKU4XPCPBMB2VRTDPTMVPLYFQKZIE' > .soroban-example-dapp/crowdfund_id
+        echo 'Test SDF Future Network ; October 2022' > .soroban-example-dapp/passphrase
         echo 'https://rpc-futurenet.stellar.org/' > .soroban-example-dapp/rpc-url
+        echo '{"network":"futurenet","rpcUrl":"https://rpc-futurenet.stellar.org","networkPassphrase":"Test SDF Future Network ; October 2022"}' > shared/config.json
+
     - run: npm ci
     - run: npm run build
