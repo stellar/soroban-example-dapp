@@ -14,4 +14,4 @@ export const crowdfund = new Crowdfund.Contract({
   ...Crowdfund.networks[network as keyof typeof Crowdfund.networks],
 })
 
-export const server = new Server(rpcUrl)
+export const server = new Server(rpcUrl, { allowHttp: rpcUrl.startsWith('http:') })
