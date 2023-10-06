@@ -10,21 +10,25 @@
     "setup": "./initialize.sh ${NETWORK:-futurenet} && npm install",
     "clean": "rm -rf .next .soroban .soroban-example-dapp",
     "reset": "npm run clean && npm run setup",
-    "preinstall": "cargo build --target wasm32-unknown-unknown --release && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./.soroban-example-dapp/crowdfund-client --network $(cat ./.soroban-example-dapp/network) --contract-name crowdfund-contract && ./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./.soroban-example-dapp/abundance-client --network $(cat ./.soroban-example-dapp/network) --contract-name abundance-token"
+    "build:contracts": "./target/bin/soroban contract build",
+    "bindings:crowdfund": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/soroban_crowdfund_contract.wasm --id $(cat ./.soroban-example-dapp/crowdfund_id) --output-dir ./.soroban-example-dapp/crowdfund-contract --network $(cat ./.soroban-example-dapp/network) --overwrite",
+    "bindings:abundance": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/abundance_token.wasm --id $(cat ./.soroban-example-dapp/abundance_token_id) --output-dir ./.soroban-example-dapp/abundance-token --network $(cat ./.soroban-example-dapp/network) --overwrite",
+    "bindings": "npm run bindings:crowdfund && npm run bindings:abundance",
+    "preinstall": "npm run build:contracts && npm run bindings"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
     "@stellar/freighter-api": "^1.5.1",
-    "abundance-token": "file:./.soroban-example-dapp/abundance-client/abundance-token",
+    "abundance-token": "file:./.soroban-example-dapp/abundance-token",
     "axios": "^0.27.2",
     "bigint-conversion": "^2.4.1",
-    "crowdfund-contract": "file:./.soroban-example-dapp/crowdfund-client/crowdfund-contract",
+    "crowdfund-contract": "file:./.soroban-example-dapp/crowdfund-contract",
     "humanize-duration": "^3.27.3",
     "moment": "^2.29.4",
     "next": "^13.4.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "soroban-client": "0.9.2"
+    "soroban-client": "1.0.0-beta.2"
   },
   "devDependencies": {
     "@types/humanize-duration": "^3.27.1",

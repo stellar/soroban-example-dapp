@@ -67,6 +67,7 @@ mkdir -p .soroban-example-dapp
 echo $NETWORK > ./.soroban-example-dapp/network
 echo $SOROBAN_RPC_URL > ./.soroban-example-dapp/rpc-url
 echo "$SOROBAN_NETWORK_PASSPHRASE" > ./.soroban-example-dapp/passphrase
+echo "{ \"network\": \"$NETWORK\", \"rpcUrl\": \"$SOROBAN_RPC_URL\", \"networkPassphrase\": \"$SOROBAN_NETWORK_PASSPHRASE\" }" > ./shared/config.json
 
 if !(soroban config identity ls | grep token-admin 2>&1 >/dev/null); then
   echo Create the token-admin identity

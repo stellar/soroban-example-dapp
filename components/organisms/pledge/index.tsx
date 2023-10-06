@@ -7,8 +7,10 @@ import {
   useAccount,
   useSubscription,
 } from '../../../hooks'
-import * as crowdfundContract from 'crowdfund-contract'
-import * as abundanceContract from 'abundance-token'
+import {
+  crowdfund as crowdfundContract,
+  abundance as abundanceContract,
+} from '../../../shared/contracts'
 
 import * as SorobanClient from 'soroban-client'
 import { Deposits, FormPledge } from '../../molecules'
@@ -32,7 +34,7 @@ const Pledge: FunctionComponent = () => {
 
   React.useEffect(() => {
     Promise.all([
-      abundanceContract.balance({ id: crowdfundContract.CONTRACT_ID }),
+      abundanceContract.balance({ id: crowdfundContract.options.contractId }),
       abundanceContract.decimals(),
       abundanceContract.name(),
       abundanceContract.symbol(),
@@ -56,14 +58,22 @@ const Pledge: FunctionComponent = () => {
 
   const [targetReached, setTargetReached] = useState<boolean>(false)
 
-  useSubscription(crowdfundContract, 'pledged_amount_changed', React.useMemo(() => event => {
-    let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
-    setAbundance({ ...abundance!, balance: SorobanClient.scValToNative(eventTokenBalance) })
-  }, [abundance]))
+  useSubscription(
+    crowdfundContract.options.contractId,
+    'pledged_amount_changed',
+    React.useMemo(() => event => {
+      let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
+      setAbundance({ ...abundance!, balance: SorobanClient.scValToNative(eventTokenBalance) })
+    }, [abundance])
+  )
 
-  useSubscription(crowdfundContract, 'target_reached', React.useMemo(() => () => {
-    setTargetReached(true)
-  }, []))
+  useSubscription(
+    crowdfundContract.options.contractId,
+    'target_reached',
+    React.useMemo(() => () => {
+      setTargetReached(true)
+    }, [])
+  )
 
   return (
     <Card>
@@ -116,7 +126,6 @@ const Pledge: FunctionComponent = () => {
               decimals={abundance.decimals || 7}
               name={abundance.name}
               symbol={abundance.symbol}
-              idCrowdfund={crowdfundContract.CONTRACT_ID}
             />
           )}
         </>
