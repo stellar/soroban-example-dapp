@@ -12,9 +12,8 @@ import {
   abundance as abundanceContract,
 } from '../../../shared/contracts'
 
-import * as SorobanClient from 'soroban-client'
+import { scValToNative } from 'stellar-sdk'
 import { Deposits, FormPledge } from '../../molecules'
-let xdr = SorobanClient.xdr
 
 const Pledge: FunctionComponent = () => {
   const [updatedAt, setUpdatedAt] = React.useState<number>(Date.now())
@@ -43,15 +42,15 @@ const Pledge: FunctionComponent = () => {
       crowdfundContract.target(),
     ]).then(fetched => {
       setAbundance({
-        balance: fetched[0],
-        decimals: fetched[1],
-        name: fetched[2].toString(),
-        symbol: fetched[3].toString(),
+        balance: fetched[0].result,
+        decimals: fetched[1].result,
+        name: fetched[2].result.toString(),
+        symbol: fetched[3].result.toString(),
       })
 
       setCrowdfund({
-        deadline: new Date(Number(fetched[4]) * 1000),
-        target: fetched[5],
+        deadline: new Date(Number(fetched[4].result) * 1000),
+        target: fetched[5].result,
       })
     })
   }, [updatedAt])
@@ -62,8 +61,8 @@ const Pledge: FunctionComponent = () => {
     crowdfundContract.options.contractId,
     'pledged_amount_changed',
     React.useMemo(() => event => {
-      let eventTokenBalance = xdr.ScVal.fromXDR(event.value.xdr, 'base64')
-      setAbundance({ ...abundance!, balance: SorobanClient.scValToNative(eventTokenBalance) })
+      let eventTokenBalance = event.value
+      setAbundance({ ...abundance!, balance: scValToNative(eventTokenBalance) })
     }, [abundance])
   )
 
