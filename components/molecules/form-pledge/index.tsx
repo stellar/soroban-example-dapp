@@ -35,7 +35,8 @@ function MintButton({ account, symbol, onComplete, decimals }: { decimals: numbe
       title={`Mint ${displayAmount} ${symbol}`}
       onClick={async () => {
         setSubmitting(true)
-        await abundance.mint({ to: account, amount })
+        const tx = await abundance.mint({ to: account, amount })
+        await tx.signAndSend()
         setSubmitting(false)
         onComplete()
       }}
@@ -61,9 +62,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       abundance.decimals(),
       abundance.symbol(),
     ]).then(fetched => {
-      setBalance(fetched[0])
-      setDecimals(fetched[1])
-      setSymbol(fetched[2].toString())
+      setBalance(fetched[0].result)
+      setDecimals(fetched[1].result)
+      setSymbol(fetched[2].result.toString())
     })
   }, [props.account, props.updatedAt])
 
@@ -77,10 +78,11 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     setSubmitting(true)
 
     try {
-      await crowdfund.deposit({
+      const tx = await crowdfund.deposit({
         user: props.account,
         amount: BigInt(amount * 10 ** decimals),
       })
+      await tx.signAndSend()
 
       setResultSubmit({
         status: 'success',
