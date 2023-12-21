@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "setup": "./initialize.sh ${NETWORK:-futurenet} && npm install",
+    "setup": "./initialize.sh ${NETWORK:-testnet} && npm install",
     "clean": "rm -rf .next .soroban .soroban-example-dapp",
     "reset": "npm run clean && npm run setup",
     "build:contracts": "./target/bin/soroban contract build",
