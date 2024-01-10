@@ -48,7 +48,8 @@ jobs:
       # Rust will frequently add new warnings and checks.
       if: matrix.rust == 'msrv'
       run: echo RUSTFLAGS='-Wclippy::all -Wclippy::pedantic' >> $GITHUB_ENV
-      # TODO: run: echo RUSTFLAGS='-Dwarnings -Wclippy::all -Wclippy::pedantic' >> $GITHUB_ENV
+      # TODO: Deny warnings when the warnings have been cleaned up.
+      # run: echo RUSTFLAGS='-Dwarnings -Wclippy::all -Wclippy::pedantic' >> $GITHUB_ENV
     - run: rustup update
     - run: cargo version
     - run: rustup target add ${{ matrix.sys.target }}
