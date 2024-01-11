@@ -5,9 +5,6 @@ on:
     branches: [main]
   pull_request:
 
-env:
-  RUSTFLAGS: -Wclippy::all -Wclippy::pedantic
-
 jobs:
 
   # complete:
@@ -28,6 +25,7 @@ jobs:
   build-and-test:
     strategy:
       matrix:
+        rust: [msrv, latest]
         sys:
         - os: ubuntu-latest
           target: wasm32-unknown-unknown
@@ -39,7 +37,21 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: stellar/actions/rust-cache@main
+    - name: Use the minimum supported Rust version
+      if: matrix.rust == 'msrv'
+      run: |
+        msrv="$(cargo metadata --format-version 1 --no-deps | jq -r '.packages | map(.rust_version) | map(values) | min')"
+        rustup override set $msrv
+        rustup component add clippy --toolchain $msrv
+    - name: Error on warnings and clippy checks
+      # Only error on warnings and checks for the msrv, because new versions of
+      # Rust will frequently add new warnings and checks.
+      if: matrix.rust == 'msrv'
+      run: echo RUSTFLAGS='-Wclippy::all -Wclippy::pedantic' >> $GITHUB_ENV
+      # TODO: Deny warnings when the warnings have been cleaned up.
+      # run: echo RUSTFLAGS='-Dwarnings -Wclippy::all -Wclippy::pedantic' >> $GITHUB_ENV
     - run: rustup update
+    - run: cargo version
     - run: rustup target add ${{ matrix.sys.target }}
     - run: cargo clippy --target ${{ matrix.sys.target }} --lib
     - if: matrix.sys.target != 'wasm32-unknown-unknown'
