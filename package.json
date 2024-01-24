@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "setup": "./initialize.sh ${NETWORK:-futurenet} && npm install",
+    "setup": "./initialize.sh ${NETWORK:-testnet} && npm install",
     "clean": "rm -rf .next .soroban .soroban-example-dapp",
     "reset": "npm run clean && npm run setup",
     "build:contracts": "./target/bin/soroban contract build",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.0.2",
-    "@stellar/freighter-api": "^1.5.1",
+    "@stellar/freighter-api": "^1.7.1",
     "abundance-token": "file:./.soroban-example-dapp/abundance-token",
     "axios": "^0.27.2",
     "bigint-conversion": "^2.4.1",
@@ -28,7 +28,7 @@
     "next": "^13.4.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "soroban-client": "1.0.0-beta.2"
+    "stellar-sdk": "^11.1.0"
   },
   "devDependencies": {
     "@types/humanize-duration": "^3.27.1",
