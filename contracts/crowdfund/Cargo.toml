@@ -1,5 +1,5 @@
 [package]
-name = "soroban-crowdfund-contract"
+name = "stellar-crowdfund-contract"
 version = "0.0.0"
 edition = "2021"
 rust-version.workspace = true
@@ -12,6 +12,6 @@ crate-type = ["cdylib"]
 [dependencies]
 soroban-sdk = { workspace = true }
 
-[dev_dependencies]
+[dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
 rand = { version = "0.7.3" }

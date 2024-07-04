@@ -5,6 +5,7 @@ import { Utils } from '../../../shared/utils'
 import styles from './style.module.css'
 import { Spacer } from '../../atoms/spacer'
 import { abundance, crowdfund } from '../../../shared/contracts'
+import { getPublicKey, signTransaction } from '@stellar/freighter-api'
 
 export interface IFormPledgeProps {
   account: string
@@ -24,7 +25,17 @@ export interface IResultSubmit {
 /**
  * Mint 100.0000000 tokens to the user's wallet for testing
  */
-function MintButton({ account, symbol, onComplete, decimals }: { decimals: number, account: string; symbol: string, onComplete: () => void }) {
+function MintButton({
+  account,
+  symbol,
+  onComplete,
+  decimals,
+}: {
+  decimals: number
+  account: string
+  symbol: string
+  onComplete: () => void
+}) {
   const [isSubmitting, setSubmitting] = useState(false)
 
   const displayAmount = 100
@@ -35,7 +46,12 @@ function MintButton({ account, symbol, onComplete, decimals }: { decimals: numbe
       title={`Mint ${displayAmount} ${symbol}`}
       onClick={async () => {
         setSubmitting(true)
-        await abundance.mint({ to: account, amount })
+        const tx = await abundance.mint(
+          { to: account, amount },
+          // @ts-expect-error publicKey gets passed along, but the types don't know that!
+          { publicKey: await getPublicKey() }
+        )
+        await tx.signAndSend({ signTransaction })
         setSubmitting(false)
         onComplete()
       }}
@@ -61,9 +77,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
       abundance.decimals(),
       abundance.symbol(),
     ]).then(fetched => {
-      setBalance(fetched[0])
-      setDecimals(fetched[1])
-      setSymbol(fetched[2].toString())
+      setBalance(fetched[0].result)
+      setDecimals(fetched[1].result)
+      setSymbol(fetched[2].result.toString())
     })
   }, [props.account, props.updatedAt])
 
@@ -77,10 +93,18 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
     setSubmitting(true)
 
     try {
-      await crowdfund.deposit({
-        user: props.account,
-        amount: BigInt(amount * 10 ** decimals),
-      })
+      const tx = await crowdfund.deposit(
+        {
+          user: props.account,
+          amount: BigInt(amount * 10 ** decimals),
+        },
+        {
+          // @ts-expect-error publicKey gets passed along, but the types don't know that!
+          publicKey: await getPublicKey(),
+        }
+      )
+
+      await tx.signAndSend({ signTransaction })
 
       setResultSubmit({
         status: 'success',
@@ -97,7 +121,7 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           error: e?.message || 'An error has occurred',
         })
       } else {
-        throw e;
+        throw e
       }
     } finally {
       setSubmitting(false)
@@ -163,7 +187,9 @@ const FormPledge: FunctionComponent<IFormPledgeProps> = props => {
           />
           <div className={styles.wrapper}>
             <div>
-              <h6>Your balance:  {Utils.formatAmount(balance, decimals)} {symbol}</h6>
+              <h6>
+                Your balance: {Utils.formatAmount(balance, decimals)} {symbol}
+              </h6>
             </div>
           </div>
         </div>
