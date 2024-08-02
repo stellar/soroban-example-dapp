@@ -11,7 +11,13 @@ export function Campaign() {
       <h6>Starfund #821</h6>
       <h1>Planetary open-source photography</h1>
       <AuthorInfo author="Sam Stroop" dateTime="21 hours ago" image={avatar} />
-      <Image src={picture} width={642} height={294} alt="project image" />
+      <Image
+        priority
+        src={picture}
+        width={642}
+        height={294}
+        alt="project image"
+      />
       <p>
         Hello! My name is Sam and I’m working with a team of three other
         passionate individuals to take photos of the planets in our solar system

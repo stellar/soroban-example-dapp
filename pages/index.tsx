@@ -15,7 +15,7 @@ const Home: NextPage = () => {
         </title>
         <meta
           name="description"
-          content="An example of loading information from a soroban smart contract"
+          content="An example of loading information from a stellar smart contract"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>

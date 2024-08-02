@@ -6,36 +6,35 @@ on:
   pull_request:
 
 jobs:
-
   complete:
     if: always()
     needs: [build-and-test]
     runs-on: ubuntu-latest
     steps:
-    - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
-      run: exit 1
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
 
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: stellar/actions/rust-cache@main
-    - run: rustup update
-    - run: rustup target add wasm32-unknown-unknown
-    - run: make build
-    - run: cargo install_soroban
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 18.14.2
-        cache: 'npm'
-    - run: |
-        mkdir -p .soroban-example-dapp
-        echo 'futurenet' > .soroban-example-dapp/network
-        echo 'CAU23MVDEW7VMB3AXC5PL5GZO3HBYZPEIP2P46X4T3AIC4Y7FXYZWES5' > .soroban-example-dapp/abundance_token_id
-        echo 'CDJPYH5HNGZ24SEWXFJOW6RXXHHNKU4XPCPBMB2VRTDPTMVPLYFQKZIE' > .soroban-example-dapp/crowdfund_id
-        echo 'Test SDF Future Network ; October 2022' > .soroban-example-dapp/passphrase
-        echo 'https://rpc-futurenet.stellar.org/' > .soroban-example-dapp/rpc-url
-        echo '{"network":"futurenet","rpcUrl":"https://rpc-futurenet.stellar.org","networkPassphrase":"Test SDF Future Network ; October 2022"}' > shared/config.json
+      - uses: actions/checkout@v3
+      - uses: stellar/actions/rust-cache@main
+      - run: rustup update
+      - run: rustup target add wasm32-unknown-unknown
+      - run: make build
+      - run: cargo install_stellar
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.20.3
+          cache: 'npm'
+      - run: |
+          mkdir -p .soroban-example-dapp
+          echo 'futurenet' > .soroban-example-dapp/network
+          echo 'CAU23MVDEW7VMB3AXC5PL5GZO3HBYZPEIP2P46X4T3AIC4Y7FXYZWES5' > .soroban-example-dapp/abundance_token_id
+          echo 'CDJPYH5HNGZ24SEWXFJOW6RXXHHNKU4XPCPBMB2VRTDPTMVPLYFQKZIE' > .soroban-example-dapp/crowdfund_id
+          echo 'Test SDF Future Network ; October 2022' > .soroban-example-dapp/passphrase
+          echo 'https://rpc-futurenet.stellar.org/' > .soroban-example-dapp/rpc-url
+          echo '{"network":"futurenet","rpcUrl":"https://rpc-futurenet.stellar.org","networkPassphrase":"Test SDF Future Network ; October 2022"}' > shared/config.json
 
-    - run: npm ci
-    - run: npm run build
+      - run: npm ci
+      - run: npm run build

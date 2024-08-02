@@ -45,3 +45,5 @@ yarn-error.log*
 
 *.sublime-project
 *.sublime-workspace
+
+contracts/*/test_snapshots/

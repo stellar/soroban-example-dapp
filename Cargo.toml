@@ -1,12 +1,10 @@
 [workspace]
 resolver = "2"
 
-members = [
-    "contracts/*",
-]
+members = ["contracts/*"]
 
 [workspace.package]
-rust-version = "1.74.0"
+rust-version = "1.79.0"
 
 [profile.release]
 opt-level = "z"
@@ -19,5 +17,5 @@ codegen-units = 1
 lto = true
 
 [workspace.dependencies]
-soroban-sdk = "20.0.0-rc2"
-soroban-token-sdk = "20.0.0-rc2"
+soroban-sdk = "21.0.1-preview.3"
+soroban-token-sdk = "21.0.1-preview.3"
