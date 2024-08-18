@@ -18,19 +18,29 @@
     "preinstall": "npm run build:contracts && npm run bindings"
   },
   "dependencies": {
+    "@next-auth/firebase-adapter": "^2.0.1",
     "@radix-ui/react-dialog": "1.1.1",
     "@stellar/freighter-api": "^2.0.0",
     "@stellar/stellar-sdk": "12.1.0",
+    "@stellar/wallet-sdk": "^0.11.2",
+    "@sveltejs/kit": "^2.5.20",
     "abundance-token": "file:./.soroban-example-dapp/abundance-token",
     "crowdfund-contract": "file:./.soroban-example-dapp/crowdfund-contract",
+    "crypto-js": "^4.2.0",
     "humanize-duration": "^3.32.1",
     "moment": "^2.30.1",
     "next": "^14.2.4",
+    "next-auth": "^4.24.7",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.2.1",
+    "stellar-sdk": "^12.2.0",
+    "svelte-local-storage-store": "^0.6.4"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
     "@types/humanize-duration": "^3.27.4",
+    "@types/next-auth": "^3.15.0",
     "@types/node": "20.14.9",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
