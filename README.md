@@ -8,15 +8,15 @@ backed by smart contracts on Stellar.
 # Getting Started
 
 ## Install Dependencies
-
+--------------------
 1. `rustc` >= 1.71.0 with the `wasm32-unknown-unknown` target installed. See https://soroban.stellar.org/docs/getting-started/setup#install-rust . If you have already a lower version, the easiest way to upgrade is to uninstall (`rustup self uninstall`) and install it again.
-2. `soroban-cli`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli
-3. If you want to run everything locally: `docker` (you can run both Standalone and Futurenet backends with it)
+2. `soroban-cli`. See https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli, but instead of `cargo install soroban-cli`, run `cargo install_soroban`. This is an alias set up in [.cargo/config.toml](./.cargo/config.toml), which pins the local soroban-cli to a specific version. If you add `./target/bin/` [to your PATH](https://linuxize.com/post/how-to-add-directory-to-path-in-linux/), then you'll automatically use this version of `soroban-cli` when you're in this directory.
+3. If you want to run everything locally use: `make build-docker` (you can run both Standalone and Futurenet backends with it)
 4. Node.js v18
 5. [Freighter Wallet](https://www.freighter.app/) ≥[v5.0.2](https://github.com/stellar/freighter/releases/tag/2.9.1). Or from the Firefox / Chrome extension store. Once installed, enable "Experimental Mode" in the settings (gear icon).
 6. If you want to skip step (1) and (2) and avoid installing specific `rustc` or `soroban-cli` versions, build the `soroban-preview` docker image:
 
-   make build-docker
+       make build-docker
 
 7. **NOTE** - Follow the instructions below for Futurenet or Standalone and ensure that you have funded your wallet address that you intend to use from browser, otherwise the dapp display will be blank and a 'Account not found' will be printed on browser's console only.
 
