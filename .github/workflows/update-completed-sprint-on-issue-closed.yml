@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Generate token
         id: generate_token
-        uses: tibdex/github-app-token@v1
+        uses: actions/create-github-app-token@v1
         with:
           app_id: ${{ secrets.GH_PROJECT_MANAGEMENT_APP_ID }}
           private_key: ${{ secrets.GH_PROJECT_MANAGEMENT_APP_PEM }}
