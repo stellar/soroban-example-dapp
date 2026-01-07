@@ -14,8 +14,8 @@ jobs:
         id: generate_token
         uses: actions/create-github-app-token@v1
         with:
-          app_id: ${{ secrets.GH_PROJECT_MANAGEMENT_APP_ID }}
-          private_key: ${{ secrets.GH_PROJECT_MANAGEMENT_APP_PEM }}
+          app-id: ${{ secrets.GH_PROJECT_MANAGEMENT_APP_ID }}
+          private-key: ${{ secrets.GH_PROJECT_MANAGEMENT_APP_PEM }}
       - name: Update CompletedSprint on Issue Closed
         id: update_completedsprint_on_issue_closed
         uses: stellar/actions/update-completed-sprint-on-issue-closed@main
